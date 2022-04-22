@@ -28,6 +28,11 @@
 export default {
   name: "HomeView",
   components: {},
+  created: function () {
+    if (!("serial" in navigator)) {
+      this.$router.push({ path: "/not-compatible" });
+    }
+  },
 };
 </script>
 
