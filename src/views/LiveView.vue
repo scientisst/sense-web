@@ -6,7 +6,10 @@
         disconnect
       </button>
       <button v-else class="button" ref="connect" @click="connect">
-        connect
+        <div v-if="connecting">
+          <loading-indicator />
+        </div>
+        <div v-else>connect</div>
       </button>
 
       <div v-if="connected">
@@ -33,6 +36,8 @@
 <script>
 import LogoTopLeft from "../components/LogoTopLeft.vue";
 import ChannelsCharts from "../components/ChannelsCharts.vue";
+import LoadingIndicator from "../components/LoadingIndicator.vue";
+
 /* eslint-disable no-constant-condition */
 import ScientISST from "@scientisst/sense";
 
@@ -41,6 +46,7 @@ export default {
   components: {
     LogoTopLeft,
     ChannelsCharts,
+    LoadingIndicator,
   },
   props: {
     // scientisst: { type: ScientISST },
@@ -51,6 +57,7 @@ export default {
       samplingRate: 100,
       live: false,
       connected: false,
+      connecting: false,
     };
   },
   beforeUnmount() {
@@ -68,9 +75,15 @@ export default {
     connect() {
       ScientISST.requestPort().then(async (scientisst) => {
         if (scientisst) {
+          this.connecting = true;
           this.scientisst = scientisst;
-          await this.scientisst.connect();
-          this.connected = true;
+          try {
+            await this.scientisst.connect();
+            this.connected = true;
+          } catch (e) {
+            // TODO: handle failed connect
+          }
+          this.connecting = false;
         }
       });
     },
@@ -89,12 +102,7 @@ export default {
           let frames;
           while (this.scientisst.live) {
             frames = await this.scientisst.read();
-            this.$refs.charts.addFrames(
-              frames.filter(function (item, index) {
-                return index % Math.ceil(frames.length / 3);
-              }),
-              Date.now()
-            );
+            this.$refs.charts.addFrames(frames);
           }
         });
       }

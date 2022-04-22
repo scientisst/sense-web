@@ -20,7 +20,7 @@ export default {
     channels: {
       type: Array,
     },
-    samplingRate: { default: 100, type: Number },
+    samplingRate: { require: true, type: Number },
     refreshRate: { default: 5, type: Number },
   },
   data: function () {
@@ -29,7 +29,8 @@ export default {
         return { id: value, data: [], last: index == this.channels.length - 1 };
       }),
       windowInSeconds: 3,
-      dt: 1 / this.samplingRate,
+      dt: 1000 / this.samplingRate,
+      timestamp: 0,
     };
   },
   mounted: function () {
@@ -46,14 +47,18 @@ export default {
     }
   },
   methods: {
-    addFrames(frames, timestamp) {
-      frames.forEach((frame, fIndex) => {
-        // const frame = frames[0];
-        frame.a.forEach((value, index) => {
-          const t = timestamp - (frames.length - 1 - fIndex) * this.dt;
-          this.channelsData[index].data.push([t, value]);
+    addFrames(frames) {
+      frames
+        .filter((_, index) => {
+          return index % 2 == 0;
+        })
+        .forEach((frame) => {
+          // const frame = frames[0];
+          this.timestamp += this.dt;
+          frame.a.forEach((value, index) => {
+            this.channelsData[index].data.push([this.timestamp, value]);
+          });
         });
-      });
       const N = this.samplingRate * this.windowInSeconds;
       this.channelsData.forEach((channel, index) => {
         const channelData = channel.data;

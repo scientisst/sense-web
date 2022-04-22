@@ -20,7 +20,7 @@ export default {
         chart: {
           id: "vuechart-example",
           animations: {
-            enabled: true,
+            enabled: false,
             easing: "linear",
             dynamicAnimation: {
               speed: 200,
@@ -65,9 +65,6 @@ export default {
               return new Date(timestamp).toISOString().slice(-13, -5);
             },
           },
-          // labels: {
-          //   format: "mm:ss",
-          // },
         },
         yaxis: {
           min: 0,
@@ -77,10 +74,6 @@ export default {
         markers: {
           size: 0,
         },
-        // xaxis: {
-        //   type: "datetime",
-        //   range: XAXISRANGE,
-        // },
       },
       series: [
         {
