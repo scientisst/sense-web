@@ -5,6 +5,7 @@
       <channel-chart
         ref="channels"
         :data="channel.data"
+        :key="'chart' + channel.id"
         :showXAxisLabels="channel.last"
       />
     </div>
@@ -36,7 +37,7 @@ export default {
   },
   mounted: function () {
     this.interval = setInterval(() => {
-      if (this.channelsData[0].length > 0) {
+      if (this.channelsData[0].data.length > 0) {
         this.$refs.channels.forEach((channel, index) => {
           channel.updateChart(this.channelsData[index].data);
         });
@@ -51,17 +52,13 @@ export default {
   },
   methods: {
     addFrames(frames) {
-      frames
-        .filter((_, index) => {
-          return index % 2 == 0;
-        })
-        .forEach((frame) => {
-          // const frame = frames[0];
-          this.timestamp += this.dt;
-          frame.a.forEach((value, index) => {
-            this.channelsData[index].data.push([this.timestamp, value]);
-          });
+      frames.forEach((frame) => {
+        // const frame = frames[0];
+        this.timestamp += this.dt;
+        frame.a.forEach((value, index) => {
+          this.channelsData[index].data.push([this.timestamp, value]);
         });
+      });
       const N = this.samplingRate * this.windowInSeconds;
       this.channelsData.forEach((channel, index) => {
         const channelData = channel.data;
