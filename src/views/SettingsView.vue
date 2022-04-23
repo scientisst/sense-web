@@ -1,17 +1,19 @@
 <template>
   <div class="settings">
-    <logo-top-left />
-    <h1>ScientISST Sense SETTINGS</h1>
+    <top-bar title="Sense Settings" />
+    <channels-selector />
   </div>
 </template>
 
 <script>
-import LogoTopLeft from "../components/LogoTopLeft.vue";
+import TopBar from "../components/TopBar.vue";
+import ChannelsSelector from "../components/ChannelsSelector.vue";
 
 export default {
   name: "SettingsView",
   components: {
-    LogoTopLeft,
+    TopBar,
+    ChannelsSelector,
   },
 };
 </script>

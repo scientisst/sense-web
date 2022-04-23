@@ -30,7 +30,7 @@ export default {
   components: {},
   created: function () {
     if (!("serial" in navigator)) {
-      this.$router.push({ path: "/not-compatible" });
+      this.$router.replace({ path: "/not-compatible" });
     }
   },
 };
@@ -39,5 +39,12 @@ export default {
 <style scoped>
 #logo {
   margin: 50px 0;
+}
+
+.home {
+  width: 100%;
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
 }
 </style>
