@@ -34,9 +34,10 @@
         Download
       </a>
     </div>
+    <div style="height: 32px" />
     <channels-charts
       ref="charts"
-      :channels="[1, 2, 3]"
+      :channels="channels"
       :samplingRate="samplingRate"
       :refreshRate="15"
     />
@@ -64,8 +65,8 @@ export default {
   data: function () {
     return {
       scientisstCopy: undefined,
-      samplingRate: 100,
-      channels: [1, 2, 3],
+      samplingRate: 1000,
+      channels: [1, 2, 3, 4, 5, 6],
       live: false,
       connected: false,
       connecting: false,
@@ -74,6 +75,22 @@ export default {
       downloadLink: "",
       downloadAutomatic: false,
     };
+  },
+  created() {
+    if (localStorage.samplingRate) {
+      this.samplingRate = parseInt(localStorage.samplingRate);
+    }
+    let activeChannels = [];
+    [1, 2, 3, 4, 5, 6].forEach((channel) => {
+      if (localStorage["ch" + channel]) {
+        if (localStorage["ch" + channel] == "true") {
+          activeChannels.push(channel);
+        }
+      } else {
+        activeChannels.push(channel);
+      }
+    });
+    this.channels = activeChannels;
   },
   beforeUnmount() {
     if (this.interval) {

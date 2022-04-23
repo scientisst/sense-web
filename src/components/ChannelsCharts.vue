@@ -1,12 +1,13 @@
 <template>
   <div class="charts">
-    <channel-chart
-      v-for="channel in channelsData"
-      ref="channels"
-      :key="channel.id"
-      :data="channel.data"
-      :showXAxisLabels="channel.last"
-    />
+    <div v-for="channel in channelsData" :key="channel.id">
+      <div class="channel-title">AI{{ channel.id }}</div>
+      <channel-chart
+        ref="channels"
+        :data="channel.data"
+        :showXAxisLabels="channel.last"
+      />
+    </div>
   </div>
 </template>
 
@@ -35,9 +36,11 @@ export default {
   },
   mounted: function () {
     this.interval = setInterval(() => {
-      this.$refs.channels.forEach((channel, index) => {
-        channel.updateChart(this.channelsData[index].data);
-      });
+      if (this.channelsData[0].length > 0) {
+        this.$refs.channels.forEach((channel, index) => {
+          channel.updateChart(this.channelsData[index].data);
+        });
+      }
     }, Math.ceil(1000 / this.refreshRate));
   },
   beforeUnmount() {
@@ -84,4 +87,8 @@ export default {
 </script>
 
 <style scoped>
+.channel-title {
+  font-size: 17px;
+  font-weight: bold;
+}
 </style>

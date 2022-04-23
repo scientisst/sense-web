@@ -7,6 +7,8 @@
       />
     </div>
 
+    <div style="height: 32px" />
+
     <div class="buttons">
       <router-link to="/live" v-slot="{ href, route, navigate }">
         <button :href="href" @click="navigate" class="button">
@@ -42,7 +44,7 @@ export default {
 }
 
 .home {
-  width: 100%;
+  width: 99vw;
   position: absolute;
   top: 50%;
   transform: translate(0, -50%);
