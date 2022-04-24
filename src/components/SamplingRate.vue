@@ -14,7 +14,7 @@
 export default {
   name: "SamplingRate",
   data() {
-    return { samplingRate: 1000 };
+    return { samplingRate: 100 };
   },
   mounted() {
     if (localStorage.samplingRate) {

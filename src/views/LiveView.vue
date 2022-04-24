@@ -49,6 +49,9 @@ import TopBar from "../components/TopBar.vue";
 import ChannelsCharts from "../components/ChannelsCharts.vue";
 import LoadingIndicator from "../components/LoadingIndicator.vue";
 
+import { createToast } from "mosha-vue-toastify";
+import "mosha-vue-toastify/dist/style.css";
+
 /* eslint-disable no-constant-condition */
 import ScientISST from "@scientisst/sense";
 
@@ -65,7 +68,7 @@ export default {
   data: function () {
     return {
       scientisstCopy: undefined,
-      samplingRate: 1000,
+      samplingRate: 100,
       channels: [1, 2, 3, 4, 5, 6],
       live: false,
       connected: false,
@@ -104,6 +107,14 @@ export default {
     }
   },
   methods: {
+    toast(msg) {
+      createToast(msg, {
+        type: "danger",
+        timeout: 5000,
+        showCloseButton: true,
+        transition: "bounce",
+      });
+    },
     connect() {
       ScientISST.requestPort().then(async (scientisst) => {
         if (scientisst) {
@@ -113,7 +124,7 @@ export default {
             await this.scientisst.connect();
             this.connected = true;
           } catch (e) {
-            // TODO: handle failed connect
+            this.toast(e.toString());
           }
           this.connecting = false;
         }
@@ -147,10 +158,14 @@ export default {
             this.live = true;
             let frames;
             while (this.scientisst.live) {
-              frames = await this.scientisst.read();
-              this.$refs.charts.addFrames(frames);
-              if (this.download) {
-                this.addFramesToFile(frames);
+              try {
+                frames = await this.scientisst.read();
+                this.$refs.charts.addFrames(frames);
+                if (this.download) {
+                  this.addFramesToFile(frames);
+                }
+              } catch (e) {
+                this.toast(e.toString());
               }
             }
           });
