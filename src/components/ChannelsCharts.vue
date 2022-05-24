@@ -2,18 +2,13 @@
   <div class="charts">
     <div v-for="channel in channelsData" :key="channel.id">
       <div class="channel-title">AI{{ channel.id }}</div>
-      <channel-chart
-        ref="channels"
-        :data="channel.data"
-        :key="'chart' + channel.id"
-        :showXAxisLabels="channel.last"
-      />
+      <channel-chart ref="channels" :key="'chart' + channel.id" />
     </div>
   </div>
 </template>
 
 <script>
-import ChannelChart from "./Chart.vue";
+import ChannelChart from "./ChannelChart.vue";
 
 export default {
   name: "ChannelsCharts",
@@ -25,10 +20,10 @@ export default {
     samplingRate: { require: true, type: Number },
     refreshRate: { default: 5, type: Number },
   },
-  data: function () {
+  data() {
     return {
-      channelsData: this.channels.map((value, index) => {
-        return { id: value, data: [], last: index == this.channels.length - 1 };
+      channelsData: this.channels.map((value) => {
+        return { id: value, data: [] };
       }),
       windowInSeconds: 3,
       dt: 1000 / this.samplingRate,
@@ -37,12 +32,18 @@ export default {
   },
   mounted: function () {
     this.interval = setInterval(() => {
-      if (this.channelsData[0].data.length > 0) {
-        this.$refs.channels.forEach((channel, index) => {
-          channel.updateChart(this.channelsData[index].data);
-        });
-      }
-    }, Math.ceil(1000 / this.refreshRate));
+      // if (this.channelsData[0].data.length > 0) {
+      // this.$refs.channels.forEach((channel, index) => {
+      // channel.updateChart(this.channelsData[index].data);
+      // this.$refs.channels[0].addData({ x: this.timestamp, y: Math.random() });
+      this.timestamp += this.dt;
+
+      // this.$refs.channels.forEach((channel) => {
+      //   channel.addData({ x: this.timestamp, y: Math.random() * 4095 });
+      // });
+      // }
+    }, Math.ceil(2000));
+    // }, Math.ceil(1000 / this.refreshRate));
   },
   beforeUnmount() {
     if (this.interval) {
@@ -70,16 +71,6 @@ export default {
       });
     },
   },
-  // data: function () {
-  // const channelsData = {};
-  // this.channels.array.forEach((channel) => {
-  //   channelsData[channel] = [];
-  // });
-  // return { channelsData: channelsData };
-  // return {
-  //   message: "",
-  // };
-  // },
 };
 </script>
 

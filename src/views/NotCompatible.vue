@@ -33,6 +33,11 @@ export default {
   components: {
     LogoTopLeft,
   },
+  created: function () {
+    if ("serial" in navigator) {
+      this.$router.replace({ path: "/" });
+    }
+  },
 };
 </script>
 
