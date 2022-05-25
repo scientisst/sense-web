@@ -9,7 +9,7 @@
     "deploy": "npm run build && echo 'sense.scientisst.com' > ./dist/CNAME && gh-pages -d dist"
   },
   "dependencies": {
-    "@scientisst/sense": "^1.0.2",
+    "@scientisst/sense": "^1.0.5",
     "chart.js": "^3.7.1",
     "chartjs-adapter-moment": "^1.0.0",
     "chartjs-plugin-zoom": "^1.2.1",

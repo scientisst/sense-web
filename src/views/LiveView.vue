@@ -216,7 +216,9 @@ export default {
                   this.addFramesToFile(frames);
                 }
               } catch (e) {
-                this.toast(e.toString());
+                if (this.scientisst.live) {
+                  this.toast(e.toString());
+                }
               }
             }
           });
