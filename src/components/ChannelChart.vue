@@ -3,13 +3,9 @@
 </template>
 
 <script>
-// import { shallowRef } from "vue";
 import Chart from "chart.js/auto";
 import "chartjs-adapter-moment";
 import { LTTB } from "downsample";
-// import zoomPlugin from "chartjs-plugin-zoom";
-
-// Chart.register(zoomPlugin);
 
 export default {
   name: "ChannelChart",
@@ -63,25 +59,6 @@ export default {
         legend: {
           display: false,
         },
-        // zoom: {
-        //   limits: {
-        //     y: { min: 0, max: 4096, minRange: 1 },
-        //     x: { minRange: 1000 },
-        //   },
-        //   pan: {
-        //     enabled: true,
-        //     mode: "xy",
-        //   },
-        //   zoom: {
-        //     wheel: {
-        //       enabled: true,
-        //     },
-        //     pinch: {
-        //       enabled: true,
-        //     },
-        //     mode: "xy",
-        //   },
-        // },
       },
       scales: {
         x: {
@@ -103,8 +80,6 @@ export default {
           },
         },
         y: {
-          // min: 0,
-          // max: 4096,
           ticks: {
             //   // Disabled rotation for performance
             maxRotation: 0,
