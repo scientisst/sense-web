@@ -121,10 +121,11 @@ export default {
         }
         this.chart.data.datasets[0].data.splice(0, i);
       }
-      const min = this.timestamp - (this.duration - this.zoomFactor) * 1000;
-      if (min >= this.chart.data.datasets[0].data[0].x) {
-        this.chart.options.scales.x.min = min;
-      }
+      const min = Math.max(
+        this.timestamp - (this.duration - this.zoomFactor) * 1000,
+        0
+      );
+      this.chart.options.scales.x.min = min;
       this.chart.options.scales.x.max = this.timestamp;
       this.chart.update();
     },
