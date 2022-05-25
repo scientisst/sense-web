@@ -1,5 +1,5 @@
 <template>
-  <div class="about">
+  <div class="live">
     <top-bar title="Live Acquisition" />
     <div class="buttons">
       <button v-if="connected" class="button" ref="connect" @click="disconnect">
@@ -39,8 +39,49 @@
       ref="charts"
       :channels="channels"
       :samplingRate="samplingRate"
-      :refreshRate="15"
+      :refreshRate="5"
     />
+    <div style="height: 100px" />
+    <Modal v-model="isShow" :close="closeModal">
+      <div class="modal">
+        <h2>Pair your device</h2>
+        <div v-if="this.platform.includes('Linux')">
+          First, you must pair your device to your computer.
+          <br />
+          Now, the tricky part is establishing a serial communication. You have
+          to options:
+          <br />
+          <br />
+          <b>1.</b> Open a connection to the device:
+          <br />
+          <pre>sudo rfcomm connect 0 [device MAC address]</pre>
+          <br />
+          <b>2.</b> Bind the device to a serial port:
+          <br />
+          <pre>sudo rfcomm bind 0 [device MAC address]</pre>
+          <br />
+          You can choose one of the above. The first option will start a process
+          and, once terminated, the connection is closed. The second option will
+          bind the device to serial port 0. To unbid that port, do:
+          <br />
+          <pre>sudo rfcomm unbind 0</pre>
+          <br />
+          The <i>[device MAC address]</i> is something like:
+          <i>E8:9F:6D:D2:BC:5A</i>.
+          <br />
+          You can also select a different port number, e.g.:
+          <br />
+          <pre>sudo rfcomm connect 1 [device MAC address]</pre>
+        </div>
+        <div v-else-if="this.platform.includes('Windows')">
+          Insert Instructions for Windows
+        </div>
+        <div v-else>Insert Instructions for Mac</div>
+        <div style="height: 32px" />
+        <button class="button" @click="closeModal">Got it!</button>
+      </div>
+    </Modal>
+    <button id="help-button" @click="showModal">?</button>
   </div>
 </template>
 
@@ -62,13 +103,15 @@ export default {
     ChannelsCharts,
     LoadingIndicator,
   },
+
   props: {
     // scientisst: { type: ScientISST },
   },
   data: function () {
     return {
+      isShow: false,
       scientisstCopy: undefined,
-      samplingRate: 100,
+      samplingRate: 1000,
       channels: [1, 2, 3, 4, 5, 6],
       live: false,
       connected: false,
@@ -77,6 +120,8 @@ export default {
       download: true,
       downloadLink: "",
       downloadAutomatic: false,
+      showHelp: false,
+      platform: navigator.platform,
     };
   },
   created() {
@@ -116,19 +161,28 @@ export default {
       });
     },
     connect() {
-      ScientISST.requestPort().then(async (scientisst) => {
-        if (scientisst) {
-          this.connecting = true;
-          this.scientisst = scientisst;
-          try {
-            await this.scientisst.connect();
-            this.connected = true;
-          } catch (e) {
-            this.toast(e.toString());
+      ScientISST.requestPort()
+        .then(async (scientisst) => {
+          if (scientisst) {
+            this.connecting = true;
+            this.scientisst = scientisst;
+            try {
+              await this.scientisst.connect();
+              this.connected = true;
+            } catch (e) {
+              this.toast(e.toString());
+            }
+            this.connecting = false;
           }
-          this.connecting = false;
-        }
-      });
+        })
+        .catch((e) => {
+          if (e instanceof DOMException) {
+            this.toast("Make sure the device is paired and select a port");
+            // specific error
+          } else {
+            throw e; // let others bubble up
+          }
+        });
     },
     disconnect() {
       if (this.scientisst) {
@@ -138,7 +192,7 @@ export default {
         });
       }
     },
-    fileHeader() {
+    getHeader() {
       let header = "";
       header += "NSeq\tI1\tI2\tO1\tO2";
       this.channels.forEach((channel) => {
@@ -149,12 +203,33 @@ export default {
       });
       return header;
     },
+    getMetadata() {
+      let iso;
+      const timestamp = (iso = new Date()).valueOf();
+      let metadata = {
+        Channels: this.channels,
+        "Channels indexes mV": this.channels.map((channel) => channel * 2 + 4),
+        "Channels indexes raw": this.channels.map((channel) => channel * 2 + 3),
+        "Channels labels": this.channels
+          .map((channel) => ["AI" + channel + "_raw", "AI" + channel + "_mV"])
+          .flat(),
+        Header: this.getHeader().split("\t"),
+        "ISO 8601": iso,
+        "Resolution (bits)": [4, 1, 1, 1, 1] + this.channels.map(() => 12),
+        "Sampling rate (Hz)": this.samplingRate,
+        Timestamp: timestamp,
+      };
+      return metadata;
+    },
     start() {
       if (this.scientisst) {
-        this.fileData = this.fileHeader();
+        const metadata = this.getMetadata();
+        this.fileData = "#" + JSON.stringify(metadata) + "\n";
+        this.fileData += this.getHeader();
         this.scientisst
           .start(this.samplingRate, this.channels)
           .then(async () => {
+            this.$refs.charts.reset();
             this.live = true;
             let frames;
             while (this.scientisst.live) {
@@ -183,7 +258,8 @@ export default {
     addFramesToFile(frames) {
       let line;
       frames.forEach((frame) => {
-        line = frame.seq;
+        line = "\n";
+        line += frame.seq;
         line += "\t";
         line += frame.digital.join("\t");
         for (let i = 0; i < this.channels.length; i++) {
@@ -192,7 +268,7 @@ export default {
           line += "\t";
           line += frame.mv[i];
         }
-        this.fileData += "\n" + line;
+        this.fileData += line;
       });
     },
     saveFile(filename, data) {
@@ -205,6 +281,12 @@ export default {
       if (this.downloadAutomatic) {
         btn.downloadBtn.click();
       }
+    },
+    showModal() {
+      this.isShow = true;
+    },
+    closeModal() {
+      this.isShow = false;
     },
   },
 };
@@ -222,7 +304,7 @@ export default {
   }
 }
 .recording {
-  animation: flashing 2000ms infinite;
+  animation: flashing 1000ms infinite;
   animation-direction: alternate;
   animation-timing-function: ease-in-out;
 }
@@ -243,5 +325,66 @@ export default {
 
 .hide {
   display: none;
+}
+
+#help-button {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  margin: 32px;
+  width: 3rem;
+  height: 3rem;
+  padding: 1rem;
+  border: none;
+  cursor: pointer;
+  background: none;
+  text-align: center;
+  color: white;
+  font-size: 17px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  box-shadow: 0px 0px 0px 3px var(--main-color);
+  border-radius: 360px;
+  background: var(--main-color);
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+}
+
+#help-button:hover {
+  box-shadow: 0px 0px 0px 16px #f37a8455, 0px 0px 0px 9px #f1626f55,
+    0px 0px 0px 3px var(--main-color);
+}
+
+.modal {
+  width: 800px;
+  padding: 32px;
+  box-sizing: border-box;
+  background-color: #fff;
+  font-size: 20px;
+  text-align: center;
+  border-radius: 12px;
+}
+
+pre {
+  background: #f4f4f4;
+  border: 1px solid #ddd;
+  color: #666;
+  page-break-inside: avoid;
+  font-family: monospace;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 1.6em;
+  padding: 1em 1.5em;
+  display: inline-block;
+  word-wrap: break-word;
+}
+
+h2 {
+  font-size: 1.5em;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 2px;
 }
 </style>

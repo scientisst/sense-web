@@ -18,11 +18,11 @@
     <div class="boards-container">
       <div class="board-container">
         <div class="channel-highlight" ref="frontHighlight" />
-        <img src="../assets/img/board/front.png" class="board-img" />
+        <img src="../assets/img/board/front-1000.png" class="board-img" />
       </div>
       <div class="board-container">
         <div class="channel-highlight" ref="backHighlight" />
-        <img src="../assets/img/board/back.png" class="board-img" />
+        <img src="../assets/img/board/back-1000.png" class="board-img" />
       </div>
     </div>
   </div>

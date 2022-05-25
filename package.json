@@ -10,16 +10,16 @@
   },
   "dependencies": {
     "@scientisst/sense": "^1.0.2",
-    "apexcharts": "^3.35.0",
     "chart.js": "^3.7.1",
     "chartjs-adapter-moment": "^1.0.0",
+    "chartjs-plugin-zoom": "^1.2.1",
     "core-js": "^3.8.3",
+    "downsample": "^1.4.0",
     "moment": "^2.29.3",
     "mosha-vue-toastify": "^1.0.23",
     "vue": "^3.2.13",
-    "vue-chartjs": "^4.1.0",
     "vue-router": "^4.0.3",
-    "vue3-apexcharts": "^1.4.1"
+    "vue-universal-modal": "^1.1.3"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

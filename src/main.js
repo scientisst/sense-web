@@ -1,6 +1,11 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import VueApexCharts from "vue3-apexcharts";
 
-createApp(App).use(router).use(VueApexCharts).mount('#app')
+import 'vue-universal-modal/dist/index.css'
+
+import VueUniversalModal from 'vue-universal-modal'
+
+createApp(App).use(router).use(VueUniversalModal, {
+    teleportTarget: '#modals'
+}).mount('#app')

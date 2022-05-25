@@ -1,8 +1,29 @@
 <template>
+  <div id="buttons">
+    <button @click="this.zoomIn()">-</button>
+    <p>{{ this.duration - this.zoomFactor }} s</p>
+    <button @click="this.zoomOut()">+</button>
+  </div>
   <div class="charts">
-    <div v-for="channel in channelsData" :key="channel.id">
-      <div class="channel-title">AI{{ channel.id }}</div>
-      <channel-chart ref="channels" :key="'chart' + channel.id" />
+    <div class="chart" v-for="channel in channelsData" :key="channel.id">
+      <div class="resize">
+        <div class="channel-title">AI{{ channel.id }}</div>
+        <channel-chart
+          ref="channels"
+          :key="'chart' + channel.id"
+          :sampleRate="this.samplingRate"
+          :duration="this.duration"
+          :label="'AI' + channel.id"
+          :zoomFactor="this.zoomFactor"
+        />
+        <div class="resizeUI">
+          <img
+            src="../assets/img/resize.svg"
+            alt="resize"
+            class="resize-icon"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -25,50 +46,43 @@ export default {
       channelsData: this.channels.map((value) => {
         return { id: value, data: [] };
       }),
-      windowInSeconds: 3,
       dt: 1000 / this.samplingRate,
       timestamp: 0,
+      duration: 10,
+      zoomFactor: 5,
     };
-  },
-  mounted: function () {
-    this.interval = setInterval(() => {
-      // if (this.channelsData[0].data.length > 0) {
-      // this.$refs.channels.forEach((channel, index) => {
-      // channel.updateChart(this.channelsData[index].data);
-      // this.$refs.channels[0].addData({ x: this.timestamp, y: Math.random() });
-      this.timestamp += this.dt;
-
-      // this.$refs.channels.forEach((channel) => {
-      //   channel.addData({ x: this.timestamp, y: Math.random() * 4095 });
-      // });
-      // }
-    }, Math.ceil(2000));
-    // }, Math.ceil(1000 / this.refreshRate));
-  },
-  beforeUnmount() {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = undefined;
-    }
   },
   methods: {
     addFrames(frames) {
       frames.forEach((frame) => {
-        // const frame = frames[0];
         this.timestamp += this.dt;
-        frame.a.forEach((value, index) => {
-          this.channelsData[index].data.push([this.timestamp, value]);
+        this.channelsData.forEach((channel, index) => {
+          channel.data.push({ x: this.timestamp, y: frame.a[index] });
         });
       });
-      const N = this.samplingRate * this.windowInSeconds;
-      this.channelsData.forEach((channel, index) => {
-        const channelData = channel.data;
-        if (channelData.length >= N) {
-          this.channelsData[index].data = channelData.slice(
-            channelData.length - N
-          );
-        }
+      this.$refs.channels.forEach((channel, index) => {
+        channel.addData(this.channelsData[index].data);
+        this.channelsData[index].data.length = 0;
       });
+    },
+    reset() {
+      this.timestamp = 0;
+      this.channelsData.forEach((channel) => {
+        channel.data.length = 0;
+      });
+      this.$refs.channels.forEach((channel) => {
+        channel.reset();
+      });
+    },
+    zoomIn() {
+      if (this.zoomFactor < this.duration - 1) {
+        this.zoomFactor++;
+      }
+    },
+    zoomOut() {
+      if (this.zoomFactor > 0) {
+        this.zoomFactor--;
+      }
     },
   },
 };
@@ -78,5 +92,73 @@ export default {
 .channel-title {
   font-size: 17px;
   font-weight: bold;
+}
+
+.charts {
+  margin: auto;
+  width: 95vw;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+
+.resize {
+  display: inline-block;
+  width: 90vw;
+  height: 350px;
+  padding-top: 20px;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-bottom: 40px;
+  border: 2px solid #dedede;
+  border-radius: 25px;
+  resize: both;
+  overflow: hidden;
+  position: relative;
+}
+
+.resizeUI {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  bottom: 8px;
+  right: 8px;
+  background: inherit;
+  padding: 0px 3px;
+  pointer-events: none;
+}
+
+.resize::-webkit-resizer {
+  background-color: transparent;
+}
+
+#buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+#buttons button {
+  text-align: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  cursor: pointer;
+  background: none;
+  text-align: center;
+  color: var(--main-color);
+  font-size: 17px;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0px 0px 0px 3px var(--main-color);
+  border-radius: 32px;
+}
+
+#buttons p {
+  margin-top: 3px;
+  margin-bottom: 0;
+  color: #888;
 }
 </style>
