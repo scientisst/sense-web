@@ -201,7 +201,7 @@ export default {
       if (this.scientisst) {
         const metadata = this.getMetadata();
         this.fileData = "#" + JSON.stringify(metadata) + "\n";
-        this.fileData += this.getHeader();
+        this.fileData += "#" + this.getHeader();
         this.scientisst
           .start(this.samplingRate, this.channels)
           .then(async () => {
