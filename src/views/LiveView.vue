@@ -39,7 +39,6 @@
       ref="charts"
       :channels="channels"
       :samplingRate="samplingRate"
-      :refreshRate="5"
     />
     <div style="height: 100px" />
     <Modal v-model="isShow" :close="closeModal">
@@ -102,7 +101,7 @@ export default {
   },
   created() {
     if (localStorage.samplingRate) {
-      this.samplingRate = parseInt(localStorage.samplingRate);
+      this.samplingRate = parseInt(localStorage.samplingRate.trim());
     }
     let activeChannels = [];
     [1, 2, 3, 4, 5, 6].forEach((channel) => {
@@ -206,6 +205,7 @@ export default {
           .start(this.samplingRate, this.channels)
           .then(async () => {
             this.$refs.charts.reset();
+            this.$refs.charts.start();
             this.live = true;
             let frames;
             while (this.scientisst.live) {
@@ -225,6 +225,7 @@ export default {
       }
     },
     stop() {
+      this.$refs.charts.stop();
       this.scientisst.stop().then(() => {
         this.live = false;
         if (this.download) {
@@ -322,6 +323,7 @@ export default {
   font-weight: 1000;
   text-transform: uppercase;
   box-shadow: 0px 0px 0px 3px var(--main-color);
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
   border-radius: 360px;
   background: var(--main-color);
   -webkit-user-select: none; /* Safari */

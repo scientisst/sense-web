@@ -7,9 +7,9 @@
   <div class="charts">
     <div class="chart" v-for="channel in channelsData" :key="channel.id">
       <div class="resize">
-        <div class="channel-title">AI{{ channel.id }}</div>
         <channel-chart
           ref="channels"
+          :title="'AI' + channel.id"
           :key="'chart' + channel.id"
           :sampleRate="this.samplingRate"
           :duration="this.duration"
@@ -53,6 +53,16 @@ export default {
     };
   },
   methods: {
+    start() {
+      this.$refs.channels.forEach((channel) => {
+        channel.startRefresh();
+      });
+    },
+    stop() {
+      this.$refs.channels.forEach((channel) => {
+        channel.stopRefresh();
+      });
+    },
     addFrames(frames) {
       frames.forEach((frame) => {
         this.timestamp += this.dt;
@@ -61,8 +71,12 @@ export default {
         });
       });
       this.$refs.channels.forEach((channel, index) => {
-        channel.addData(this.channelsData[index].data);
-        this.channelsData[index].data.length = 0;
+        channel.addData(
+          this.channelsData[index].data.splice(
+            0,
+            this.channelsData[index].data.length
+          )
+        );
       });
     },
     reset() {
@@ -89,11 +103,6 @@ export default {
 </script>
 
 <style scoped>
-.channel-title {
-  font-size: 17px;
-  font-weight: bold;
-}
-
 .charts {
   margin: auto;
   width: 95vw;
@@ -106,11 +115,11 @@ export default {
 .resize {
   display: inline-block;
   width: 90vw;
-  height: 350px;
+  height: 300px;
   padding-top: 20px;
   padding-left: 30px;
   padding-right: 30px;
-  padding-bottom: 40px;
+  padding-bottom: 50px;
   border: 2px solid #dedede;
   border-radius: 25px;
   resize: both;

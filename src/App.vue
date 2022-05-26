@@ -1,11 +1,37 @@
 <template>
-  <router-view></router-view>
+  <div class="wrapper">
+    <router-view />
+  </div>
   <div id="modals"></div>
+  <page-footer />
 </template>
+
+<script>
+import PageFooter from "@/components/PageFooter.vue";
+
+export default {
+  name: "senseApp",
+  components: {
+    PageFooter,
+  },
+};
+</script>
 
 <style>
 :root {
   --main-color: #ef4b59;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+}
+
+.wrapper {
+  flex-grow: 1;
+}
+.footer {
+  height: 50px;
 }
 
 #app {
@@ -14,7 +40,9 @@
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  height: 97vh;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 nav {

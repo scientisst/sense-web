@@ -1,4 +1,17 @@
 <template>
+  <div id="chart-options">
+    <div class="channel-title">{{ title }}</div>
+    <div style="flex-grow: 1"></div>
+    <circular-button @click="zoomOut">
+      <font-awesome-icon icon="magnifying-glass-minus" />
+    </circular-button>
+    <toggle-button :value="autoscale" @input="setAutoscale">
+      <font-awesome-icon icon="magnifying-glass-chart"
+    /></toggle-button>
+    <circular-button @click="zoomIn">
+      <font-awesome-icon icon="magnifying-glass-plus" />
+    </circular-button>
+  </div>
   <canvas ref="chart" id="chart" />
 </template>
 
@@ -6,10 +19,17 @@
 import Chart from "chart.js/auto";
 import "chartjs-adapter-moment";
 import { LTTB } from "downsample";
+import ToggleButton from "./ToggleButton.vue";
+import CircularButton from "./CircularButton.vue";
 
 export default {
   name: "ChannelChart",
+  components: { ToggleButton, CircularButton },
   props: {
+    title: {
+      type: String,
+      default: "",
+    },
     label: {
       type: String,
       default: "undefined",
@@ -25,7 +45,25 @@ export default {
     zoomFactor: { type: Number, default: 5 },
   },
   data() {
-    return { timestamp: 0 };
+    return {
+      timestamp: 0,
+      autoscale: false,
+      zoom: 1,
+      zoomChanged: false,
+      maxZoom: 10,
+      avg: undefined,
+      alpha: Math.min(1, 10 / this.sampleRate),
+      buffer: [],
+      refreshRate: 5,
+      widthFactor: 1,
+      width: 1500,
+      plotSampleRate: 100,
+    };
+  },
+  computed: {
+    decimateFactor() {
+      return this.plotSampleRate / this.sampleRate;
+    },
   },
   mounted() {
     const ctx = this.$refs.chart;
@@ -101,25 +139,134 @@ export default {
       },
       options: config,
     });
+    this.updateAutoscale();
+  },
+  beforeUnmount() {
+    this.stopRefresh();
   },
   methods: {
-    addData(data) {
-      if (data.length > 20) {
-        this.chart.data.datasets[0].data.push(...LTTB(data, 20));
-      } else {
-        this.chart.data.datasets[0].data.push(...data);
+    startRefresh() {
+      this.interval = setInterval(() => {
+        this.updateChart();
+      }, Math.ceil(1000 / this.refreshRate));
+    },
+    stopRefresh() {
+      if (this.interval) {
+        clearInterval(this.interval);
+        this.interval = undefined;
       }
-
+      this.updateChart(true);
+    },
+    visible() {
+      const rect = this.$refs.chart.getBoundingClientRect();
+      this.widthFactor = Math.min(1, rect.width / this.width);
+      return (
+        rect.bottom >= 0 &&
+        rect.right >= 0 &&
+        rect.top <=
+          (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.left <= (window.innerWidth || document.documentElement.clientWidth)
+      );
+    },
+    updateChart(force = false) {
+      if (this.visible() || force) {
+        this.updateXAxis();
+        this.updateYAxis();
+        this.chart.update();
+      }
+    },
+    zoomIn() {
+      if (this.autoscale) {
+        this.autoscale = false;
+      }
+      if (this.zoom < this.maxZoom) {
+        this.zoom++;
+        this.zoomChanged = true;
+      }
+    },
+    zoomOut() {
+      if (this.autoscale) {
+        this.autoscale = false;
+      }
+      if (this.zoom > 1) {
+        this.zoom--;
+        this.zoomChanged = true;
+      }
+    },
+    setAutoscale(event) {
+      if (event.target) {
+        this.autoscale = event.target.checked;
+        this.updateAutoscale();
+      }
+    },
+    updateAutoscale() {
+      if (this.chart) {
+        if (this.autoscale) {
+          this.chart.options.scales.y.min = null;
+          this.chart.options.scales.y.max = null;
+        } else {
+          this.chart.options.scales.y.min = 0;
+          this.chart.options.scales.y.max = 4095;
+        }
+        this.updateChart();
+      }
+    },
+    pushData(data) {
+      for (let i = 0; i < data.length; i++) {
+        this.chart.data.datasets[0].data.push(data[i]);
+        this.avg = (1 - this.alpha) * this.avg + this.alpha * data[i].y;
+      }
+    },
+    addData(data) {
+      if (this.avg == undefined) {
+        this.avg = data[0].y;
+      }
+      if (this.sampleRate > 100) {
+        this.pushData(
+          LTTB(
+            data,
+            Math.floor(data.length * this.decimateFactor * this.widthFactor)
+          )
+        );
+      } else {
+        this.pushData(data);
+      }
+    },
+    updateYAxis() {
+      if (!this.autoscale) {
+        if (this.zoom == 1) {
+          if (this.zoomChanged) {
+            this.zoomChanged = false;
+            this.chart.options.scales.y.min = 0;
+            this.chart.options.scales.y.max = 4095;
+          }
+        } else {
+          const gap = 2047 * (1 - 0.1 * (this.zoom - 1));
+          let min = Math.max(0, this.avg - gap);
+          let max = Math.min(4095, this.avg + gap);
+          if (max - min < gap * 2) {
+            if (min == 0) {
+              max = gap * 2;
+            } else if (max == 4095) {
+              min -= gap - (max - min);
+            }
+          }
+          this.chart.options.scales.y.min = Math.floor(min);
+          this.chart.options.scales.y.max = Math.floor(max);
+        }
+      }
+    },
+    updateXAxis() {
       const chartData = this.chart.data.datasets[0].data;
       if (chartData.length > 0) {
-        this.timestamp = data[data.length - 1].x;
+        this.timestamp = chartData[chartData.length - 1].x;
         let i = 0;
         for (i = 0; i < chartData.length; i++) {
           if (chartData[i].x >= this.timestamp - this.duration * 1000) {
             break;
           }
         }
-        this.chart.data.datasets[0].data.splice(0, i);
+        chartData.splice(0, i);
       }
       const min = Math.max(
         this.timestamp - (this.duration - this.zoomFactor) * 1000,
@@ -127,7 +274,6 @@ export default {
       );
       this.chart.options.scales.x.min = min;
       this.chart.options.scales.x.max = this.timestamp;
-      this.chart.update();
     },
     reset() {
       this.chart.data.datasets[0].data = [];
@@ -135,3 +281,26 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.channel-title {
+  padding: 2px;
+  background: var(--main-color);
+  text-align: center;
+  color: white;
+  font-size: 17px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: 3px solid var(--main-color);
+  border-radius: 4px;
+  margin: 2px;
+}
+
+#chart-options {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+</style>

@@ -44,9 +44,10 @@ export default {
 }
 
 .home {
-  width: 99vw;
-  position: absolute;
-  top: 50%;
-  transform: translate(0, -50%);
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 </style>
