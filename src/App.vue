@@ -85,4 +85,11 @@ nav a.router-link-exact-active {
   box-shadow: 0px 0px 0px 16px #f37a8455, 0px 0px 0px 9px #f1626f55,
     0px 0px 0px 3px var(--main-color);
 }
+
+.button:focus {
+  outline: none;
+}
+button:focus {
+  outline: none;
+}
 </style>

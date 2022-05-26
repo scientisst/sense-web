@@ -26,7 +26,7 @@
         </div>
         <div class="column gap">
           <a href="https://scientisst.com/">
-            <img src="@/assets/img/logos/ScientISST-Hor-Wht.svg" height="34" />
+            <img src="@/assets/img/logos/ScientISST-Hor-Wht.svg" />
           </a>
           <div class="row gap">
             <a href="https://it.pt/">
@@ -56,7 +56,7 @@ export default {
 }
 
 #content {
-  padding: 32px;
+  padding: 16px;
   max-width: 1000px;
   margin: auto;
 }
@@ -82,6 +82,7 @@ export default {
 
 p {
   text-align: left;
+  font-size: 14px;
 }
 
 a,
@@ -90,5 +91,9 @@ a:focus,
 a:active {
   text-decoration: none;
   color: inherit;
+}
+
+img {
+  height: 30px;
 }
 </style>
