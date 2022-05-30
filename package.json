@@ -1,6 +1,6 @@
 {
-  "name": "sense-vue",
-  "version": "0.1.0",
+  "name": "SENSE",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -23,6 +23,7 @@
     "lodash.uniqueid": "^4.0.1",
     "moment": "^2.29.3",
     "mosha-vue-toastify": "^1.0.23",
+    "register-service-worker": "^1.7.2",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
     "vue-universal-modal": "^1.1.3"
@@ -32,6 +33,7 @@
     "@babel/eslint-parser": "^7.12.16",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-plugin-pwa": "~5.0.0",
     "@vue/cli-plugin-router": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
     "eslint": "^7.32.0",

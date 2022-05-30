@@ -92,4 +92,9 @@ nav a.router-link-exact-active {
 button:focus {
   outline: none;
 }
+
+.active {
+  color: white;
+  background-color: #ef4b59;
+}
 </style>

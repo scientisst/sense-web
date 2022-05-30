@@ -297,11 +297,6 @@ export default {
   color: initial;
 }
 
-.active {
-  color: white;
-  background-color: #ef4b59;
-}
-
 .hide {
   display: none;
 }
