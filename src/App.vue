@@ -94,7 +94,7 @@ button:focus {
 }
 
 .active {
-  color: white;
+  color: white !important;
   background-color: #ef4b59;
 }
 </style>
