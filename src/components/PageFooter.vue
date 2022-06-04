@@ -5,16 +5,16 @@
         <div class="column">
           <div class="row gap" id="social-icons">
             <a href="https://github.com/scientisst"
-              ><font-awesome-icon :icon="['fab', 'github']" size="xl"
+              ><font-awesome-icon :icon="['fab', 'github']" size="lg"
             /></a>
             <a href="https://www.instagram.com/scientissthub/">
-              <font-awesome-icon :icon="['fab', 'instagram']" size="xl" />
+              <font-awesome-icon :icon="['fab', 'instagram']" size="lg" />
             </a>
             <a href="https://www.facebook.com/ScientISST">
-              <font-awesome-icon :icon="['fab', 'facebook']" size="xl" />
+              <font-awesome-icon :icon="['fab', 'facebook']" size="lg" />
             </a>
             <a href="https://www.linkedin.com/company/scientisst/">
-              <font-awesome-icon :icon="['fab', 'linkedin']" size="xl" />
+              <font-awesome-icon :icon="['fab', 'linkedin']" size="lg" />
             </a>
           </div>
           <p>

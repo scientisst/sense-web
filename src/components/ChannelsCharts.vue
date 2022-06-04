@@ -5,6 +5,18 @@
     <button @click="this.zoomOut()">+</button>
   </div>
   <div class="charts">
+    <div class="chart">
+      <div class="resize">
+        <digital-channel-chart
+          :title="'I1'"
+          :key="'I1'"
+          :sampleRate="this.samplingRate"
+          :duration="this.duration"
+          :label="'I1'"
+          :zoomFactor="this.zoomFactor"
+        />
+      </div>
+    </div>
     <div class="chart" v-for="channel in channelsData" :key="channel.id">
       <div class="resize">
         <channel-chart
@@ -30,10 +42,11 @@
 
 <script>
 import ChannelChart from "./ChannelChart.vue";
+import DigitalChannelChart from "./DigitalChannelChart.vue";
 
 export default {
   name: "ChannelsCharts",
-  components: { ChannelChart },
+  components: { DigitalChannelChart, ChannelChart },
   props: {
     channels: {
       type: Array,
@@ -46,6 +59,12 @@ export default {
       channelsData: this.channels.map((value) => {
         return { id: value, data: [] };
       }),
+      digitalData: [
+        { id: "I1", data: [] },
+        { id: "I2", data: [] },
+        { id: "O1", data: [] },
+        { id: "O2", data: [] },
+      ],
       dt: 1000 / this.samplingRate,
       timestamp: 0,
       duration: 10,
@@ -64,12 +83,21 @@ export default {
       });
     },
     addFrames(frames) {
+      // add frames to buffer
       frames.forEach((frame) => {
         this.timestamp += this.dt;
         this.channelsData.forEach((channel, index) => {
           channel.data.push({ x: this.timestamp, y: frame.a[index] });
         });
+        frame.digital.forEach((value, index) => {
+          this.digitalData[index].data.push({
+            x: this.timestamp,
+            y: value,
+          });
+        });
       });
+
+      // add buffer to charts
       this.$refs.channels.forEach((channel, index) => {
         channel.addData(
           this.channelsData[index].data.splice(
