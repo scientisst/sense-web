@@ -146,6 +146,7 @@ export default {
               this.connected = true;
             } catch (e) {
               this.toast(e.toString());
+              this.scientisst.disconnect();
             }
             this.connecting = false;
           }
