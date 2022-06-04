@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
+import VueGtag from "vue-gtag";
 import router from './router'
 import 'vue-universal-modal/dist/index.css'
 import VueUniversalModal from 'vue-universal-modal'
@@ -15,8 +16,13 @@ library.add(faMagnifyingGlassChart, faMagnifyingGlassMinus, faMagnifyingGlassPlu
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import './registerServiceWorker'
 
-createApp(App).use(router).use(VueUniversalModal, {
-    teleportTarget: '#modals'
-})
+createApp(App)
+    .use(VueGtag, {
+        config: { id: "G-ZJ6DG3RY8S" }
+    })
+    .use(router)
+    .use(VueUniversalModal, {
+        teleportTarget: '#modals'
+    })
     .component("font-awesome-icon", FontAwesomeIcon)
     .mount('#app')

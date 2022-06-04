@@ -28,7 +28,7 @@
         class="button a-button active"
         v-bind:href="downloadLink"
         :class="{ hide: downloadLink == '' }"
-        @click="test"
+        @click="downloadAnalytics"
         id="downloadBtn"
       >
         Download
@@ -198,6 +198,11 @@ export default {
     },
     start() {
       if (this.scientisst) {
+        this.$gtag.event("start", {
+          event_category: "live",
+          event_label: "started acquisition",
+          value: Date.now(),
+        });
         const metadata = this.getMetadata();
         this.fileData = "#" + JSON.stringify(metadata) + "\n";
         this.fileData += "#" + this.getHeader();
@@ -225,6 +230,11 @@ export default {
       }
     },
     stop() {
+      this.$gtag.event("stop", {
+        event_category: "live",
+        event_label: "stopped acquisition",
+        value: Date.now(),
+      });
       this.$refs.charts.stop();
       this.scientisst.stop().then(() => {
         this.live = false;
@@ -260,6 +270,12 @@ export default {
       if (this.downloadAutomatic) {
         btn.downloadBtn.click();
       }
+    },
+    downloadAnalytics() {
+      this.$gtag.event("download", {
+        event_category: "live",
+        event_label: "downloaded file",
+      });
     },
     showModal() {
       this.isShow = true;
