@@ -18,7 +18,13 @@ import './registerServiceWorker'
 
 createApp(App)
     .use(VueGtag, {
-        config: { id: "G-ZJ6DG3RY8S" }
+        appName: "SENSE",
+        config: {
+            id: "G-ZJ6DG3RY8S",
+            params: {
+                send_page_view: true
+            },
+        }
     })
     .use(router)
     .use(VueUniversalModal, {
