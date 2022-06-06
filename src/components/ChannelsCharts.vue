@@ -5,16 +5,18 @@
     <button @click="this.zoomOut()">+</button>
   </div>
   <div class="charts">
-    <div class="chart">
-      <div class="resize">
-        <digital-channel-chart
-          :title="'I1'"
-          :key="'I1'"
-          :sampleRate="this.samplingRate"
-          :duration="this.duration"
-          :label="'I1'"
-          :zoomFactor="this.zoomFactor"
-        />
+    <div v-if="this.digital">
+      <div class="chart">
+        <div class="resize digital">
+          <digital-channel-chart
+            :title="'digital'"
+            ref="digitalChannels"
+            :key="'digitalChannels'"
+            :sampleRate="this.samplingRate"
+            :duration="this.duration"
+            :zoomFactor="this.zoomFactor"
+          />
+        </div>
       </div>
     </div>
     <div class="chart" v-for="channel in channelsData" :key="channel.id">
@@ -48,6 +50,10 @@ export default {
   name: "ChannelsCharts",
   components: { DigitalChannelChart, ChannelChart },
   props: {
+    digital: {
+      type: Boolean,
+      default: true,
+    },
     channels: {
       type: Array,
     },
@@ -71,16 +77,27 @@ export default {
       zoomFactor: 5,
     };
   },
+  beforeUnmount() {
+    this.stop();
+  },
   methods: {
     start() {
-      this.$refs.channels.forEach((channel) => {
-        channel.startRefresh();
-      });
+      this.interval = setInterval(() => {
+        this.$refs.channels.forEach((channel) => {
+          channel.refresh();
+        });
+        this.$refs.digitalChannels.refresh();
+      }, Math.ceil(1000 / this.refreshRate));
     },
     stop() {
-      this.$refs.channels.forEach((channel) => {
-        channel.stopRefresh();
-      });
+      if (this.interval) {
+        clearInterval(this.interval);
+        this.interval = undefined;
+      }
+      // this.$refs.channels.forEach((channel) => {
+      //   channel.stopRefresh();
+      // });
+      // this.$refs.digitalChannels.stopRefresh();
     },
     addFrames(frames) {
       // add frames to buffer
@@ -98,23 +115,26 @@ export default {
       });
 
       // add buffer to charts
+      const N = this.channelsData[0].data.length;
       this.$refs.channels.forEach((channel, index) => {
-        channel.addData(
-          this.channelsData[index].data.splice(
-            0,
-            this.channelsData[index].data.length
-          )
-        );
+        channel.addData(this.channelsData[index].data.splice(0, N));
       });
+      this.$refs.digitalChannels.addData(
+        this.digitalData.map((channel) => channel.data.splice(0, N))
+      );
     },
     reset() {
       this.timestamp = 0;
       this.channelsData.forEach((channel) => {
         channel.data.length = 0;
       });
+      this.digitalData.forEach((channel) => {
+        channel.data.length = 0;
+      });
       this.$refs.channels.forEach((channel) => {
         channel.reset();
       });
+      this.$refs.digitalChannels.reset();
     },
     zoomIn() {
       if (this.zoomFactor < this.duration - 1) {
@@ -153,6 +173,10 @@ export default {
   resize: both;
   overflow: hidden;
   position: relative;
+}
+
+.digital {
+  height: 140px;
 }
 
 .resizeUI {

@@ -11,6 +11,8 @@ import Chart from "chart.js/auto";
 import "chartjs-adapter-moment";
 import { LTTB } from "downsample";
 
+const digitalColor = (ctx) => (ctx.p0.parsed.z ? "#ef4b59" : "#dddddd");
+
 export default {
   name: "DigitalChannelChart",
   components: {},
@@ -18,10 +20,6 @@ export default {
     title: {
       type: String,
       default: "",
-    },
-    label: {
-      type: String,
-      default: "undefined",
     },
     duration: {
       type: Number,
@@ -56,12 +54,11 @@ export default {
     const config = {
       responsive: true,
       maintainAspectRatio: false,
-      tension: 0.1,
-      borderColor: "#ef4b59",
-      borderWidth: 3,
-      spanGaps: true, // enable for all datasets
+      tension: 0,
+      borderWidth: 20,
       animation: false,
       normalized: true,
+      spanGaps: true,
       parsing: false,
       interaction: {
         mode: "nearest",
@@ -104,11 +101,31 @@ export default {
           },
         },
         y: {
+          type: "linear",
+          min: -0.5,
+          max: 3.5,
+          grid: {
+            display: false,
+          },
           ticks: {
             //   // Disabled rotation for performance
             maxRotation: 0,
             autoSkip: true,
-            sampleSize: 5,
+            callback: function (val) {
+              // Hide the label of every 2nd dataset
+              switch (val) {
+                case 0:
+                  return "O2";
+                case 1:
+                  return "O1";
+                case 2:
+                  return "I2";
+                case 3:
+                  return "I1";
+                default:
+                  return "";
+              }
+            },
           },
         },
       },
@@ -118,33 +135,41 @@ export default {
       data: {
         datasets: [
           {
-            data: [{ x: 0, y: 0 }],
-            label: this.label,
+            data: [{ x: 0, y: 3 }],
+            label: "I1",
+            segment: {
+              borderColor: (ctx) => digitalColor(ctx),
+            },
+          },
+          {
+            data: [{ x: 0, y: 2 }],
+            label: "I2",
+            segment: {
+              borderColor: (ctx) => digitalColor(ctx),
+            },
+          },
+          {
+            data: [{ x: 0, y: 1 }],
+            label: "O1",
+            segment: {
+              borderColor: (ctx) => digitalColor(ctx),
+            },
           },
           {
             data: [{ x: 0, y: 0 }],
-            label: this.label,
+            label: "O2",
+            segment: {
+              borderColor: (ctx) => digitalColor(ctx),
+            },
           },
         ],
       },
       options: config,
     });
   },
-  beforeUnmount() {
-    this.stopRefresh();
-  },
   methods: {
-    startRefresh() {
-      this.interval = setInterval(() => {
-        this.updateChart();
-      }, Math.ceil(1000 / this.refreshRate));
-    },
-    stopRefresh() {
-      if (this.interval) {
-        clearInterval(this.interval);
-        this.interval = undefined;
-      }
-      this.updateChart(true);
+    refresh() {
+      this.updateChart();
     },
     visible() {
       const rect = this.$refs.chart.getBoundingClientRect();
@@ -163,35 +188,47 @@ export default {
         this.chart.update();
       }
     },
-    pushData(data) {
-      for (let i = 0; i < data.length; i++) {
-        this.chart.data.datasets[data[i].y].data.push({ x: data[i].x, y: 0 });
+    pushData(digitalChannels) {
+      for (let i = 0; i < digitalChannels[0].length; i++) {
+        this.chart.data.datasets.forEach((dataset, ch) => {
+          const point = digitalChannels[ch][i];
+          dataset.data.push({
+            x: point.x,
+            y: 3 - ch,
+            z: point.y,
+          });
+        });
       }
     },
-    addData(data) {
+    addData(digitalChannels) {
       if (this.sampleRate > 100) {
-        this.pushData(
+        digitalChannels = digitalChannels.map((digitalData) =>
           LTTB(
-            data,
-            Math.floor(data.length * this.decimateFactor * this.widthFactor)
+            digitalData,
+            Math.floor(
+              digitalData.length * this.decimateFactor * this.widthFactor
+            )
           )
         );
+        this.pushData(digitalChannels);
       } else {
-        this.pushData(data);
+        this.pushData(digitalChannels);
       }
     },
     updateXAxis() {
-      const chartData = this.chart.data.datasets[0].data;
-      if (chartData.length > 0) {
-        this.timestamp = chartData[chartData.length - 1].x;
-        let i = 0;
-        for (i = 0; i < chartData.length; i++) {
-          if (chartData[i].x >= this.timestamp - this.duration * 1000) {
-            break;
+      this.chart.data.datasets.forEach((dataset) => {
+        const chartData = dataset.data;
+        if (chartData.length > 0) {
+          const N = chartData.length;
+          this.timestamp = chartData[N - 1].x;
+          const start = this.timestamp - this.duration * 1000;
+          if (chartData[N % 2] < start) {
+            console.log("before cut", chartData.length);
+            chartData.splice(0, N % 2);
+            console.log("after cut", chartData.length);
           }
         }
-        chartData.splice(0, i);
-      }
+      });
       const min = Math.max(
         this.timestamp - (this.duration - this.zoomFactor) * 1000,
         0
@@ -200,7 +237,7 @@ export default {
       this.chart.options.scales.x.max = this.timestamp;
     },
     reset() {
-      this.chart.data.datasets[0].data = [];
+      this.chart.data.datasets.forEach((dataset) => (dataset.data = []));
     },
   },
 };

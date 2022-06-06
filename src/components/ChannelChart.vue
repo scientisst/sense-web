@@ -70,7 +70,7 @@ export default {
     const config = {
       responsive: true,
       maintainAspectRatio: false,
-      tension: 0.1,
+      tension: 0.2,
       borderColor: "#ef4b59",
       borderWidth: 3,
       spanGaps: true, // enable for all datasets
@@ -141,21 +141,9 @@ export default {
     });
     this.updateAutoscale();
   },
-  beforeUnmount() {
-    this.stopRefresh();
-  },
   methods: {
-    startRefresh() {
-      this.interval = setInterval(() => {
-        this.updateChart();
-      }, Math.ceil(1000 / this.refreshRate));
-    },
-    stopRefresh() {
-      if (this.interval) {
-        clearInterval(this.interval);
-        this.interval = undefined;
-      }
-      this.updateChart(true);
+    refresh() {
+      this.updateChart();
     },
     visible() {
       const rect = this.$refs.chart.getBoundingClientRect();
@@ -259,14 +247,12 @@ export default {
     updateXAxis() {
       const chartData = this.chart.data.datasets[0].data;
       if (chartData.length > 0) {
-        this.timestamp = chartData[chartData.length - 1].x;
-        let i = 0;
-        for (i = 0; i < chartData.length; i++) {
-          if (chartData[i].x >= this.timestamp - this.duration * 1000) {
-            break;
-          }
+        const N = chartData.length;
+        this.timestamp = chartData[N - 1].x;
+        const start = this.timestamp - this.duration * 1000;
+        if (chartData[N % 2] < start) {
+          chartData.splice(0, N % 2);
         }
-        chartData.splice(0, i);
       }
       const min = Math.max(
         this.timestamp - (this.duration - this.zoomFactor) * 1000,

@@ -116,10 +116,6 @@ export default {
     this.channels = activeChannels;
   },
   beforeUnmount() {
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = undefined;
-    }
     if (this.scientisst) {
       if (this.scientisst.connected) {
         this.scientisst.disconnect();

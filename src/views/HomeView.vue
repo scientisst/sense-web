@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div v-if="showInstallButton" id="install">
-      <button :href="href" @click="installPWA" class="button active">
+      <button @click="installPWA" class="button active">
         <font-awesome-icon icon="download" size="sm" />
         Install
       </button>
