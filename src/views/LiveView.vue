@@ -145,8 +145,20 @@ export default {
               await this.scientisst.connect();
               this.connected = true;
             } catch (e) {
-              this.toast(e.toString());
-              this.scientisst.disconnect();
+              if (e instanceof DOMException) {
+                if (
+                  e.message ===
+                  "Failed to execute 'open' on 'SerialPort': The port is already open."
+                ) {
+                  this.toast(
+                    "The port is already open. Reloading SENSE... Try again."
+                  );
+                  setTimeout(() => location.reload(), 1000);
+                }
+                // specific error
+              } else {
+                this.toast(e.message);
+              }
             }
             this.connecting = false;
           }
