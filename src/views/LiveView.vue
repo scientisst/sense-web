@@ -99,6 +99,8 @@ export default {
       downloadAutomatic: false,
       showHelp: false,
       platform: navigator.platform,
+      o1: false,
+      o2: false,
     };
   },
   created() {
@@ -126,10 +128,14 @@ export default {
   },
   methods: {
     setOutput1(event) {
-      console.log("o1", event);
+      this.o1 = event;
+      // TODO: inverted order
+      this.scientisst.trigger([this.o2, this.o1]);
     },
     setOutput2(event) {
-      console.log("o2", event);
+      this.o2 = event;
+      // TODO: inverted order
+      this.scientisst.trigger([this.o2, this.o1]);
     },
     toast(msg) {
       createToast(msg, {
