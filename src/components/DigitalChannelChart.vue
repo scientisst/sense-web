@@ -2,20 +2,25 @@
   <div id="chart-options">
     <div class="channel-title">{{ title }}</div>
     <div style="flex-grow: 1"></div>
+    <toggle-button @input="setOutput1">O1</toggle-button>
+    <toggle-button @input="setOutput2">O2</toggle-button>
   </div>
   <canvas ref="chart" id="chart" />
 </template>
 
 <script>
 import Chart from "chart.js/auto";
+
 import "chartjs-adapter-moment";
 import { LTTB } from "downsample";
+import ToggleButton from "./ToggleButton.vue";
 
-const digitalColor = (ctx) => (ctx.p0.parsed.z ? "#ef4b59" : "#dddddd");
+const digitalColor = (ctx) => (ctx.p0.parsed.z ? "#ef4b59" : "#eeeeee");
 
 export default {
   name: "DigitalChannelChart",
-  components: {},
+  components: { ToggleButton },
+  emits: ["o1", "o2"],
   props: {
     title: {
       type: String,
@@ -168,6 +173,18 @@ export default {
     });
   },
   methods: {
+    setOutput1(event) {
+      if (event.target) {
+        const value = event.target.checked;
+        this.$emit("o1", value);
+      }
+    },
+    setOutput2(event) {
+      if (event.target) {
+        const value = event.target.checked;
+        this.$emit("o2", value);
+      }
+    },
     refresh() {
       this.updateChart();
     },

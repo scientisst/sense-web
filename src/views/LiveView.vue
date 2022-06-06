@@ -39,6 +39,8 @@
       ref="charts"
       :channels="channels"
       :samplingRate="samplingRate"
+      @o1="setOutput1"
+      @o2="setOutput2"
     />
     <div style="height: 100px" />
     <Modal v-model="isShow" :close="closeModal">
@@ -123,6 +125,12 @@ export default {
     }
   },
   methods: {
+    setOutput1(event) {
+      console.log("o1", event);
+    },
+    setOutput2(event) {
+      console.log("o2", event);
+    },
     toast(msg) {
       createToast(msg, {
         type: "danger",

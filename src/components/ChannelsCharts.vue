@@ -15,6 +15,8 @@
             :sampleRate="this.samplingRate"
             :duration="this.duration"
             :zoomFactor="this.zoomFactor"
+            @o1="setOutput1"
+            @o2="setOutput2"
           />
         </div>
       </div>
@@ -49,6 +51,7 @@ import DigitalChannelChart from "./DigitalChannelChart.vue";
 export default {
   name: "ChannelsCharts",
   components: { DigitalChannelChart, ChannelChart },
+  emits: ["o1", "o2"],
   props: {
     digital: {
       type: Boolean,
@@ -81,6 +84,12 @@ export default {
     this.stop();
   },
   methods: {
+    setOutput1(event) {
+      this.$emit("o1", event);
+    },
+    setOutput2(event) {
+      this.$emit("o2", event);
+    },
     start() {
       this.interval = setInterval(() => {
         this.$refs.channels.forEach((channel) => {
