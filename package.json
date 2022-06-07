@@ -1,6 +1,6 @@
 {
-  "name": "SENSE",
-  "version": "0.2.0",
+  "name": "sense",
+  "version": "0.2.1",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",

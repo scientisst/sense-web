@@ -95,7 +95,9 @@ export default {
         this.$refs.channels.forEach((channel) => {
           channel.refresh();
         });
-        this.$refs.digitalChannels.refresh();
+        if (this.digital) {
+          this.$refs.digitalChannels.refresh();
+        }
       }, Math.ceil(1000 / this.refreshRate));
     },
     stop() {
@@ -115,12 +117,14 @@ export default {
         this.channelsData.forEach((channel, index) => {
           channel.data.push({ x: this.timestamp, y: frame.a[index] });
         });
-        frame.digital.forEach((value, index) => {
-          this.digitalData[index].data.push({
-            x: this.timestamp,
-            y: value,
+        if (this.digital) {
+          frame.digital.forEach((value, index) => {
+            this.digitalData[index].data.push({
+              x: this.timestamp,
+              y: value,
+            });
           });
-        });
+        }
       });
 
       // add buffer to charts
@@ -128,22 +132,26 @@ export default {
       this.$refs.channels.forEach((channel, index) => {
         channel.addData(this.channelsData[index].data.splice(0, N));
       });
-      this.$refs.digitalChannels.addData(
-        this.digitalData.map((channel) => channel.data.splice(0, N))
-      );
+      if (this.digital) {
+        this.$refs.digitalChannels.addData(
+          this.digitalData.map((channel) => channel.data.splice(0, N))
+        );
+      }
     },
     reset() {
       this.timestamp = 0;
       this.channelsData.forEach((channel) => {
         channel.data.length = 0;
       });
-      this.digitalData.forEach((channel) => {
-        channel.data.length = 0;
-      });
       this.$refs.channels.forEach((channel) => {
         channel.reset();
       });
-      this.$refs.digitalChannels.reset();
+      if (this.digital) {
+        this.digitalData.forEach((channel) => {
+          channel.data.length = 0;
+        });
+        this.$refs.digitalChannels.reset();
+      }
     },
     zoomIn() {
       if (this.zoomFactor < this.duration - 1) {

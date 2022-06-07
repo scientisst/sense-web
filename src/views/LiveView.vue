@@ -41,6 +41,7 @@
       :samplingRate="samplingRate"
       @o1="setOutput1"
       @o2="setOutput2"
+      :digital="digital"
     />
     <div style="height: 100px" />
     <Modal v-model="isShow" :close="closeModal">
@@ -102,11 +103,15 @@ export default {
       o1: false,
       o2: false,
       connectionFailedCounter: 0,
+      digital: true,
     };
   },
   created() {
     if (localStorage.samplingRate) {
       this.samplingRate = parseInt(localStorage.samplingRate.trim());
+    }
+    if (localStorage.digital) {
+      this.digital = localStorage.digital == "true";
     }
     let activeChannels = [];
     [1, 2, 3, 4, 5, 6].forEach((channel) => {
@@ -207,7 +212,10 @@ export default {
     },
     getHeader() {
       let header = "";
-      header += "NSeq\tI1\tI2\tO1\tO2";
+      header += "NSeq";
+      if (this.digital) {
+        header += "\tI1\tI2\tO1\tO2";
+      }
       this.channels.forEach((channel) => {
         header += "\t";
         header += "AI" + channel + "_raw";
@@ -219,16 +227,27 @@ export default {
     getMetadata() {
       let iso;
       const timestamp = (iso = new Date()).valueOf();
+
+      const resolution = [4];
+      if (this.digital) {
+        resolution.push(...[1, 1, 1, 1]);
+      }
+      resolution.push(...this.channels.map(() => 12));
+
       let metadata = {
         Channels: this.channels,
-        "Channels indexes mV": this.channels.map((channel) => channel * 2 + 4),
-        "Channels indexes raw": this.channels.map((channel) => channel * 2 + 3),
+        "Channels indexes mV": this.channels.map(
+          (channel) => channel * 2 + (this.digital ? 4 : 0)
+        ),
+        "Channels indexes raw": this.channels.map(
+          (channel) => channel * 2 + (this.digital ? 3 : -1)
+        ),
         "Channels labels": this.channels
           .map((channel) => ["AI" + channel + "_raw", "AI" + channel + "_mV"])
           .flat(),
         Header: this.getHeader().split("\t"),
         "ISO 8601": iso,
-        "Resolution (bits)": [4, 1, 1, 1, 1] + this.channels.map(() => 12),
+        "Resolution (bits)": resolution,
         "Sampling rate (Hz)": this.samplingRate,
         Timestamp: timestamp,
       };
@@ -301,8 +320,10 @@ export default {
       frames.forEach((frame) => {
         line = "\n";
         line += frame.seq;
-        line += "\t";
-        line += frame.digital.join("\t");
+        if (this.digital) {
+          line += "\t";
+          line += frame.digital.join("\t");
+        }
         for (let i = 0; i < this.channels.length; i++) {
           line += "\t";
           line += frame.a[i];
