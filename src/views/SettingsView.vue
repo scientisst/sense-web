@@ -3,6 +3,8 @@
     <top-bar title="Sense Settings" />
     <sampling-rate />
     <div style="height: 16px" />
+    <digital-selector />
+    <div style="height: 16px" />
     <channels-selector />
   </div>
 </template>
@@ -10,6 +12,7 @@
 <script>
 import TopBar from "../components/TopBar.vue";
 import ChannelsSelector from "../components/ChannelsSelector.vue";
+import DigitalSelector from "../components/DigitalSelector.vue";
 import SamplingRate from "../components/SamplingRate.vue";
 
 export default {
@@ -17,6 +20,7 @@ export default {
   components: {
     TopBar,
     ChannelsSelector,
+    DigitalSelector,
     SamplingRate,
   },
 };

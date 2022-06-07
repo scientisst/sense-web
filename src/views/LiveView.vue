@@ -101,6 +101,7 @@ export default {
       platform: navigator.platform,
       o1: false,
       o2: false,
+      connectionFailedCounter: 0,
     };
   },
   created() {
@@ -145,6 +146,20 @@ export default {
         transition: "bounce",
       });
     },
+    onConnectionLost() {
+      this.toast("Lost connection to device");
+
+      // stop
+      this.live = false;
+      if (this.download) {
+        this.saveFile(Date.now().toString(), this.fileData);
+        this.fileData = "";
+      }
+
+      // disconnect
+      this.scientisst = null;
+      this.connected = false;
+    },
     connect() {
       ScientISST.requestPort()
         .then(async (scientisst) => {
@@ -152,7 +167,7 @@ export default {
             this.connecting = true;
             this.scientisst = scientisst;
             try {
-              await this.scientisst.connect();
+              await this.scientisst.connect(this.onConnectionLost);
               this.connected = true;
             } catch (e) {
               if (e instanceof DOMException) {
@@ -245,7 +260,21 @@ export default {
                 }
               } catch (e) {
                 if (this.scientisst.live) {
-                  this.toast(e.toString());
+                  const message = e.toString();
+                  if (message == "Error contacting device") {
+                    this.connectionFailedCounter++;
+                    // do not show the same error twice
+                    // after the second time, the device disconnects and the counter is reset
+                    if (this.connectionFailedCounter > 2) {
+                      this.connectionFailedCounter = 1;
+                    }
+                    if (this.connectionFailedCounter <= 1) {
+                      this.toast(message);
+                    }
+                  } else {
+                    this.connectionFailedCounter = 0;
+                    this.toast(message);
+                  }
                 }
               }
             }

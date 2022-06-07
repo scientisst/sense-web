@@ -6,14 +6,21 @@
     options:
     <br />
     <br />
-    <b>1.</b> Open a connection to the device:
+    <li>
+      Open a connection to the device:
+      <br />
+      <pre>sudo rfcomm connect 0 [device MAC address]</pre>
+      <br />
+    </li>
+    <span style="font-weight: bold">OR</span>
     <br />
-    <pre>sudo rfcomm connect 0 [device MAC address]</pre>
     <br />
-    <b>2.</b> Bind the device to a serial port:
-    <br />
-    <pre>sudo rfcomm bind 0 [device MAC address]</pre>
-    <br />
+    <li>
+      Bind the device to a serial port:
+      <br />
+      <pre>sudo rfcomm bind 0 [device MAC address]</pre>
+      <br />
+    </li>
     You can choose one of the above. The first option will start a process and,
     once terminated, the connection is closed. The second option will bind the
     device to serial port 0. To unbid that port, do:
