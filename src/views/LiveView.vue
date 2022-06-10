@@ -105,6 +105,7 @@ export default {
       connectionFailedCounter: 0,
       digital: true,
       comMode: "bth",
+      address: "scientisst.local",
     };
   },
   created() {
@@ -114,6 +115,9 @@ export default {
       if (localStorage.comMode) {
         this.comMode = localStorage.comMode;
       }
+    }
+    if (localStorage.address) {
+      this.address = localStorage.address;
     }
     if (localStorage.samplingRate) {
       this.samplingRate = parseInt(localStorage.samplingRate.trim());
@@ -173,17 +177,31 @@ export default {
       this.scientisst = null;
       this.connected = false;
     },
+    checkCertificate(url) {
+      const xmlHttp = new XMLHttpRequest();
+      xmlHttp.open("GET", url, false); // false for synchronous request
+      try {
+        xmlHttp.send(null);
+        return true;
+      } catch (e) {
+        if (e.code && e.code == 19) {
+          return false;
+        } else {
+          throw e;
+        }
+      }
+    },
     async connect() {
       let scientisst;
       if (this.comMode === "bth") {
         scientisst = ScientISST.requestPort();
       } else if (this.comMode === "wifi") {
-        scientisst = ScientISST.fromWS();
+        scientisst = ScientISST.fromWS(this.address);
       } else {
         this.toast("Uknown communication mode");
         throw "Uknown communication mode";
       }
-      scientisst
+      await scientisst
         .then(async (scientisst) => {
           if (scientisst) {
             this.connecting = true;
@@ -203,11 +221,17 @@ export default {
                   setTimeout(() => location.reload(), 1000);
                 }
                 // specific error
+              } else if (e.target && e.target instanceof WebSocket) {
+                if (!this.checkCertificate(`https://${this.address}/cert`)) {
+                  this.toast(
+                    "Redirecting to certificate authorization page..."
+                  );
+                  setTimeout(() => this.scientisst.requestCert(), 1000);
+                }
               } else {
-                this.toast(e.message);
+                this.toast(e.toString());
               }
             }
-            this.connecting = false;
           }
         })
         .catch((e) => {
@@ -215,9 +239,11 @@ export default {
             this.toast("Make sure the device is paired and select a port");
             // specific error
           } else {
+            this.toast(e.toString());
             throw e; // let others bubble up
           }
         });
+      this.connecting = false;
     },
     disconnect() {
       if (this.scientisst) {

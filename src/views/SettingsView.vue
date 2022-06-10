@@ -1,9 +1,7 @@
 <template>
   <div class="settings">
     <top-bar title="Sense Settings" />
-    <div v-if="serialAvailable">
-      <communication-mode />
-    </div>
+    <communication-mode />
     <div style="height: 16px" />
     <sampling-rate />
     <div style="height: 16px" />
@@ -29,11 +27,6 @@ export default {
     DigitalSelector,
     SamplingRate,
     CommunicationMode,
-  },
-  computed: {
-    serialAvailable() {
-      return "serial" in navigator;
-    },
   },
 };
 </script>

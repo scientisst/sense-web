@@ -1,24 +1,36 @@
 <template>
-  <h3>COMMUNICATION MODE</h3>
-  <div id="segmented-control">
-    <segmented-control
-      :options="options"
-      color="#fff"
-      active-color="#ef4b59"
-      :multiple="false"
-      @select="onSelect"
-      ref="segmented"
-    />
+  <div v-show="serialAvailable">
+    <h3>COMMUNICATION MODE</h3>
+    <div id="segmented-control">
+      <segmented-control
+        :options="options"
+        color="#fff"
+        active-color="#ef4b59"
+        :multiple="false"
+        @select="onSelect"
+        ref="segmented"
+      />
+    </div>
+  </div>
+  <div v-if="comMode == 'wifi'">
+    <sense-address />
   </div>
 </template>
 
 <script>
 import SegmentedControl from "vue-segmented-control";
+import SenseAddress from "./SenseAddress.vue";
 
 export default {
   name: "CommunicationMode",
   components: {
     SegmentedControl,
+    SenseAddress,
+  },
+  computed: {
+    serialAvailable() {
+      return "serial" in navigator;
+    },
   },
   data() {
     return {
@@ -34,8 +46,12 @@ export default {
     };
   },
   mounted() {
-    if (localStorage.comMode) {
-      this.comMode = localStorage.comMode;
+    if (this.serialAvailable) {
+      if (localStorage.comMode) {
+        this.comMode = localStorage.comMode;
+      }
+    } else {
+      this.comMode = "wifi";
     }
     this.$refs.segmented.onSelect({
       label: this.valueToLabel[this.comMode],
