@@ -74,6 +74,8 @@ import "mosha-vue-toastify/dist/style.css";
 /* eslint-disable no-constant-condition */
 import ScientISST from "@scientisst/sense";
 
+import { resolvesDNS } from "@/utils.js";
+
 export default {
   name: "LiveView",
   components: {
@@ -118,6 +120,10 @@ export default {
     }
     if (localStorage.address) {
       this.address = localStorage.address;
+    } else {
+      if (!resolvesDNS) {
+        this.address = "192.168.4.1";
+      }
     }
     if (localStorage.samplingRate) {
       this.samplingRate = parseInt(localStorage.samplingRate.trim());
@@ -177,19 +183,34 @@ export default {
       this.scientisst = null;
       this.connected = false;
     },
-    checkCertificate(url) {
-      const xmlHttp = new XMLHttpRequest();
-      xmlHttp.open("GET", url, false); // false for synchronous request
-      try {
-        xmlHttp.send(null);
+    async checkCertificate(url) {
+      const toast = this.toast;
+      const scientisst = this.scientisst;
+      const promise = new Promise((resolve) => {
+        const request = new XMLHttpRequest();
+        request.timeout = 2000; // time in ms
+        request.open("GET", url, true); // false for synchronous request
+
+        request.onload = function () {
+          resolve();
+          toast("Certificate is valid");
+        };
+
+        request.ontimeout = function () {
+          resolve();
+          toast("Timeout. Are you connected to the device WiFi?");
+        };
+
+        request.onerror = function () {
+          resolve();
+          toast("Redirecting to certificate authorization page...");
+          setTimeout(() => scientisst.requestCert(), 1000);
+        };
+
+        request.send(null);
         return true;
-      } catch (e) {
-        if (e.code && e.code == 19) {
-          return false;
-        } else {
-          throw e;
-        }
-      }
+      });
+      await promise;
     },
     async connect() {
       let scientisst;
@@ -222,12 +243,7 @@ export default {
                 }
                 // specific error
               } else if (e.target && e.target instanceof WebSocket) {
-                if (!this.checkCertificate(`https://${this.address}/cert`)) {
-                  this.toast(
-                    "Redirecting to certificate authorization page..."
-                  );
-                  setTimeout(() => this.scientisst.requestCert(), 1000);
-                }
+                await this.checkCertificate(`https://${this.address}/cert`);
               } else {
                 this.toast(e.toString());
               }

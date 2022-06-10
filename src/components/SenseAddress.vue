@@ -5,20 +5,26 @@
       v-model="address"
       type="text"
       class="input"
-      placeholder="scientisst.local"
+      :placeholder="this.default"
       minlength="7"
-      maxlength="15"
-      size="15"
-      pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
+      maxlength="16"
+      size="16"
     />
   </div>
 </template>
 
 <script>
+import { resolvesDNS } from "@/utils.js";
+
 export default {
   name: "SenseAddress",
   data() {
     return { address: "", validInput: true };
+  },
+  computed: {
+    default() {
+      return resolvesDNS ? "scientisst.local" : "192.168.4.1";
+    },
   },
   mounted() {
     if (localStorage.address) {
@@ -37,6 +43,7 @@ export default {
   methods: {
     validateAddress(value) {
       if (value == "") return true;
+      if (value == "scientisst.local") return true;
       return /^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/.test(
         value
       );
