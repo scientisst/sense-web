@@ -44,7 +44,7 @@ export default {
 .input {
   border: none;
   box-shadow: 0px 0px 0px 4px var(--main-color);
-  border-radius: 3px;
+  border-radius: 12px;
   text-align: center;
   font-size: 24px;
   padding: 8px;

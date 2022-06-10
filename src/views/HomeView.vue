@@ -41,11 +41,6 @@ export default {
       showInstallButton: false,
     };
   },
-  created: function () {
-    if (!("serial" in navigator)) {
-      this.$router.replace({ path: "/not-compatible" });
-    }
-  },
   beforeMount() {
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();

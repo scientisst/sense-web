@@ -104,9 +104,17 @@ export default {
       o2: false,
       connectionFailedCounter: 0,
       digital: true,
+      comMode: "bth",
     };
   },
   created() {
+    if (!("serial" in navigator)) {
+      this.comMode = "wifi";
+    } else {
+      if (localStorage.comMode) {
+        this.comMode = localStorage.comMode;
+      }
+    }
     if (localStorage.samplingRate) {
       this.samplingRate = parseInt(localStorage.samplingRate.trim());
     }
@@ -165,8 +173,17 @@ export default {
       this.scientisst = null;
       this.connected = false;
     },
-    connect() {
-      ScientISST.requestPort()
+    async connect() {
+      let scientisst;
+      if (this.comMode === "bth") {
+        scientisst = ScientISST.requestPort();
+      } else if (this.comMode === "wifi") {
+        scientisst = ScientISST.fromWS();
+      } else {
+        this.toast("Uknown communication mode");
+        throw "Uknown communication mode";
+      }
+      scientisst
         .then(async (scientisst) => {
           if (scientisst) {
             this.connecting = true;
