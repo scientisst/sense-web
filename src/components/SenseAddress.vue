@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { resolvesDNS } from "@/utils.js";
+import { resolvesDNS } from "@/utils/utils.js";
 
 export default {
   name: "SenseAddress",

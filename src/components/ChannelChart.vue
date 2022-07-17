@@ -2,15 +2,17 @@
   <div id="chart-options">
     <div class="channel-title">{{ title }}</div>
     <div style="flex-grow: 1"></div>
-    <circular-button @click="zoomOut">
-      <font-awesome-icon icon="magnifying-glass-minus" />
-    </circular-button>
-    <toggle-button :value="autoscale" @input="setAutoscale">
-      <font-awesome-icon icon="magnifying-glass-chart"
-    /></toggle-button>
-    <circular-button @click="zoomIn">
-      <font-awesome-icon icon="magnifying-glass-plus" />
-    </circular-button>
+    <div id="control-buttons" v-if="!fixedAutoScale">
+      <circular-button @click="zoomOut">
+        <font-awesome-icon icon="magnifying-glass-minus" />
+      </circular-button>
+      <toggle-button :value="autoscale" @input="setAutoscale">
+        <font-awesome-icon icon="magnifying-glass-chart"
+      /></toggle-button>
+      <circular-button @click="zoomIn">
+        <font-awesome-icon icon="magnifying-glass-plus" />
+      </circular-button>
+    </div>
   </div>
   <canvas ref="chart" id="chart" />
 </template>
@@ -40,7 +42,11 @@ export default {
     },
     sampleRate: {
       type: Number,
-      default: 1000,
+      default: 100,
+    },
+    fixedAutoScale: {
+      type: Boolean,
+      default: false,
     },
     zoomFactor: { type: Number, default: 5 },
   },
@@ -64,6 +70,9 @@ export default {
     decimateFactor() {
       return this.plotSampleRate / this.sampleRate;
     },
+  },
+  created() {
+    this.autoscale = this.fixedAutoScale;
   },
   mounted() {
     const ctx = this.$refs.chart;
@@ -284,6 +293,13 @@ export default {
 }
 
 #chart-options {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+#control-buttons {
   display: flex;
   align-items: center;
   justify-content: center;

@@ -31,6 +31,7 @@
           :duration="this.duration"
           :label="'AI' + channel.id"
           :zoomFactor="this.zoomFactor"
+          :fixedAutoScale="device != 0"
         />
         <div class="resizeUI">
           <img
@@ -60,6 +61,10 @@ export default {
     channels: {
       type: Array,
     },
+    device: {
+      type: Number,
+      default: 0,
+    },
     samplingRate: { require: true, type: Number },
     refreshRate: { default: 5, type: Number },
   },
@@ -79,6 +84,11 @@ export default {
       duration: 10,
       zoomFactor: 5,
     };
+  },
+  created() {
+    if (localStorage.zoomFactor) {
+      this.zoomFactor = parseInt(localStorage.zoomFactor);
+    }
   },
   beforeUnmount() {
     this.stop();
@@ -105,10 +115,6 @@ export default {
         clearInterval(this.interval);
         this.interval = undefined;
       }
-      // this.$refs.channels.forEach((channel) => {
-      //   channel.stopRefresh();
-      // });
-      // this.$refs.digitalChannels.stopRefresh();
     },
     addFrames(frames) {
       // add frames to buffer
@@ -138,6 +144,12 @@ export default {
         );
       }
     },
+    addSerialData(timestamp, data) {
+      this.timestamp = timestamp;
+      this.$refs.channels.forEach((channel, index) => {
+        channel.addData([{ x: this.timestamp, y: data[index] }]);
+      });
+    },
     reset() {
       this.timestamp = 0;
       this.channelsData.forEach((channel) => {
@@ -157,11 +169,13 @@ export default {
       if (this.zoomFactor < this.duration - 1) {
         this.zoomFactor++;
       }
+      localStorage.zoomFactor = this.zoomFactor;
     },
     zoomOut() {
       if (this.zoomFactor > 0) {
         this.zoomFactor--;
       }
+      localStorage.zoomFactor = this.zoomFactor;
     },
   },
 };

@@ -25,8 +25,6 @@ export default {
     samplingRate(newSamplingRate) {
       if (newSamplingRate > 16000) {
         newSamplingRate = 16000;
-      } else if (newSamplingRate < 1) {
-        newSamplingRate = 1;
       }
       localStorage.samplingRate = newSamplingRate;
       this.samplingRate = newSamplingRate;

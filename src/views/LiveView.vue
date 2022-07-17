@@ -42,6 +42,8 @@
       @o1="setOutput1"
       @o2="setOutput2"
       :digital="digital"
+      :device="device"
+      :key="componentKey"
     />
     <div style="height: 100px" />
     <Modal v-model="isShow" :close="closeModal">
@@ -74,7 +76,9 @@ import "mosha-vue-toastify/dist/style.css";
 /* eslint-disable no-constant-condition */
 import ScientISST from "@scientisst/sense";
 
-import { resolvesDNS } from "@/utils.js";
+import Serial from "@/utils/serial.js";
+
+import { resolvesDNS } from "@/utils/utils.js";
 
 export default {
   name: "LiveView",
@@ -92,7 +96,7 @@ export default {
       isShow: false,
       scientisstCopy: undefined,
       samplingRate: 1000,
-      channels: [1, 2, 3, 4, 5, 6],
+      channels: [1],
       live: false,
       connected: false,
       connecting: false,
@@ -105,52 +109,73 @@ export default {
       o1: false,
       o2: false,
       connectionFailedCounter: 0,
-      digital: true,
+      digital: false,
       comMode: "bth",
       address: "scientisst.local",
+      device: 0,
+      baudRate: 9600,
+      firstSerialData: true,
+      firstColIsTime: false,
+      componentKey: 0,
+      startTime: 0,
+      serialSamples: 0,
     };
   },
   created() {
-    if (!("serial" in navigator)) {
-      this.comMode = "wifi";
-    } else {
-      if (localStorage.comMode) {
-        this.comMode = localStorage.comMode;
+    if (localStorage.device) {
+      this.device = parseInt(localStorage.device);
+    }
+    if (this.device == 0) {
+      if (!("serial" in navigator)) {
+        this.comMode = "wifi";
+      } else {
+        if (localStorage.comMode) {
+          this.comMode = localStorage.comMode;
+        }
       }
-    }
-    if (localStorage.address) {
-      this.address = localStorage.address;
-    } else {
-      if (!resolvesDNS) {
-        this.address = "192.168.4.1";
+      if (localStorage.address) {
+        this.address = localStorage.address;
+      } else {
+        if (!resolvesDNS) {
+          this.address = "192.168.4.1";
+        }
       }
-    }
-    if (localStorage.samplingRate) {
-      this.samplingRate = parseInt(localStorage.samplingRate.trim());
-    }
-    if (localStorage.digital) {
-      this.digital = localStorage.digital == "true";
-    }
-    let activeChannels = [];
-    [1, 2, 3, 4, 5, 6].forEach((channel) => {
-      if (localStorage["ch" + channel]) {
-        if (localStorage["ch" + channel] == "true") {
+      if (localStorage.samplingRate) {
+        this.samplingRate = parseInt(localStorage.samplingRate.trim());
+        if (this.samplingRate < 1) {
+          this.samplingRate = 1;
+        }
+      }
+      if (localStorage.digital) {
+        this.digital = localStorage.digital == "true";
+      }
+      let activeChannels = [];
+      [1, 2, 3, 4, 5, 6].forEach((channel) => {
+        if (localStorage["ch" + channel]) {
+          if (localStorage["ch" + channel] == "true") {
+            activeChannels.push(channel);
+          }
+        } else {
           activeChannels.push(channel);
         }
-      } else {
-        activeChannels.push(channel);
+      });
+      this.channels = activeChannels;
+    } else {
+      if (localStorage.baudRate) {
+        this.baudRate = parseInt(localStorage.baudRate.trim());
       }
-    });
-    this.channels = activeChannels;
-  },
-  beforeUnmount() {
-    if (this.scientisst) {
-      if (this.scientisst.connected) {
-        this.scientisst.disconnect();
+      if (localStorage.firstColIsTime) {
+        this.firstColIsTime = localStorage.firstColIsTime == "true";
       }
     }
   },
+  beforeUnmount() {
+    this.disconnect();
+  },
   methods: {
+    forceRerender() {
+      this.componentKey += 1;
+    },
     setOutput1(event) {
       this.o1 = event;
       // TODO: inverted order
@@ -169,6 +194,53 @@ export default {
         transition: "bounce",
       });
     },
+    onSerialData(data) {
+      const parsedData = data.split(",").map((value) => {
+        return parseFloat(value);
+      });
+      if (this.firstSerialData) {
+        this.serialSamples++;
+        if (this.serialSamples >= 2) {
+          this.firstSerialData = false;
+          if (this.firstColIsTime) {
+            if (parsedData.length < 2) {
+              this.disconnect();
+              this.toast(
+                "Serial data expected at least 2 columns, got 1 instead"
+              );
+              return;
+            }
+
+            this.channels = Array.from(
+              { length: parsedData.length - 1 },
+              (_, i) => i + 1
+            );
+          } else {
+            this.channels = Array.from(
+              { length: parsedData.length },
+              (_, i) => i + 1
+            );
+          }
+          this.forceRerender();
+        }
+      }
+      if (this.live) {
+        if (this.firstColIsTime) {
+          const timestamp = parsedData[0] - this.startTime;
+          const dataWithoutTime = parsedData.slice(1);
+          this.$refs.charts.addSerialData(timestamp, dataWithoutTime);
+          this.addSerialDataToFile(parsedData[0], dataWithoutTime);
+        } else {
+          const timestamp = new Date().valueOf() - this.startTime;
+          this.$refs.charts.addSerialData(timestamp, parsedData);
+          this.addSerialDataToFile(timestamp, parsedData);
+        }
+      } else {
+        if (this.firstColIsTime) {
+          this.startTime = parsedData[0];
+        }
+      }
+    },
     onConnectionLost() {
       this.toast("Lost connection to device");
 
@@ -181,6 +253,7 @@ export default {
 
       // disconnect
       this.scientisst = null;
+      this.serial = null;
       this.connected = false;
     },
     async checkCertificate(url) {
@@ -213,6 +286,13 @@ export default {
       await promise;
     },
     async connect() {
+      if (this.device == 0) {
+        await this.connectSense();
+      } else if (this.device == 1) {
+        await this.connectMaker();
+      }
+    },
+    async connectSense() {
       let scientisst;
       if (this.comMode === "bth") {
         scientisst = ScientISST.requestPort();
@@ -261,118 +341,199 @@ export default {
         });
       this.connecting = false;
     },
+    async connectMaker() {
+      this.serial = await Serial.requestPort();
+
+      console.log(this.baudRate);
+      this.connecting = true;
+      try {
+        await this.serial.connect(
+          this.baudRate,
+          this.onSerialData,
+          this.onConnectionLost
+        );
+        this.connected = true;
+      } catch (e) {
+        if (e instanceof DOMException) {
+          if (
+            e.message ===
+            "Failed to execute 'open' on 'SerialPort': The port is already open."
+          ) {
+            this.toast(
+              "The port is already open. Reloading page... Try again."
+            );
+            setTimeout(() => location.reload(), 1000);
+          }
+        } else {
+          this.toast(e.toString());
+        }
+      }
+
+      this.connecting = false;
+    },
     disconnect() {
-      if (this.scientisst) {
-        this.scientisst.disconnect().then(() => {
-          this.scientisst = null;
-          this.connected = false;
-        });
+      let device;
+      if (this.device == 0) {
+        device = this.scientisst;
+      } else if (this.device == 1) {
+        device = this.serial;
+      }
+      if (device) {
+        if (device.connected) {
+          device.disconnect().then(() => {
+            this.scientisst = null;
+            this.connected = false;
+          });
+        }
       }
     },
     getHeader() {
       let header = "";
-      header += "NSeq";
-      if (this.digital) {
-        header += "\tI1\tI2\tO1\tO2";
+      if (this.device == 0) {
+        header = "NSeq";
+        if (this.digital) {
+          header += "\tI1\tI2\tO1\tO2";
+        }
+        this.channels.forEach((channel) => {
+          header += "\t";
+          header += "AI" + channel + "_raw";
+          header += "\t";
+          header += "AI" + channel + "_mv";
+        });
+        return header;
+      } else if (this.device == 1) {
+        header = "Timestamp\t";
+        this.channels.forEach((channel) => {
+          header += "AI" + channel + "\t";
+        });
       }
-      this.channels.forEach((channel) => {
-        header += "\t";
-        header += "AI" + channel + "_raw";
-        header += "\t";
-        header += "AI" + channel + "_mv";
-      });
       return header;
     },
     getMetadata() {
       let iso;
       const timestamp = (iso = new Date()).valueOf();
 
-      const resolution = [4];
-      if (this.digital) {
-        resolution.push(...[1, 1, 1, 1]);
+      if (this.device == 0) {
+        const resolution = [4];
+        if (this.digital) {
+          resolution.push(...[1, 1, 1, 1]);
+        }
+        resolution.push(...this.channels.map(() => 12));
+        return {
+          Device: "ScientISST Sense",
+          Channels: this.channels,
+          "Channels indexes mV": this.channels.map(
+            (channel) => channel * 2 + (this.digital ? 4 : 0)
+          ),
+          "Channels indexes raw": this.channels.map(
+            (channel) => channel * 2 + (this.digital ? 3 : -1)
+          ),
+          "Channels labels": this.channels
+            .map((channel) => ["AI" + channel + "_raw", "AI" + channel + "_mV"])
+            .flat(),
+          Header: this.getHeader().split("\t"),
+          "ISO 8601": iso,
+          "Resolution (bits)": resolution,
+          "Sampling rate (Hz)": this.samplingRate,
+          Timestamp: timestamp,
+        };
+      } else if (this.device == 1) {
+        return {
+          Device: "ScientISST Maker",
+          BaudRate: this.baudRate,
+          Channels: this.channels,
+          "Channels indexes": this.channels,
+          "Channels labels": this.channels.map((channel) => "AI" + channel),
+          Header: this.getHeader().split("\t"),
+          "ISO 8601": iso,
+          Timestamp: timestamp,
+        };
       }
-      resolution.push(...this.channels.map(() => 12));
-
-      let metadata = {
-        Channels: this.channels,
-        "Channels indexes mV": this.channels.map(
-          (channel) => channel * 2 + (this.digital ? 4 : 0)
-        ),
-        "Channels indexes raw": this.channels.map(
-          (channel) => channel * 2 + (this.digital ? 3 : -1)
-        ),
-        "Channels labels": this.channels
-          .map((channel) => ["AI" + channel + "_raw", "AI" + channel + "_mV"])
-          .flat(),
-        Header: this.getHeader().split("\t"),
-        "ISO 8601": iso,
-        "Resolution (bits)": resolution,
-        "Sampling rate (Hz)": this.samplingRate,
-        Timestamp: timestamp,
-      };
-      return metadata;
+      return {};
     },
     start() {
-      if (this.scientisst) {
-        this.$gtag.event("start", {
-          event_category: "live",
-          event_label: "started acquisition",
-          value: Date.now(),
-        });
-        const metadata = this.getMetadata();
-        this.fileData = "#" + JSON.stringify(metadata) + "\n";
-        this.fileData += "#" + this.getHeader();
-        this.scientisst
-          .start(this.samplingRate, this.channels)
-          .then(async () => {
-            this.$refs.charts.reset();
-            this.$refs.charts.start();
-            this.live = true;
-            let frames;
-            while (this.scientisst.live) {
-              try {
-                frames = await this.scientisst.read();
-                this.$refs.charts.addFrames(frames);
-                if (this.download) {
-                  this.addFramesToFile(frames);
-                }
-              } catch (e) {
-                if (this.scientisst.live) {
-                  const message = e.toString();
-                  if (message == "Error contacting device") {
-                    this.connectionFailedCounter++;
-                    // do not show the same error twice
-                    // after the second time, the device disconnects and the counter is reset
-                    if (this.connectionFailedCounter > 2) {
-                      this.connectionFailedCounter = 1;
-                    }
-                    if (this.connectionFailedCounter <= 1) {
+      if (!this.firstColIsTime) {
+        this.startTime = new Date().valueOf();
+      }
+      const metadata = this.getMetadata();
+      this.fileData = "#" + JSON.stringify(metadata) + "\n";
+      this.fileData += "#" + this.getHeader();
+      if (this.device == 0) {
+        if (this.scientisst) {
+          this.$gtag.event("start", {
+            event_category: "live",
+            event_label: "started acquisition",
+            value: Date.now(),
+          });
+          this.scientisst
+            .start(this.samplingRate, this.channels)
+            .then(async () => {
+              this.$refs.charts.reset();
+              this.$refs.charts.start();
+              this.live = true;
+              let frames;
+              while (this.scientisst.live) {
+                try {
+                  frames = await this.scientisst.read();
+                  this.$refs.charts.addFrames(frames);
+                  if (this.download) {
+                    this.addFramesToFile(frames);
+                  }
+                } catch (e) {
+                  if (this.scientisst.live) {
+                    const message = e.toString();
+                    if (message == "Error contacting device") {
+                      this.connectionFailedCounter++;
+                      // do not show the same error twice
+                      // after the second time, the device disconnects and the counter is reset
+                      if (this.connectionFailedCounter > 2) {
+                        this.connectionFailedCounter = 1;
+                      }
+                      if (this.connectionFailedCounter <= 1) {
+                        this.toast(message);
+                      }
+                    } else {
+                      this.connectionFailedCounter = 0;
                       this.toast(message);
                     }
-                  } else {
-                    this.connectionFailedCounter = 0;
-                    this.toast(message);
                   }
                 }
               }
-            }
+            });
+        }
+      } else if (this.device == 1) {
+        if (this.serial) {
+          this.$gtag.event("start", {
+            event_category: "live",
+            event_label: "started acquisition",
+            value: Date.now(),
           });
+          const metadata = this.getMetadata();
+          this.fileData = "#" + JSON.stringify(metadata);
+          this.fileData += "\n";
+          this.fileData += "#" + this.getHeader();
+
+          this.$refs.charts.reset();
+          this.$refs.charts.start();
+          this.live = true;
+        }
       }
     },
-    stop() {
+    async stop() {
       this.$gtag.event("stop", {
         event_category: "live",
         event_label: "stopped acquisition",
         value: Date.now(),
       });
       this.$refs.charts.stop();
-      this.scientisst.stop().then(() => {
-        this.live = false;
-        if (this.download) {
-          this.saveFile(Date.now().toString(), this.fileData);
-          this.fileData = "";
-        }
-      });
+      if (this.device == 0) {
+        await this.scientisst.stop();
+      }
+      this.live = false;
+      if (this.download) {
+        this.saveFile(Date.now().toString(), this.fileData);
+        this.fileData = "";
+      }
     },
     addFramesToFile(frames) {
       let line;
@@ -391,6 +552,9 @@ export default {
         }
         this.fileData += line;
       });
+    },
+    addSerialDataToFile(timestamp, data) {
+      this.fileData += "\n" + timestamp + "\t" + data.join("\t");
     },
     saveFile(filename, data) {
       // TODO: use existing button

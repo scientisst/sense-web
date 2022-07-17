@@ -7,11 +7,8 @@ import VueUniversalModal from 'vue-universal-modal'
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faMagnifyingGlassChart, faMagnifyingGlassMinus, faMagnifyingGlassPlus, faDownload } from "@fortawesome/free-solid-svg-icons";
-import {
-    faFacebook, faInstagram, faLinkedin, faGithub
-} from '@fortawesome/free-brands-svg-icons'
 
-library.add(faMagnifyingGlassChart, faMagnifyingGlassMinus, faMagnifyingGlassPlus, faDownload, faFacebook, faInstagram, faLinkedin, faGithub);
+library.add(faMagnifyingGlassChart, faMagnifyingGlassMinus, faMagnifyingGlassPlus, faDownload);
 
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import './registerServiceWorker'
