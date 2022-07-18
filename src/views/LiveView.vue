@@ -195,7 +195,7 @@ export default {
       });
     },
     onSerialData(data) {
-      const parsedData = data.split(",").map((value) => {
+      let parsedData = data.split(",").map((value) => {
         return parseFloat(value);
       });
       if (this.firstSerialData) {
@@ -225,16 +225,15 @@ export default {
         }
       }
       if (this.live) {
+        let timestamp;
         if (this.firstColIsTime) {
-          const timestamp = parsedData[0] - this.startTime;
-          const dataWithoutTime = parsedData.slice(1);
-          this.$refs.charts.addSerialData(timestamp, dataWithoutTime);
-          this.addSerialDataToFile(parsedData[0], dataWithoutTime);
+          timestamp = parsedData[0] - this.startTime;
+          parsedData = parsedData.slice(1);
         } else {
-          const timestamp = new Date().valueOf() - this.startTime;
-          this.$refs.charts.addSerialData(timestamp, parsedData);
-          this.addSerialDataToFile(timestamp, parsedData);
+          timestamp = new Date().valueOf() - this.startTime;
         }
+        this.$refs.charts.addSerialData(timestamp, parsedData);
+        this.addSerialDataToFile(timestamp, parsedData);
       } else {
         if (this.firstColIsTime) {
           this.startTime = parsedData[0];
