@@ -109,7 +109,7 @@ export default {
       o1: false,
       o2: false,
       connectionFailedCounter: 0,
-      digital: false,
+      digital: true,
       comMode: "bth",
       address: "scientisst.local",
       device: 0,
@@ -160,13 +160,14 @@ export default {
         }
       });
       this.channels = activeChannels;
-    } else {
+    } else if(device == 1) {
       if (localStorage.baudRate) {
         this.baudRate = parseInt(localStorage.baudRate.trim());
       }
       if (localStorage.firstColIsTime) {
         this.firstColIsTime = localStorage.firstColIsTime == "true";
       }
+      this.digital = false;
     }
   },
   beforeUnmount() {
