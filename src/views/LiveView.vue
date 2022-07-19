@@ -160,7 +160,7 @@ export default {
         }
       });
       this.channels = activeChannels;
-    } else if(device == 1) {
+    } else if(this.device == 1) {
       if (localStorage.baudRate) {
         this.baudRate = parseInt(localStorage.baudRate.trim());
       }
