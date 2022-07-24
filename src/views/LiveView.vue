@@ -73,7 +73,6 @@ import LinuxPairHelp from "../components/LinuxPairHelp.vue";
 import { createToast } from "mosha-vue-toastify";
 import "mosha-vue-toastify/dist/style.css";
 
-/* eslint-disable no-constant-condition */
 import ScientISST from "@scientisst/sense";
 
 import Serial from "@/utils/serial.js";
@@ -160,7 +159,7 @@ export default {
         }
       });
       this.channels = activeChannels;
-    } else if(this.device == 1) {
+    } else if (this.device == 1) {
       if (localStorage.baudRate) {
         this.baudRate = parseInt(localStorage.baudRate.trim());
       }
@@ -550,11 +549,14 @@ export default {
           line += "\t";
           line += frame.mv[i];
         }
-        this.fileData += line;
+        this.addLineToFileData(line);
       });
     },
+    addLineToFileData(line) {
+      this.fileData += line;
+    },
     addSerialDataToFile(timestamp, data) {
-      this.fileData += "\n" + timestamp + "\t" + data.join("\t");
+      this.addLineToFileData("\n" + timestamp + "\t" + data.join("\t"));
     },
     saveFile(filename, data) {
       // TODO: use existing button
