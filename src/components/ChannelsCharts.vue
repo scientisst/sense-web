@@ -139,9 +139,11 @@ export default {
         channel.addData(this.channelsData[index].data.splice(0, N));
       });
       if (this.digital) {
-        this.$refs.digitalChannels.addData(
-          this.digitalData.map((channel) => channel.data.splice(0, N))
-        );
+        const digitalChannelsData = [];
+        this.digitalData.forEach((channel) => {
+          digitalChannelsData.push(channel.data.splice(0, N));
+        });
+        this.$refs.digitalChannels.addData(digitalChannelsData);
       }
     },
     addSerialData(timestamp, data) {

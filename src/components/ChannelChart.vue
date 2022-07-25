@@ -255,12 +255,13 @@ export default {
     },
     updateXAxis() {
       const chartData = this.chart.data.datasets[0].data;
-      if (chartData.length > 0) {
+      if (chartData.length > 1) {
         const N = chartData.length;
+        const N2 = Math.floor(N / 2);
         this.timestamp = chartData[N - 1].x;
         const start = this.timestamp - this.duration * 1000;
-        if (chartData[N % 2] < start) {
-          chartData.splice(0, N % 2);
+        if (chartData[N2].x < start) {
+          chartData.splice(0, N2);
         }
       }
       const min = Math.max(

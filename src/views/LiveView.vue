@@ -340,7 +340,6 @@ export default {
     async connectMaker() {
       this.serial = await Serial.requestPort();
 
-      console.log(this.baudRate);
       this.connecting = true;
       try {
         await this.serial.connect(
@@ -474,11 +473,11 @@ export default {
                 try {
                   frames = await this.scientisst.read();
                   const currentTime = performance.now();
-                  console.log(`Elapsed time: ${currentTime - prevTime} ms`);
+                  // console.log(`Elapsed time: ${currentTime - prevTime} ms`);
                   prevTime = currentTime;
                   this.$refs.charts.addFrames(frames);
                   if (this.download) {
-                    // this.addFramesToFile(frames);
+                    this.addFramesToFile(frames);
                   }
                 } catch (e) {
                   if (this.scientisst.live) {
