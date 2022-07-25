@@ -77,6 +77,8 @@ import ScientISST from "@scientisst/sense";
 
 import Serial from "@/utils/serial.js";
 
+import FileWriter from "@/utils/fileWriter.js";
+
 import { resolvesDNS } from "@/utils/utils.js";
 
 export default {
@@ -99,7 +101,7 @@ export default {
       live: false,
       connected: false,
       connecting: false,
-      fileData: "",
+      fileWriter: new FileWriter(),
       download: true,
       downloadLink: "",
       downloadAutomatic: false,
@@ -243,12 +245,7 @@ export default {
     onConnectionLost() {
       this.toast("Lost connection to device");
 
-      // stop
-      this.live = false;
-      if (this.download) {
-        this.saveFile(Date.now().toString(), this.fileData);
-        this.fileData = "";
-      }
+      this.stop();
 
       // disconnect
       this.scientisst = null;
@@ -455,8 +452,8 @@ export default {
         this.startTime = new Date().valueOf();
       }
       const metadata = this.getMetadata();
-      this.fileData = "#" + JSON.stringify(metadata) + "\n";
-      this.fileData += "#" + this.getHeader();
+      this.fileWriter.addLine("#" + JSON.stringify(metadata) + "\n");
+      this.fileWriter.addLine("#" + this.getHeader());
       if (this.device == 0) {
         if (this.scientisst) {
           this.$gtag.event("start", {
@@ -470,13 +467,18 @@ export default {
               this.$refs.charts.reset();
               this.$refs.charts.start();
               this.live = true;
+              /* eslint-disable */
               let frames;
+              let prevTime = performance.now();
               while (this.scientisst.live) {
                 try {
                   frames = await this.scientisst.read();
+                  const currentTime = performance.now();
+                  console.log(`Elapsed time: ${currentTime - prevTime} ms`);
+                  prevTime = currentTime;
                   this.$refs.charts.addFrames(frames);
                   if (this.download) {
-                    this.addFramesToFile(frames);
+                    // this.addFramesToFile(frames);
                   }
                 } catch (e) {
                   if (this.scientisst.live) {
@@ -508,9 +510,9 @@ export default {
             value: Date.now(),
           });
           const metadata = this.getMetadata();
-          this.fileData = "#" + JSON.stringify(metadata);
-          this.fileData += "\n";
-          this.fileData += "#" + this.getHeader();
+          this.fileWriter.addLine("#" + JSON.stringify(metadata));
+          this.fileWriter.addLine("\n");
+          this.fileWriter.addLine("#" + this.getHeader());
 
           this.$refs.charts.reset();
           this.$refs.charts.start();
@@ -530,8 +532,7 @@ export default {
       }
       this.live = false;
       if (this.download) {
-        this.saveFile(Date.now().toString(), this.fileData);
-        this.fileData = "";
+        this.saveFile(Date.now().toString());
       }
     },
     addFramesToFile(frames) {
@@ -549,20 +550,16 @@ export default {
           line += "\t";
           line += frame.mv[i];
         }
-        this.addLineToFileData(line);
+        this.fileWriter.addLine(line);
       });
     },
-    addLineToFileData(line) {
-      this.fileData += line;
-    },
     addSerialDataToFile(timestamp, data) {
-      this.addLineToFileData("\n" + timestamp + "\t" + data.join("\t"));
+      this.fileWriter.addLine("\n" + timestamp + "\t" + data.join("\t"));
     },
-    saveFile(filename, data) {
-      // TODO: use existing button
-      const myFile = new Blob([data], { type: "text/plain" });
+    saveFile(filename) {
+      const file = this.fileWriter.getFile();
       window.URL = window.URL || window.webkitURL;
-      this.downloadLink = window.URL.createObjectURL(myFile);
+      this.downloadLink = window.URL.createObjectURL(file);
       const btn = document.getElementById("downloadBtn");
       btn.setAttribute("download", filename + ".csv");
       if (this.downloadAutomatic) {
