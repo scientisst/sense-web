@@ -1,12 +1,25 @@
 <template>
   <div class="serial-first-column">
-    <h3>TIMESTAMP</h3>
-    <p>The first column contains a timestamp in milliseconds</p>
-    <div>
-      <label class="switch">
-        <input type="checkbox" v-model="firstColIsTime" />
-        <span class="slider"></span>
-      </label>
+    <div id="timestamp">
+      <h3>TIMESTAMP</h3>
+      <p>The first column contains a timestamp in milliseconds</p>
+      <div>
+        <label class="switch">
+          <input type="checkbox" v-model="firstColIsTime" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    <div id="millis-micros" v-if="firstColIsTime">
+      <p>What is the unit of the timestamp?</p>
+      <div class="options-switch">
+        <span class="option" id="option1"> millis </span>
+        <label class="switch">
+          <input type="checkbox" v-model="micros" />
+          <span class="slider"></span>
+        </label>
+        <span class="option" id="option2"> micros </span>
+      </div>
     </div>
   </div>
 </template>
@@ -15,16 +28,22 @@
 export default {
   name: "SerialFirstColumn",
   data() {
-    return { firstColIsTime: false };
+    return { firstColIsTime: false, micros: false };
   },
   mounted() {
     if (localStorage.firstColIsTime) {
       this.firstColIsTime = localStorage.firstColIsTime;
     }
+    if (localStorage.firstColIsTime) {
+      this.micros = localStorage.micros;
+    }
   },
   watch: {
     firstColIsTime(newFirstColIsTime) {
       localStorage.firstColIsTime = newFirstColIsTime;
+    },
+    micros(newMicros) {
+      localStorage.micros = newMicros;
     },
   },
 };
@@ -35,11 +54,30 @@ export default {
   display: none;
 }
 
+.option {
+  font-weight: bold;
+}
+
+.options-switch {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.options-switch .slider {
+  box-shadow: 0 0 0 4px var(--main-color) !important;
+}
+
+.options-switch .slider:before {
+  background-color: var(--main-color);
+}
+
 .switch {
   display: inline-block;
   width: 80px; /*=w*/
   height: 40px; /*=h*/
   position: relative;
+  margin: 0 10px;
 }
 
 .slider {

@@ -117,6 +117,7 @@ export default {
       baudRate: 9600,
       firstSerialData: true,
       firstColIsTime: false,
+      micros: false,
       componentKey: 0,
       startTime: 0,
       serialSamples: 0,
@@ -167,6 +168,9 @@ export default {
       }
       if (localStorage.firstColIsTime) {
         this.firstColIsTime = localStorage.firstColIsTime == "true";
+      }
+      if (localStorage.micros) {
+        this.micros = localStorage.micros == "true";
       }
       this.digital = false;
     }
@@ -229,7 +233,11 @@ export default {
       if (this.live) {
         let timestamp;
         if (this.firstColIsTime) {
-          timestamp = parsedData[0] - this.startTime;
+          if (this.micros) {
+            timestamp = Math.floor(parsedData[0] / 1000 )- this.startTime;
+          } else {
+            timestamp = parsedData[0] - this.startTime;
+          }
           parsedData = parsedData.slice(1);
         } else {
           timestamp = new Date().valueOf() - this.startTime;
@@ -239,6 +247,9 @@ export default {
       } else {
         if (this.firstColIsTime) {
           this.startTime = parsedData[0];
+          if (this.micros) {
+            this.startTime = Math.floor(this.startTime / 1000);
+          }
         }
       }
     },
