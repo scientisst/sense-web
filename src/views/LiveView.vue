@@ -73,13 +73,12 @@ import LinuxPairHelp from "../components/LinuxPairHelp.vue";
 import { createToast } from "mosha-vue-toastify";
 import "mosha-vue-toastify/dist/style.css";
 
-import ScientISST from "@scientisst/sense";
+import FileWriter from "../utils/fileWriter.js";
 
-import Serial from "@/utils/serial.js";
+import { resolvesDNS } from "../utils/utils.js";
 
-import FileWriter from "@/utils/fileWriter.js";
-
-import { resolvesDNS } from "@/utils/utils.js";
+import { connectSense } from "../utils/senseInterface.js";
+import { connectMaker } from "../utils/makerInterface.js";
 
 export default {
   name: "LiveView",
@@ -234,7 +233,7 @@ export default {
         let timestamp;
         if (this.firstColIsTime) {
           if (this.micros) {
-            timestamp = Math.floor(parsedData[0] / 1000 )- this.startTime;
+            timestamp = Math.floor(parsedData[0] / 1000) - this.startTime;
           } else {
             timestamp = parsedData[0] - this.startTime;
           }
@@ -255,138 +254,37 @@ export default {
     },
     onConnectionLost() {
       this.toast("Lost connection to device");
-
       this.stop();
-
       // disconnect
       this.scientisst = null;
-      this.serial = null;
       this.connected = false;
     },
-    async checkCertificate(url) {
-      const toast = this.toast;
-      const scientisst = this.scientisst;
-      const promise = new Promise((resolve) => {
-        const request = new XMLHttpRequest();
-        request.timeout = 2000; // time in ms
-        request.open("GET", url, true); // false for synchronous request
-
-        request.onload = function () {
-          resolve();
-          toast("Certificate is valid");
-        };
-
-        request.ontimeout = function () {
-          resolve();
-          toast("Timeout. Are you connected to the device WiFi?");
-        };
-
-        request.onerror = function () {
-          resolve();
-          toast("Redirecting to certificate authorization page...");
-          setTimeout(() => scientisst.requestCert(), 1000);
-        };
-
-        request.send(null);
-        return true;
-      });
-      await promise;
-    },
     async connect() {
-      if (this.device == 0) {
-        await this.connectSense();
-      } else if (this.device == 1) {
-        await this.connectMaker();
-      }
-    },
-    async connectSense() {
-      let scientisst;
-      if (this.comMode === "bth") {
-        scientisst = ScientISST.requestPort();
-      } else if (this.comMode === "wifi") {
-        scientisst = ScientISST.fromWS(this.address);
-      } else {
-        this.toast("Uknown communication mode");
-        throw "Uknown communication mode";
-      }
-      await scientisst
-        .then(async (scientisst) => {
-          if (scientisst) {
-            this.connecting = true;
-            this.scientisst = scientisst;
-            try {
-              await this.scientisst.connect(this.onConnectionLost);
-              this.connected = true;
-            } catch (e) {
-              if (e instanceof DOMException) {
-                if (
-                  e.message ===
-                  "Failed to execute 'open' on 'SerialPort': The port is already open."
-                ) {
-                  this.toast(
-                    "The port is already open. Reloading SENSE... Try again."
-                  );
-                  setTimeout(() => location.reload(), 1000);
-                }
-                // specific error
-              } else if (e.target && e.target instanceof WebSocket) {
-                await this.checkCertificate(`https://${this.address}/cert`);
-              } else {
-                this.toast(e.toString());
-              }
-            }
-          }
-        })
-        .catch((e) => {
-          if (e instanceof DOMException) {
-            this.toast("Make sure the device is paired and select a port");
-            // specific error
-          } else {
-            this.toast(e.toString());
-            throw e; // let others bubble up
-          }
-        });
-      this.connecting = false;
-    },
-    async connectMaker() {
-      this.serial = await Serial.requestPort();
-
       this.connecting = true;
-      try {
-        await this.serial.connect(
+      if (this.device == 0) {
+        this.scientisst = await connectSense(
+          this.comMode,
+          this.address,
+          this.onConnectionLost,
+          this.toast
+        );
+      } else if (this.device == 1) {
+        this.scientisst = await connectMaker(
           this.baudRate,
           this.onSerialData,
-          this.onConnectionLost
+          this.onConnectionLost,
+          this.toast
         );
-        this.connected = true;
-      } catch (e) {
-        if (e instanceof DOMException) {
-          if (
-            e.message ===
-            "Failed to execute 'open' on 'SerialPort': The port is already open."
-          ) {
-            this.toast(
-              "The port is already open. Reloading page... Try again."
-            );
-            setTimeout(() => location.reload(), 1000);
-          }
-        } else {
-          this.toast(e.toString());
-        }
       }
-
+      if (this.scientisst != null) {
+        this.connected = true;
+      }
       this.connecting = false;
     },
     disconnect() {
-      let device;
-      if (this.device == 0) {
-        device = this.scientisst;
-      } else if (this.device == 1) {
-        device = this.serial;
-      }
-      if (device) {
-        if (device.connected) {
-          device.disconnect().then(() => {
+      if (this.scientisst) {
+        if (this.scientisst.connected) {
+          this.scientisst.disconnect().then(() => {
             this.scientisst = null;
             this.connected = false;
           });
@@ -465,69 +363,64 @@ export default {
       this.fileWriter.addLine("#" + JSON.stringify(metadata) + "\n");
       this.fileWriter.addLine("#" + this.getHeader());
       if (this.device == 0) {
-        if (this.scientisst) {
-          this.$gtag.event("start", {
-            event_category: "live",
-            event_label: "started acquisition",
-            value: Date.now(),
-          });
-          this.scientisst
-            .start(this.samplingRate, this.channels)
-            .then(async () => {
-              this.$refs.charts.reset();
-              this.$refs.charts.start();
-              this.live = true;
-              /* eslint-disable */
-              let frames;
-              let prevTime = performance.now();
-              while (this.scientisst.live) {
-                try {
-                  frames = await this.scientisst.read();
-                  const currentTime = performance.now();
-                  // console.log(`Elapsed time: ${currentTime - prevTime} ms`);
-                  prevTime = currentTime;
-                  this.$refs.charts.addFrames(frames);
-                  if (this.download) {
-                    this.addFramesToFile(frames);
-                  }
-                } catch (e) {
-                  if (this.scientisst.live) {
-                    const message = e.toString();
-                    if (message == "Error contacting device") {
-                      this.connectionFailedCounter++;
-                      // do not show the same error twice
-                      // after the second time, the device disconnects and the counter is reset
-                      if (this.connectionFailedCounter > 2) {
-                        this.connectionFailedCounter = 1;
-                      }
-                      if (this.connectionFailedCounter <= 1) {
-                        this.toast(message);
-                      }
-                    } else {
-                      this.connectionFailedCounter = 0;
+        this.$gtag.event("start", {
+          event_category: "live",
+          event_label: "started acquisition",
+          value: Date.now(),
+        });
+        this.scientisst
+          .start(this.samplingRate, this.channels)
+          .then(async () => {
+            this.$refs.charts.reset();
+            this.$refs.charts.start();
+            this.live = true;
+            let frames;
+            // let prevTime = performance.now();
+            while (this.scientisst.live) {
+              try {
+                frames = await this.scientisst.read();
+                // const currentTime = performance.now();
+                // console.log(`Elapsed time: ${currentTime - prevTime} ms`);
+                // prevTime = currentTime;
+                this.$refs.charts.addFrames(frames);
+                if (this.download) {
+                  this.addFramesToFile(frames);
+                }
+              } catch (e) {
+                if (this.scientisst.live) {
+                  const message = e.toString();
+                  if (message == "Error contacting device") {
+                    this.connectionFailedCounter++;
+                    // do not show the same error twice
+                    // after the second time, the device disconnects and the counter is reset
+                    if (this.connectionFailedCounter > 2) {
+                      this.connectionFailedCounter = 1;
+                    }
+                    if (this.connectionFailedCounter <= 1) {
                       this.toast(message);
                     }
+                  } else {
+                    this.connectionFailedCounter = 0;
+                    this.toast(message);
                   }
                 }
               }
-            });
-        }
-      } else if (this.device == 1) {
-        if (this.serial) {
-          this.$gtag.event("start", {
-            event_category: "live",
-            event_label: "started acquisition",
-            value: Date.now(),
+            }
           });
-          const metadata = this.getMetadata();
-          this.fileWriter.addLine("#" + JSON.stringify(metadata));
-          this.fileWriter.addLine("\n");
-          this.fileWriter.addLine("#" + this.getHeader());
+      } else if (this.device == 1) {
+        this.$gtag.event("start", {
+          event_category: "live",
+          event_label: "started acquisition",
+          value: Date.now(),
+        });
+        const metadata = this.getMetadata();
+        this.fileWriter.addLine("#" + JSON.stringify(metadata));
+        this.fileWriter.addLine("\n");
+        this.fileWriter.addLine("#" + this.getHeader());
 
-          this.$refs.charts.reset();
-          this.$refs.charts.start();
-          this.live = true;
-        }
+        this.$refs.charts.reset();
+        this.$refs.charts.start();
+        this.live = true;
       }
     },
     async stop() {
