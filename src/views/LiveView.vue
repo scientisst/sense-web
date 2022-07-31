@@ -34,7 +34,12 @@
         Download
       </a>
     </div>
-    <div style="height: 32px" />
+    <div id="sense-version" v-if="device == 0">
+      <div id="version" v-if="connected">
+        ScientISST Sense v{{ senseVersion }}
+      </div>
+    </div>
+    <div style="height: 16px" />
     <channels-charts
       ref="charts"
       :channels="channels"
@@ -120,6 +125,7 @@ export default {
       componentKey: 0,
       startTime: 0,
       serialSamples: 0,
+      senseVersion: "",
     };
   },
   created() {
@@ -268,6 +274,9 @@ export default {
           this.onConnectionLost,
           this.toast
         );
+        if (this.scientisst != null) {
+          this.senseVersion = this.scientisst.version.replace("ScientISST", "");
+        }
       } else if (this.device == 1) {
         this.scientisst = await connectMaker(
           this.baudRate,
@@ -276,10 +285,10 @@ export default {
           this.toast
         );
       }
+      this.connecting = false;
       if (this.scientisst != null) {
         this.connected = true;
       }
-      this.connecting = false;
     },
     disconnect() {
       if (this.scientisst) {
@@ -554,5 +563,12 @@ export default {
   font-size: 20px;
   text-align: center;
   border-radius: 12px;
+}
+
+#sense-version {
+  margin-top: 24px;
+  font-weight: bold;
+  color: grey;
+  text-transform: uppercase;
 }
 </style>
