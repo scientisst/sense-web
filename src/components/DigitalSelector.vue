@@ -18,7 +18,7 @@ export default {
   },
   mounted() {
     if (localStorage.digital) {
-      this.digital = localStorage.digital;
+      this.digital = localStorage.digital == "true";
     }
   },
   watch: {

@@ -32,10 +32,10 @@ export default {
   },
   mounted() {
     if (localStorage.firstColIsTime) {
-      this.firstColIsTime = localStorage.firstColIsTime;
+      this.firstColIsTime = localStorage.firstColIsTime == "true";
     }
     if (localStorage.firstColIsTime) {
-      this.micros = localStorage.micros;
+      this.micros = localStorage.micros == "true";
     }
   },
   watch: {
