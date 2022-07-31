@@ -18,6 +18,8 @@
             </a>
           </div>
           <p>
+            SENSE Web v{{ appVersion }}
+            <br />
             ScientISST is hosted at Instituto de Telecomunicações (IT), Lisboa,
             Portugal.
             <br />
@@ -43,6 +45,7 @@
 </template>
 
 <script>
+import { version } from "../../package";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faFacebook,
@@ -54,6 +57,11 @@ library.add(faFacebook, faInstagram, faLinkedin, faGithub);
 
 export default {
   name: "PageFooter",
+  data() {
+    return {
+      appVersion: version,
+    };
+  },
 };
 </script>
 
