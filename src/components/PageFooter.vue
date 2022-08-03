@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { version } from "../../package";
+import packageInfo from "../../package.json";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faFacebook,
@@ -59,7 +59,7 @@ export default {
   name: "PageFooter",
   data() {
     return {
-      appVersion: version,
+      appVersion: packageInfo.version,
     };
   },
 };
