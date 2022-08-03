@@ -1,8 +1,17 @@
 <template>
   <div id="chart-options">
-    <div class="channel-title">{{ title }}</div>
+    <button
+      v-bind:class="[{ channelTitle: true }, { active: this.isVisible }]"
+      @click="toggleVisibility"
+    >
+      {{ title }}
+    </button>
     <div style="flex-grow: 1"></div>
-    <div id="control-buttons" v-if="!fixedAutoScale">
+    <div
+      id="control-buttons"
+      v-if="!fixedAutoScale"
+      v-bind:class="{ invisible: !isVisible }"
+    >
       <circular-button @click="zoomOut">
         <font-awesome-icon icon="magnifying-glass-minus" />
       </circular-button>
@@ -14,7 +23,9 @@
       </circular-button>
     </div>
   </div>
-  <canvas ref="chart" id="chart" />
+  <div id="visibility-container" v-bind:class="{ invisible: !isVisible }">
+    <canvas ref="chart" id="chart" />
+  </div>
 </template>
 
 <script>
@@ -31,6 +42,9 @@ export default {
     title: {
       type: String,
       default: "",
+    },
+    channel: {
+      type: Number,
     },
     label: {
       type: String,
@@ -50,8 +64,10 @@ export default {
     },
     zoomFactor: { type: Number, default: 5 },
   },
+  emits: ["isVisible"],
   data() {
     return {
+      isVisible: true,
       timestamp: 0,
       autoscale: false,
       zoom: 1,
@@ -155,18 +171,24 @@ export default {
       this.updateChart();
     },
     visible() {
-      const rect = this.$refs.chart.getBoundingClientRect();
-      this.widthFactor = Math.min(1, rect.width / this.width);
-      return (
-        rect.bottom >= 0 &&
-        rect.right >= 0 &&
-        rect.top <=
-          (window.innerHeight || document.documentElement.clientHeight) &&
-        rect.left <= (window.innerWidth || document.documentElement.clientWidth)
-      );
+      if (this.isVisible) {
+        const rect = this.$refs.chart.getBoundingClientRect();
+        this.widthFactor = Math.min(1, rect.width / this.width);
+        return (
+          rect.bottom >= 0 &&
+          rect.right >= 0 &&
+          rect.top <=
+            (window.innerHeight || document.documentElement.clientHeight) &&
+          rect.left <=
+            (window.innerWidth || document.documentElement.clientWidth)
+        );
+      } else {
+        return false;
+      }
     },
     updateChart(force = false) {
       if (this.visible() || force) {
+        console.log("refresh");
         this.updateXAxis();
         this.updateYAxis();
         this.chart.update();
@@ -274,23 +296,31 @@ export default {
     reset() {
       this.chart.data.datasets[0].data = [];
     },
+    toggleVisibility() {
+      this.isVisible = !this.isVisible;
+      this.$emit("isVisible", {
+        channel: this.channel,
+        isVisible: this.isVisible,
+      });
+    },
   },
 };
 </script>
 
 <style scoped>
-.channel-title {
+.channelTitle {
   padding: 2px;
-  background: var(--main-color);
   text-align: center;
-  color: white;
   font-size: 17px;
+  background-color: white;
+  color: var(--main-color);
   font-weight: bold;
   letter-spacing: 2px;
   text-transform: uppercase;
   border: 3px solid var(--main-color);
   border-radius: 4px;
   margin: 2px;
+  cursor: pointer;
 }
 
 #chart-options {
@@ -305,5 +335,9 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 4px;
+}
+
+#visibility-container {
+  height: 100%;
 }
 </style>

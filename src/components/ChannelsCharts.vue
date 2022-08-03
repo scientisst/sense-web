@@ -22,18 +22,30 @@
       </div>
     </div>
     <div class="chart" v-for="channel in channelsData" :key="channel.id">
-      <div class="resize">
+      <div
+        v-bind:class="[
+          { container: true },
+          { resize: this.visibility[channel.id - 1] },
+        ]"
+      >
         <channel-chart
           ref="channels"
           :title="'AI' + channel.id"
           :key="'chart' + channel.id"
           :sampleRate="this.samplingRate"
           :duration="this.duration"
+          :channel="channel.id"
           :label="'AI' + channel.id"
           :zoomFactor="this.zoomFactor"
           :fixedAutoScale="device != 0"
+          @isVisible="setVisibility"
         />
-        <div class="resizeUI">
+        <div
+          v-bind:class="[
+            { resizeUI: true },
+            { invisible: !this.visibility[channel.id - 1] },
+          ]"
+        >
           <img
             src="../assets/img/resize.svg"
             alt="resize"
@@ -83,6 +95,7 @@ export default {
       timestamp: 0,
       duration: 10,
       zoomFactor: 5,
+      visibility: this.channels.map(() => true),
     };
   },
   created() {
@@ -179,6 +192,11 @@ export default {
       }
       localStorage.zoomFactor = this.zoomFactor;
     },
+    setVisibility(event) {
+      const channelIndex = event.channel - 1;
+      const isVisible = event.isVisible;
+      this.visibility[channelIndex] = isVisible;
+    },
   },
 };
 </script>
@@ -193,19 +211,22 @@ export default {
   gap: 16px;
 }
 
-.resize {
+.container {
   display: inline-block;
   width: 90vw;
-  height: 300px;
   padding-top: 20px;
   padding-left: 30px;
   padding-right: 30px;
   padding-bottom: 50px;
   border: 2px solid #dedede;
   border-radius: 25px;
+  position: relative;
+}
+
+.resize {
   resize: both;
   overflow: hidden;
-  position: relative;
+  height: 300px;
 }
 
 .digital {

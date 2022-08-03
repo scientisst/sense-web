@@ -95,6 +95,10 @@ button:focus {
 
 .active {
   color: white !important;
-  background-color: #ef4b59;
+  background-color: #ef4b59 !important;
+}
+
+.invisible {
+  display: none !important;
 }
 </style>
