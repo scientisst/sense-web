@@ -415,6 +415,9 @@ export default {
                 }
               }
             }
+            if (this.download) {
+              this.saveFile(Date.now().toString());
+            }
           });
       } else if (this.device == 1) {
         this.$gtag.event("start", {
@@ -443,9 +446,6 @@ export default {
         await this.scientisst.stop();
       }
       this.live = false;
-      if (this.download) {
-        this.saveFile(Date.now().toString());
-      }
     },
     addFramesToFile(frames) {
       let line;
