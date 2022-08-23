@@ -1,17 +1,20 @@
 <template>
   <div class="live">
     <top-bar title="Live Acquisition" />
+    <!-- top buttons: connect/disconnect, start/stop, download -->
     <div class="buttons">
       <button v-if="connected" class="button" ref="connect" @click="disconnect">
         disconnect
       </button>
       <button v-else class="button" ref="connect" @click="connect">
+        <!-- show loading indicator while connecting -->
         <div v-if="connecting">
           <loading-indicator />
         </div>
         <div v-else>connect</div>
       </button>
 
+      <!-- if connected, show start/stop button -->
       <div v-if="connected">
         <button
           v-if="connected && live"
@@ -24,6 +27,7 @@
         <button v-else class="button" id="start" @click="start">start</button>
       </div>
 
+      <!-- show download button only after acquisition -->
       <a
         class="button a-button active"
         v-bind:href="downloadLink"
@@ -34,12 +38,16 @@
         Download
       </a>
     </div>
+
+    <!-- show ScientISST Sense firmware version -->
     <div id="sense-version" v-if="device == 0">
       <div id="version" v-if="connected">
         ScientISST Sense v{{ senseVersion }}
       </div>
     </div>
     <div style="height: 16px" />
+
+    <!-- list of charts -->
     <channels-charts
       ref="charts"
       :channels="channels"
@@ -51,15 +59,21 @@
       :key="componentKey"
     />
     <div style="height: 100px" />
+
+    <!-- help popup -->
     <Modal v-model="isShow" :close="closeModal">
       <div class="modal">
         <h2>Pair your device</h2>
+        <!-- LINUX -->
         <div v-if="this.platform.includes('Linux')">
           <linux-pair-help />
         </div>
+        <!-- WINDOWS -->
         <div v-else-if="this.platform.includes('Windows')">
           Insert Instructions for Windows
         </div>
+        <!-- MAC OS -->
+        <!-- TODO: update for other OS (eg: mobile) -->
         <div v-else>Insert Instructions for Mac</div>
         <div style="height: 32px" />
         <button class="button" @click="closeModal">Got it!</button>
@@ -93,11 +107,9 @@ export default {
     LoadingIndicator,
     LinuxPairHelp,
   },
-  props: {
-    // scientisst: { type: ScientISST },
-  },
   data: function () {
     return {
+      // some default values
       isShow: false,
       scientisstCopy: undefined,
       samplingRate: 1000,
@@ -129,6 +141,7 @@ export default {
     };
   },
   created() {
+    // load previously defined settings
     if (localStorage.device) {
       this.device = parseInt(localStorage.device);
     }
@@ -143,6 +156,7 @@ export default {
       if (localStorage.address) {
         this.address = localStorage.address;
       } else {
+        // if browser is not capable of resolving scientisst.local, use ScientISST Sense IP
         if (!resolvesDNS) {
           this.address = "192.168.4.1";
         }
@@ -184,12 +198,14 @@ export default {
     this.disconnect();
   },
   methods: {
+    // update component key to force render
     forceRerender() {
       this.componentKey += 1;
     },
     setOutput1(event) {
       this.o1 = event;
       // TODO: inverted order
+      // for some reason, the digital ports of the ScientISST Sense are switched
       this.scientisst.trigger([this.o2, this.o1]);
     },
     setOutput2(event) {
@@ -197,6 +213,7 @@ export default {
       // TODO: inverted order
       this.scientisst.trigger([this.o2, this.o1]);
     },
+    // method that shows a toast message
     toast(msg) {
       createToast(msg, {
         type: "danger",
@@ -205,10 +222,13 @@ export default {
         transition: "bounce",
       });
     },
+    // only for ScientISST Maker (or other serial-based devices)
     onSerialData(data) {
+      // separate comma-separated values line into array
       let parsedData = data.split(",").map((value) => {
         return parseFloat(value);
       });
+      // parse how many columns of data there is
       if (this.firstSerialData) {
         this.serialSamples++;
         if (this.serialSamples >= 2) {
@@ -247,9 +267,13 @@ export default {
         } else {
           timestamp = new Date().valueOf() - this.startTime;
         }
+        // add data to plots
         this.$refs.charts.addSerialData(timestamp, parsedData);
+
+        // add data to file
         this.addSerialDataToFile(timestamp, parsedData);
       } else {
+        // if not on live mode, update the startTime
         if (this.firstColIsTime) {
           this.startTime = parsedData[0];
           if (this.micros) {
@@ -275,6 +299,7 @@ export default {
           this.toast
         );
         if (this.scientisst != null) {
+          // get only the version number
           this.senseVersion = this.scientisst.version.replace("ScientISST", "");
         }
       } else if (this.device == 1) {
@@ -300,6 +325,7 @@ export default {
         }
       }
     },
+    // create file header
     getHeader() {
       let header = "";
       if (this.device == 0) {
@@ -322,6 +348,7 @@ export default {
       }
       return header;
     },
+    // generate file metadata
     getMetadata() {
       let iso;
       const timestamp = (iso = new Date()).valueOf();
@@ -371,23 +398,28 @@ export default {
       const metadata = this.getMetadata();
       this.fileWriter.addLine("#" + JSON.stringify(metadata) + "\n");
       this.fileWriter.addLine("#" + this.getHeader());
+      // send event to Google Analytics
+      this.$gtag.event("start", {
+        event_category: "live",
+        event_label: "started acquisition",
+        value: Date.now(),
+      });
       if (this.device == 0) {
-        this.$gtag.event("start", {
-          event_category: "live",
-          event_label: "started acquisition",
-          value: Date.now(),
-        });
         this.scientisst
           .start(this.samplingRate, this.channels)
           .then(async () => {
+            // reset and clear charts
             this.$refs.charts.reset();
+            // start charts refresh
             this.$refs.charts.start();
             this.live = true;
             let frames;
+            // use this to measure performance
             // let prevTime = performance.now();
             while (this.scientisst.live) {
               try {
                 frames = await this.scientisst.read();
+                // use this to measure performance
                 // const currentTime = performance.now();
                 // console.log(`Elapsed time: ${currentTime - prevTime} ms`);
                 // prevTime = currentTime;
@@ -420,22 +452,13 @@ export default {
             }
           });
       } else if (this.device == 1) {
-        this.$gtag.event("start", {
-          event_category: "live",
-          event_label: "started acquisition",
-          value: Date.now(),
-        });
-        const metadata = this.getMetadata();
-        this.fileWriter.addLine("#" + JSON.stringify(metadata));
-        this.fileWriter.addLine("\n");
-        this.fileWriter.addLine("#" + this.getHeader());
-
         this.$refs.charts.reset();
         this.$refs.charts.start();
         this.live = true;
       }
     },
     async stop() {
+      // send event to google analytics
       this.$gtag.event("stop", {
         event_category: "live",
         event_label: "stopped acquisition",
@@ -474,6 +497,7 @@ export default {
       this.downloadLink = window.URL.createObjectURL(file);
       const btn = document.getElementById("downloadBtn");
       btn.setAttribute("download", filename + ".csv");
+      // downloadAutomatic not implemented
       if (this.downloadAutomatic) {
         btn.downloadBtn.click();
       }

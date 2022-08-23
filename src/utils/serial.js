@@ -1,3 +1,4 @@
+// API for ScientISST Maker and other Serial-based devices
 export default class Serial {
   #port;
   #baudRate;

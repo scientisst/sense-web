@@ -1,4 +1,6 @@
 <template>
+  <!-- Not compatible page -->
+  <!-- Not used anymore, since WebSockets is compatible in every browser and device -->
   <div class="not-compatible">
     <logo-top-left />
     <div class="center">
@@ -34,6 +36,7 @@ export default {
     LogoTopLeft,
   },
   created: function () {
+    // if browser supports web serial api, redirect to homepage
     if ("serial" in navigator) {
       this.$router.replace({ path: "/" });
     }

@@ -3,7 +3,6 @@ const CHUNK_LENGTH = 5200000;
 
 export default class FileWriter {
   buffer = null;
-  prevId = null;
   file = null;
   dataChunks = null;
 
@@ -17,6 +16,7 @@ export default class FileWriter {
     this.serialize();
   }
 
+  // store chunks of CHUNK_LENGTH to avoid the overflow of lines
   serialize() {
     if (this.buffer.length > CHUNK_LENGTH) {
       this.dataChunks.push(this.buffer.slice(0, CHUNK_LENGTH));
@@ -24,6 +24,7 @@ export default class FileWriter {
     }
   }
 
+  // convert chunks to blob file
   getFile() {
     this.dataChunks.push(this.buffer);
     this.file = new Blob(this.dataChunks, { type: "text/plain" });

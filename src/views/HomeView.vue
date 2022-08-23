@@ -1,11 +1,13 @@
 <template>
   <div class="home">
+    <!-- PWA install button -->
     <div v-if="showInstallButton" id="install">
       <button @click="installPWA" class="button active">
         <font-awesome-icon icon="download" size="sm" />
         Install
       </button>
     </div>
+    <!-- Big Logo -->
     <div id="logo">
       <img
         alt="ScientISST Sense logo"
@@ -15,6 +17,7 @@
 
     <div style="height: 32px" />
 
+    <!-- Navigation buttons -->
     <div class="buttons">
       <router-link to="/live" v-slot="{ href, route, navigate }">
         <button :href="href" @click="navigate" class="button">
@@ -42,6 +45,7 @@ export default {
     };
   },
   beforeMount() {
+    // check if PWA is already installed
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       this.installEvent = e;

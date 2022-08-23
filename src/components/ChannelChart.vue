@@ -170,6 +170,7 @@ export default {
     refresh() {
       this.updateChart();
     },
+    // check if chart is visible in window
     visible() {
       if (this.isVisible) {
         const rect = this.$refs.chart.getBoundingClientRect();
@@ -186,9 +187,9 @@ export default {
         return false;
       }
     },
+    // chart refresh
     updateChart(force = false) {
       if (this.visible() || force) {
-        console.log("refresh");
         this.updateXAxis();
         this.updateYAxis();
         this.chart.update();
@@ -232,7 +233,9 @@ export default {
     },
     pushData(data) {
       for (let i = 0; i < data.length; i++) {
+        // push data to chart dataset
         this.chart.data.datasets[0].data.push(data[i]);
+        // update average value of data - used in manual zoom
         this.avg = (1 - this.alpha) * this.avg + this.alpha * data[i].y;
       }
     },
@@ -240,6 +243,7 @@ export default {
       if (this.avg == undefined) {
         this.avg = data[0].y;
       }
+      // if sampleRate>100, decimate data
       if (this.sampleRate > 100) {
         this.pushData(
           LTTB(
@@ -252,6 +256,7 @@ export default {
       }
     },
     updateYAxis() {
+      // if it is not autoscale, manually adjust the window
       if (!this.autoscale) {
         if (this.zoom == 1) {
           if (this.zoomChanged) {
@@ -260,6 +265,7 @@ export default {
             this.chart.options.scales.y.max = 4095;
           }
         } else {
+          // define the gap between min and max for specific zoom level
           const gap = 2047 * (1 - 0.1 * (this.zoom - 1));
           let min = Math.max(0, this.avg - gap);
           let max = Math.min(4095, this.avg + gap);
@@ -270,11 +276,13 @@ export default {
               min -= gap - (max - min);
             }
           }
+          // update the minimum and maximum values of the yAxis
           this.chart.options.scales.y.min = Math.floor(min);
           this.chart.options.scales.y.max = Math.floor(max);
         }
       }
     },
+    // update displayed XAxis and trim older data
     updateXAxis() {
       const chartData = this.chart.data.datasets[0].data;
       if (chartData.length > 1) {
@@ -282,6 +290,7 @@ export default {
         const N2 = Math.floor(N / 2);
         this.timestamp = chartData[N - 1].x;
         const start = this.timestamp - this.duration * 1000;
+        // if half the values are older than the timestamp of the first displayed value, trim the first half
         if (chartData[N2].x < start) {
           chartData.splice(0, N2);
         }
@@ -293,6 +302,7 @@ export default {
       this.chart.options.scales.x.min = min;
       this.chart.options.scales.x.max = this.timestamp;
     },
+    // reset chart data
     reset() {
       this.chart.data.datasets[0].data = [];
     },

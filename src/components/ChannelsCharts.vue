@@ -114,6 +114,7 @@ export default {
       this.$emit("o2", event);
     },
     start() {
+      // update charts every 1/refreshRate seconds
       this.interval = setInterval(() => {
         this.$refs.channels.forEach((channel) => {
           channel.refresh();
