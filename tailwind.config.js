@@ -26,14 +26,14 @@ module.exports = {
 				"secondary-dark": "#2C2C2E"
 			},
 			textColor: {
-				primary: "rgba(0, 0, 0, 1.0)",
-				"primary-dark": "rgba(255, 255, 255, 1.0)",
-				secondary: "rgba(60, 60, 66, 0.6)",
-				"secondary-dark": "rgba(235, 235, 245, 0.6)",
-				tertiary: "rgba(60, 60, 67, 0.3)",
-				"tertiary-dark": "rgba(235, 235, 245, 0.3)",
-				quaternary: "rgba(60, 60, 67, 0.18)",
-				"quaternary-dark": "rgba(235, 235, 245, 0.18)"
+				"primary-black": "rgba(0, 0, 0, 1.0)",
+				"primary-white": "rgba(255, 255, 255, 1.0)",
+				"secondary-black": "rgba(60, 60, 66, 0.6)",
+				"secondary-white": "rgba(235, 235, 245, 0.6)",
+				"tertiary-black": "rgba(60, 60, 67, 0.3)",
+				"tertiary-white": "rgba(235, 235, 245, 0.3)",
+				"quaternary-black": "rgba(60, 60, 67, 0.18)",
+				"quaternary-white": "rgba(235, 235, 245, 0.18)"
 			}
 		}
 	},
