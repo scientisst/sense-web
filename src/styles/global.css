@@ -12,6 +12,10 @@
 	padding: 0;
 	box-sizing: border-box;
 	font-family: "Lexend", sans-serif;
+	font-weight: inherit;
+	color: inherit;
+	font-size: inherit;
+	line-height: inherit;
 }
 
 .imagine-font {
