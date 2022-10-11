@@ -8,3 +8,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: "Lexend", sans-serif;
+}
+
+.imagine-font {
+	font-family: "Imagine", sans-serif;
+}
+
+.lexend-font {
+	font-family: "Lexend", sans-serif;
+}
