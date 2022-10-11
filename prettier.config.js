@@ -26,6 +26,7 @@ module.exports = {
 	endOfLine: "auto",
 	tabWidth: 4,
 	useTabs: true,
+	printWidth: 80,
 	importOrder: [
 		"(^react$|^react/(.*)$)",
 		"(^next$|^next/(.*)$)",
