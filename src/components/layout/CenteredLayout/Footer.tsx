@@ -13,7 +13,7 @@ import SponsorLogoButton from "./SponsorLogoButton"
 
 const Footer = () => {
 	return (
-		<footer className="container flex flex-col justify-between gap-8 px-4 py-6 sm:flex-row sm:gap-4">
+		<footer className="container flex flex-col justify-between gap-6 px-4 py-6 sm:flex-row sm:gap-4">
 			<div className="flex flex-col gap-4">
 				<div className="flex gap-4">
 					<SocialMediaButton
