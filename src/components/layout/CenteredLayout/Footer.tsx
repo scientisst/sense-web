@@ -4,38 +4,51 @@ import {
 	faInstagram,
 	faLinkedin
 } from "@fortawesome/free-brands-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
-import ScientISSTLogo from "../../../assets/logos/ScientISST.svg"
-import ItLogo from "../../../assets/logos/it.svg"
-import TecnicoLogo from "../../../assets/logos/tecnico.svg"
-import SocialMediaButton from "./SocialMediaButton"
-import SponsorLogoButton from "./SponsorLogoButton"
+import ItLogo from "../../../assets/logos/ItLogo"
+import ScientISSTLogo from "../../../assets/logos/ScientISSTLogo"
+import TecnicoLogo from "../../../assets/logos/TecnicoLogo"
+import ImageAnchor from "../../inputs/ImageAnchor"
 
 const Footer = () => {
 	return (
 		<footer className="container flex flex-col justify-between gap-6 px-4 py-6 sm:flex-row sm:gap-4">
 			<div className="flex flex-col gap-4">
 				<div className="flex gap-4">
-					<SocialMediaButton
+					<ImageAnchor
 						href="https://github.com/scientisst"
-						icon={faGithub}
-						arialLabel="ScientISST GitHub"
-					/>
-					<SocialMediaButton
+						ariaLabel="ScientISST GitHub"
+					>
+						<FontAwesomeIcon icon={faGithub} className="h-8 w-8" />
+					</ImageAnchor>
+					<ImageAnchor
 						href="https://www.instagram.com/scientissthub/"
-						icon={faInstagram}
-						arialLabel="ScientISST Instagram"
-					/>
-					<SocialMediaButton
+						ariaLabel="ScientISST GitHub"
+					>
+						<FontAwesomeIcon
+							icon={faInstagram}
+							className="h-8 w-8"
+						/>
+					</ImageAnchor>
+					<ImageAnchor
 						href="https://www.facebook.com/ScientISST"
-						icon={faFacebook}
-						arialLabel="ScientISST Facebook"
-					/>
-					<SocialMediaButton
+						ariaLabel="ScientISST GitHub"
+					>
+						<FontAwesomeIcon
+							icon={faFacebook}
+							className="h-8 w-8"
+						/>
+					</ImageAnchor>
+					<ImageAnchor
 						href="https://www.linkedin.com/company/scientisst/"
-						icon={faLinkedin}
-						arialLabel="ScientISST LinkedIn"
-					/>
+						ariaLabel="ScientISST GitHub"
+					>
+						<FontAwesomeIcon
+							icon={faLinkedin}
+							className="h-8 w-8"
+						/>
+					</ImageAnchor>
 				</div>
 				<p className="imagine-font text-2xl leading-5">
 					SENSE Web v0.6.0
@@ -50,16 +63,16 @@ const Footer = () => {
 					</p>
 				</div>
 			</div>
-			<div className="flex flex-col gap-4">
-				<SponsorLogoButton href="https://scientisst.com">
+			<div className="flex flex-col items-start gap-4">
+				<ImageAnchor href="https://scientisst.com">
 					<ScientISSTLogo />
-				</SponsorLogoButton>
-				<SponsorLogoButton href="https://it.pt">
+				</ImageAnchor>
+				<ImageAnchor href="https://it.pt">
 					<ItLogo />
-				</SponsorLogoButton>
-				<SponsorLogoButton href="https://tecnico.ulisboa.pt">
+				</ImageAnchor>
+				<ImageAnchor href="https://tecnico.ulisboa.pt">
 					<TecnicoLogo />
-				</SponsorLogoButton>
+				</ImageAnchor>
 			</div>
 		</footer>
 	)
