@@ -37,8 +37,8 @@ module.exports = {
 				"quaternary-white": "rgba(235, 235, 245, 0.18)"
 			},
 			scale: {
-				hover: "1.125",
-				pressed: "0.875"
+				hover: "1.1",
+				pressed: "0.9"
 			}
 		}
 	},
