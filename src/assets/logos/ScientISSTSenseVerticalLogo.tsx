@@ -12,6 +12,7 @@ const ScientISSTSenseVerticalLogo: React.FC<
 			width="202.12"
 			height="255.13"
 			viewBox="0 0 202.12 255.13"
+			aria-label="ScientISST Sense"
 			{...props}
 		>
 			<path
