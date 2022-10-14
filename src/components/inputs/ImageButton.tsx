@@ -1,5 +1,3 @@
-import Link from "next/link"
-
 import joinClassNames from "../utils/joinClassNames"
 
 export interface ImageAnchorProps {
