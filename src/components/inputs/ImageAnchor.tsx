@@ -14,6 +14,7 @@ const ImageAnchor: React.FC<ImageAnchorProps> = ({
 	children,
 	href,
 	className,
+	ariaLabel,
 	...props
 }) => {
 	return (
@@ -23,6 +24,7 @@ const ImageAnchor: React.FC<ImageAnchorProps> = ({
 					"flex items-center justify-center leading-none motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
 					className
 				)}
+				aria-label={ariaLabel}
 				{...props}
 			>
 				{children}
