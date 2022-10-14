@@ -15,8 +15,8 @@ export interface TextButtonProps {
 }
 
 const sizeClasses: Record<TextButtonSize, string> = {
-	base: "py-2 px-5 text-base",
-	lg: "py-4 px-8 text-lg"
+	base: "py-2 px-5 text-base drop-shadow-md motion-safe:hover:drop-shadow-lg motion-safe:active:drop-shadow",
+	lg: "py-4 px-8 text-lg drop-shadow-lg motion-safe:hover:drop-shadow-xl motion-safe:active:drop-shadow-md"
 }
 
 const TextButton: React.FC<TextButtonProps> = ({
