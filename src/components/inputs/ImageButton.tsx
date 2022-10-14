@@ -7,6 +7,9 @@ export interface ImageAnchorProps {
 	className?: string
 	style?: React.CSSProperties
 	ariaLabel?: string
+	onClick?: React.ComponentPropsWithoutRef<"button">["onClick"]
+	onBlur?: React.ComponentPropsWithoutRef<"button">["onBlur"]
+	onFocus?: React.ComponentPropsWithoutRef<"button">["onFocus"]
 }
 
 const ImageAnchor: React.FC<ImageAnchorProps> = ({

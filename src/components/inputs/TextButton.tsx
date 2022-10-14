@@ -9,6 +9,9 @@ export interface TextButtonProps {
 	size: TextButtonSize
 	className?: string
 	style?: React.CSSProperties
+	onClick?: React.ComponentPropsWithoutRef<"button">["onClick"]
+	onBlur?: React.ComponentPropsWithoutRef<"button">["onBlur"]
+	onFocus?: React.ComponentPropsWithoutRef<"button">["onFocus"]
 }
 
 const sizeClasses: Record<TextButtonSize, string> = {
