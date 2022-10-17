@@ -10,6 +10,7 @@ export interface SenseLayoutProps {
 	style?: React.CSSProperties
 	className?: string
 	title?: React.ComponentPropsWithoutRef<typeof Header>["title"]
+	shortTitle?: React.ComponentPropsWithoutRef<typeof Header>["shortTitle"]
 	returnHref?: React.ComponentPropsWithoutRef<typeof Header>["returnHref"]
 }
 
@@ -20,12 +21,17 @@ const SenseLayout: React.FC<SenseLayoutProps> = ({
 	footer = true,
 	header = true,
 	title,
+	shortTitle,
 	returnHref
 }) => {
 	return (
 		<div className="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_auto] overflow-hidden">
 			{header ? (
-				<Header title={title} returnHref={returnHref} />
+				<Header
+					title={title}
+					shortTitle={shortTitle}
+					returnHref={returnHref}
+				/>
 			) : (
 				<div />
 			)}
