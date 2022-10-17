@@ -10,7 +10,7 @@ export default function Document() {
 				/>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 			</Head>
-			<body className="bg-secondary text-base font-normal leading-6 text-primary-black dark:bg-secondary-dark dark:text-primary-white">
+			<body className="bg-primary text-base font-normal leading-6 text-primary-black dark:bg-primary-dark dark:text-primary-white">
 				<Main />
 				<NextScript />
 			</body>
