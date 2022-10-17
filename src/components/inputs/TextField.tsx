@@ -36,7 +36,7 @@ const TextInput: React.FC<TextFieldProps & FieldProps> = ({
 				{...props}
 				type="text"
 				className={joinClassNames(
-					"rounded-lg border-[3px] bg-primary py-2 px-4 drop-shadow-xl focus:ring-[3px] dark:bg-primary-dark",
+					"rounded-lg border-[3px] bg-primary py-2 px-4 drop-shadow focus:ring-[3px] dark:bg-primary-dark",
 					"focus:outline-none focus:ring-tint-red focus:ring-opacity-30 dark:focus:ring-tint-red-dark dark:focus:ring-opacity-40",
 					"text-secondary-black placeholder:text-tertiary-black dark:text-secondary-white dark:placeholder:text-tertiary-white",
 					tintBorderClass["red"]
