@@ -37,9 +37,7 @@ const devices: Devices = [
 	}
 ]
 
-export const DeviceSelectorInput: React.FC<
-	DeviceSelectorInputProps & FieldProps
-> = ({
+const DeviceSelectorInput: React.FC<DeviceSelectorInputProps & FieldProps> = ({
 	field,
 	form: { touched, errors },
 	label,
