@@ -26,3 +26,13 @@ export const tintBorderClass: Record<TintColor, string> = {
 	red: "border-tint-red dark:border-tint-red-dark",
 	orange: "border-tint-orange dark:border-tint-orange-dark"
 }
+
+export const tintTextClass: Record<TintColor, string> = {
+	yellow: "text-tint-yellow dark:text-tint-yellow-dark",
+	green: "text-tint-green dark:text-tint-green-dark",
+	mint: "text-tint-mint dark:text-tint-mint-dark",
+	blue: "text-tint-blue dark:text-tint-blue-dark",
+	purple: "text-tint-purple dark:text-tint-purple-dark",
+	red: "text-tint-red dark:text-tint-red-dark",
+	orange: "text-tint-orange dark:text-tint-orange-dark"
+}
