@@ -13,6 +13,8 @@ export interface TextFieldProps {
 	id: string
 	center?: boolean
 	name: React.ComponentPropsWithoutRef<typeof Field>["name"]
+	className?: string
+	style?: React.CSSProperties
 }
 
 const TextInput: React.FC<TextFieldProps & FieldProps> = ({
@@ -20,13 +22,19 @@ const TextInput: React.FC<TextFieldProps & FieldProps> = ({
 	form: { touched, errors },
 	label,
 	center = false,
+	className,
+	style,
 	...props
 }) => {
 	const hasError = !!(touched[field.name] && errors[field.name])
 
 	return (
 		<div
-			className={joinClassNames("mb-4 flex flex-col items-stretch gap-2")}
+			className={joinClassNames(
+				"mb-4 flex flex-col items-stretch gap-2",
+				className
+			)}
+			style={style}
 		>
 			<InputLabel center={center} htmlFor={props.id}>
 				{label}
