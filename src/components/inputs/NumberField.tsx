@@ -49,6 +49,7 @@ const NumberInput: React.FC<NumberFieldProps & FieldProps> = ({
 				aria-errormessage={
 					hasError ? `${props.id}-errormessage` : undefined
 				}
+				aria-placeholder={props.placeholder}
 			/>
 			<InputErrorLabel
 				center={center}

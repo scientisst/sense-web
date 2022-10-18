@@ -45,6 +45,7 @@ const TextInput: React.FC<TextFieldProps & FieldProps> = ({
 				aria-errormessage={
 					hasError ? `${props.id}-errormessage` : undefined
 				}
+				aria-placeholder={props.placeholder}
 			/>
 			<InputErrorLabel
 				center={center}
