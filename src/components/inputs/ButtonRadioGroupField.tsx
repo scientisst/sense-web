@@ -1,26 +1,27 @@
-import { useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 
 import { Field, FieldProps, useFormikContext } from "formik"
 
 import joinClassNames from "../utils/joinClassNames"
-import { tintBackgroundClass, tintBorderClass } from "../utils/tints"
-import InputErrorLabel from "./common/InputErrorLabel"
+import { TintColor, tintToClassName } from "../utils/tints"
+import InputErrorMessage from "./common/InputErrorMessage"
 import InputLabel from "./common/InputLabel"
 
-interface ButtonSelectInputProps {
+interface ButtonRadioGroupProps {
 	label?: string
 	id: string
 	center?: boolean
-	name: React.ComponentPropsWithoutRef<typeof Field>["name"]
 	className?: string
 	style?: React.CSSProperties
 	options: Array<{
 		name: string
 		value: string
+		ariaLabel?: string
 	}>
+	tint: TintColor
 }
 
-const ButtonSelectInput: React.FC<ButtonSelectInputProps & FieldProps> = ({
+const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
 	field,
 	form: { touched, errors },
 	label,
@@ -28,16 +29,13 @@ const ButtonSelectInput: React.FC<ButtonSelectInputProps & FieldProps> = ({
 	className,
 	style,
 	options,
-	id
+	id,
+	tint
 }) => {
 	const { setFieldValue } = useFormikContext()
 	const radioRefs = useRef<Record<number, HTMLButtonElement>>({})
 	const [inFocus, setInFocus] = useState(false)
-
 	const hasError = !!(touched[field.name] && errors[field.name])
-	const selectedIndex = options.findIndex(
-		option => option.value === field.value
-	)
 
 	useEffect(() => {
 		const onFocusListener = (e: FocusEvent) => {
@@ -53,12 +51,9 @@ const ButtonSelectInput: React.FC<ButtonSelectInputProps & FieldProps> = ({
 					const currentIndex = options.findIndex(
 						option => option.value === field.value
 					)
-					const currentRadio = radioRefs.current[currentIndex]
-					if (currentRadio) {
-						currentRadio.focus()
-					} else if (radioRefs.current[0]) {
-						radioRefs.current[0].focus()
-					}
+					radioRefs.current[
+						currentIndex !== -1 ? currentIndex : 0
+					]?.focus()
 				}
 			} else {
 				setInFocus(false)
@@ -73,47 +68,48 @@ const ButtonSelectInput: React.FC<ButtonSelectInputProps & FieldProps> = ({
 	}, [field.value, inFocus, options])
 
 	return (
-		<fieldset
+		<div
 			role="radiogroup"
 			className={joinClassNames(
 				"mb-4 flex flex-col items-stretch gap-2",
 				className
 			)}
 			style={style}
+			aria-invalid={hasError ? "true" : "false"}
+			aria-errormessage={hasError ? `${id}-errormessage` : undefined}
 		>
 			<InputLabel center={center} htmlFor={id}>
 				{label}
 			</InputLabel>
 			<div
 				className={joinClassNames(
-					"flex justify-center rounded-lg border-[3px] bg-primary drop-shadow dark:bg-primary-dark",
-					tintBorderClass["red"]
+					"flex h-12 justify-center rounded-lg border-3 bg-primary drop-shadow dark:bg-primary-dark",
+					tintToClassName["border"][tint]
 				)}
 			>
 				{options.map((option, index) => (
-					<>
+					<Fragment key={option.value}>
 						{index !== 0 && (
 							<div
-								key={`divider-${index}`}
 								className={joinClassNames(
 									"w-[1px] opacity-50",
-									tintBackgroundClass["red"]
+									tintToClassName["background"][tint]
 								)}
 							/>
 						)}
 						<button
-							key={index}
 							role="radio"
 							ref={ref => {
 								radioRefs.current[index] = ref
 							}}
+							id={`${id}-${option.value}`}
+							name={field.name}
 							className={joinClassNames(
-								"flex-grow py-2 px-4 font-medium",
-								selectedIndex === index
-									? tintBackgroundClass["red"]
+								"flex flex-grow items-center justify-center py-2 px-4 font-medium",
+								field.value === option.value
+									? tintToClassName["background"][tint]
 									: ""
 							)}
-							aria-checked={selectedIndex === index}
 							onClick={e => {
 								e.preventDefault()
 								setFieldValue(field.name, option.value)
@@ -155,25 +151,36 @@ const ButtonSelectInput: React.FC<ButtonSelectInputProps & FieldProps> = ({
 									}
 								}
 							}}
+							aria-checked={field.value === option.value}
+							aria-label={option.ariaLabel}
 						>
-							{option.name}
+							<label
+								htmlFor={`${id}-${option.value}`}
+								className="pointer-events-none select-none"
+							>
+								{option.name}
+							</label>
 						</button>
-					</>
+					</Fragment>
 				))}
 			</div>
-			<InputErrorLabel
+			<InputErrorMessage
 				center={center}
 				id={`${id}-errormessage`}
 				visible={hasError}
 			>
 				{errors[field.name] as React.ReactNode}
-			</InputErrorLabel>
-		</fieldset>
+			</InputErrorMessage>
+		</div>
 	)
 }
 
-const ButtonSelectField: React.FC<ButtonSelectInputProps> = props => {
-	return <Field {...props} component={ButtonSelectInput} />
+export type ButtonRadioGroupFieldProps = ButtonRadioGroupProps & {
+	name: React.ComponentPropsWithoutRef<typeof Field>["name"]
 }
 
-export default ButtonSelectField
+const ButtonRadioGroupField: React.FC<ButtonRadioGroupFieldProps> = props => {
+	return <Field {...props} component={ButtonRadioGroup} />
+}
+
+export default ButtonRadioGroupField

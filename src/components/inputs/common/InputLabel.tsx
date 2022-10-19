@@ -14,8 +14,8 @@ const InputLabel: React.FC<InputLabelProps> = ({
 	return children ? (
 		<label
 			className={joinClassNames(
-				"imagine-font text-2xl",
-				center && "text-center"
+				"imagine-font truncate text-2xl",
+				center ? "text-center" : ""
 			)}
 			htmlFor={htmlFor}
 		>

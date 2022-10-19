@@ -1,57 +1,42 @@
 import React, { useEffect, useRef, useState } from "react"
 
-import { faToolbox, faWaveSquare } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Field, FieldProps, useFormikContext } from "formik"
 
 import joinClassNames from "../utils/joinClassNames"
-import { tintTextClass } from "../utils/tints"
-import InputErrorLabel from "./common/InputErrorLabel"
+import { TintColor, tintToClassName } from "../utils/tints"
+import InputErrorMessage from "./common/InputErrorMessage"
 import InputLabel from "./common/InputLabel"
 
-export interface DeviceSelectInputProps {
+interface ImageRadioGroupProps {
 	label?: string
 	id: string
 	center?: boolean
-	name: React.ComponentPropsWithoutRef<typeof Field>["name"]
 	className?: string
 	style?: React.CSSProperties
+	tint: TintColor
+	options: Array<{
+		img: React.ReactNode
+		name: string
+		value: string
+		ariaLabel?: string
+	}>
 }
 
-type Devices = Array<{
-	id: string
-	name: string
-	icon: React.ComponentPropsWithoutRef<typeof FontAwesomeIcon>["icon"]
-}>
-
-const devices: Devices = [
-	{
-		id: "sense",
-		name: "Sense",
-		icon: faWaveSquare
-	},
-	{
-		id: "maker",
-		name: "Maker",
-		icon: faToolbox
-	}
-]
-
-const DeviceSelectInput: React.FC<DeviceSelectInputProps & FieldProps> = ({
+const ImageRadioGroup: React.FC<ImageRadioGroupProps & FieldProps> = ({
 	field,
 	form: { touched, errors },
 	label,
 	center,
 	className,
 	style,
-	...props
+	id,
+	tint,
+	options
 }) => {
 	const { setFieldValue } = useFormikContext()
 	const radioRefs = useRef<Record<number, HTMLButtonElement>>({})
 	const [inFocus, setInFocus] = useState(false)
-
 	const hasError = !!(touched[field.name] && errors[field.name])
-	const selectedIndex = devices.findIndex(device => device.id === field.value)
 
 	useEffect(() => {
 		const onFocusListener = (e: FocusEvent) => {
@@ -64,15 +49,12 @@ const DeviceSelectInput: React.FC<DeviceSelectInputProps & FieldProps> = ({
 					e.preventDefault()
 					setInFocus(true)
 
-					const currentIndex = devices.findIndex(
-						device => device.id === field.value
+					const currentIndex = options.findIndex(
+						option => option.value === field.value
 					)
-					const currentRadio = radioRefs.current[currentIndex]
-					if (currentRadio) {
-						currentRadio.focus()
-					} else if (radioRefs.current[0]) {
-						radioRefs.current[0].focus()
-					}
+					radioRefs.current[
+						currentIndex !== -1 ? currentIndex : 0
+					]?.focus()
 				}
 			} else {
 				setInFocus(false)
@@ -84,43 +66,47 @@ const DeviceSelectInput: React.FC<DeviceSelectInputProps & FieldProps> = ({
 		return () => {
 			removeEventListener("focusin", onFocusListener)
 		}
-	}, [field.value, inFocus])
+	}, [field.value, inFocus, options])
 
 	return (
-		<fieldset
+		<div
 			role="radiogroup"
+			id={id}
 			className={joinClassNames(
 				"mb-4 flex flex-col items-stretch gap-2",
 				className
 			)}
-			id={props.id}
 			style={style}
+			aria-invalid={hasError ? "true" : "false"}
+			aria-errormessage={hasError ? `${id}-errormessage` : undefined}
 		>
-			<InputLabel center={center} htmlFor={props.id}>
+			<InputLabel center={center} htmlFor={id}>
 				{label}
 			</InputLabel>
 			<div
 				className={joinClassNames(
-					"mx-[-1.5rem] flex items-center",
-					center ? "self-center" : "self-start"
+					"flex w-full flex-wrap items-center",
+					center ? "justify-center" : "mx-[-1.5rem] justify-start"
 				)}
 			>
-				{devices.map((device, index) => (
+				{options.map((option, index) => (
 					<button
 						role="radio"
+						key={option.value}
+						id={`${id}-${option.value}`}
+						name={field.name}
 						ref={ref => {
 							radioRefs.current[index] = ref
 						}}
-						aria-checked={selectedIndex === index}
 						onClick={e => {
 							e.preventDefault()
-							setFieldValue(field.name, device.id)
+							setFieldValue(field.name, option.value)
 						}}
 						onKeyDown={e => {
 							if (e.key === "Space") {
 								e.preventDefault()
-								if (field.value !== device.id) {
-									setFieldValue(field.name, device.id)
+								if (field.value !== option.value) {
+									setFieldValue(field.name, option.value)
 								}
 							} else if (e.key === "Enter") {
 								e.preventDefault()
@@ -130,7 +116,7 @@ const DeviceSelectInput: React.FC<DeviceSelectInputProps & FieldProps> = ({
 							) {
 								e.preventDefault()
 
-								const nextIndex = (index + 1) % devices.length
+								const nextIndex = (index + 1) % options.length
 								const nextRadio = radioRefs.current[nextIndex]
 								if (nextRadio) {
 									nextRadio.focus()
@@ -142,8 +128,8 @@ const DeviceSelectInput: React.FC<DeviceSelectInputProps & FieldProps> = ({
 								e.preventDefault()
 
 								const previousIndex =
-									(index - 1 + devices.length) %
-									devices.length
+									(index - 1 + options.length) %
+									options.length
 								const previousRadio =
 									radioRefs.current[previousIndex]
 								if (previousRadio) {
@@ -151,38 +137,39 @@ const DeviceSelectInput: React.FC<DeviceSelectInputProps & FieldProps> = ({
 								}
 							}
 						}}
-						key={device.name}
-						id={`${props.id}-${device.id}`}
 						className={joinClassNames(
 							"flex flex-col items-center gap-2 py-4 px-6 font-medium uppercase motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
-							selectedIndex === index
-								? tintTextClass["red"]
-								: undefined
+							field.value === option.value
+								? tintToClassName["text"][tint]
+								: ""
 						)}
+						aria-checked={field.value === option.value}
+						aria-label={option.ariaLabel}
 					>
-						<FontAwesomeIcon
-							icon={device.icon}
-							className="h-16 w-16"
-						/>
-						<label htmlFor={`${props.id}-${device.id}`}>
-							{device.name}
+						{option.img}
+						<label htmlFor={`${id}-${option.value}`}>
+							{option.name}
 						</label>
 					</button>
 				))}
 			</div>
-			<InputErrorLabel
+			<InputErrorMessage
 				center={center}
-				id={`${props.id}-errormessage`}
+				id={`${id}-errormessage`}
 				visible={hasError}
 			>
 				{errors[field.name] as React.ReactNode}
-			</InputErrorLabel>
-		</fieldset>
+			</InputErrorMessage>
+		</div>
 	)
 }
 
-const DeviceSelectField: React.FC<DeviceSelectInputProps> = props => {
-	return <Field {...props} component={DeviceSelectInput} />
+export type ImageRadioGroupFieldProps = ImageRadioGroupProps & {
+	name: React.ComponentPropsWithoutRef<typeof Field>["name"]
 }
 
-export default DeviceSelectField
+const ImageRadioGroupField: React.FC<ImageRadioGroupFieldProps> = props => {
+	return <Field {...props} component={ImageRadioGroup} />
+}
+
+export default ImageRadioGroupField

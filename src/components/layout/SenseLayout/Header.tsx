@@ -9,7 +9,7 @@ import SenseLogo from "../../../assets/logos/SenseLogo"
 import ImageAnchor from "../../inputs/ImageAnchor"
 import ImageButton from "../../inputs/ImageButton"
 import joinClassNames from "../../utils/joinClassNames"
-import { tintBackgroundClass } from "../../utils/tints"
+import { tintToClassName } from "../../utils/tints"
 import toggleColorScheme from "../../utils/toggleColorScheme"
 
 export interface HeaderProps {
@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ returnHref, title, shortTitle }) => {
 		<nav
 			className={joinClassNames(
 				"flex h-16 items-center justify-center drop-shadow-lg",
-				tintBackgroundClass["red"]
+				tintToClassName["background"]["red"]
 			)}
 		>
 			<div className="container grid h-full select-none grid-cols-[4rem_auto_4rem] items-stretch justify-items-stretch sm:grid-cols-[8rem_auto_8rem] sm:px-4">

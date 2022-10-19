@@ -3,27 +3,29 @@ import React from "react"
 import { Field, FieldProps } from "formik"
 
 import joinClassNames from "../utils/joinClassNames"
-import { tintBorderClass, tintRingClass } from "../utils/tints"
-import InputErrorLabel from "./common/InputErrorLabel"
+import { TintColor, tintToClassName } from "../utils/tints"
+import InputErrorMessage from "./common/InputErrorMessage"
 import InputLabel from "./common/InputLabel"
 
-export interface TextFieldProps {
+interface TextInputProps {
 	label?: string
 	placeholder?: string
 	id: string
+	/* Whether the label and error message should be centered or not.... */
 	center?: boolean
-	name: React.ComponentPropsWithoutRef<typeof Field>["name"]
+	tint: TintColor
 	className?: string
 	style?: React.CSSProperties
 }
 
-const TextInput: React.FC<TextFieldProps & FieldProps> = ({
+const TextInput: React.FC<TextInputProps & FieldProps> = ({
 	field,
 	form: { touched, errors },
 	label,
 	center = false,
 	className,
 	style,
+	tint,
 	...props
 }) => {
 	const hasError = !!(touched[field.name] && errors[field.name])
@@ -42,13 +44,14 @@ const TextInput: React.FC<TextFieldProps & FieldProps> = ({
 			<input
 				{...field}
 				{...props}
+				name={field.name}
 				type="text"
 				className={joinClassNames(
-					"rounded-lg border-[3px] bg-primary py-2 px-4 drop-shadow dark:bg-primary-dark",
-					"focus:outline-none focus:ring-[3px] focus:ring-opacity-30 dark:focus:ring-opacity-40",
+					"h-12 rounded-lg border-3 bg-primary px-4 drop-shadow dark:bg-primary-dark",
+					"focus:outline-none focus:ring-3 focus:ring-opacity-30 dark:focus:ring-opacity-40",
 					"text-secondary-black placeholder:text-tertiary-black dark:text-secondary-white dark:placeholder:text-tertiary-white",
-					tintBorderClass["red"],
-					tintRingClass["red"]
+					tintToClassName["border"][tint],
+					tintToClassName["ring"][tint]
 				)}
 				aria-invalid={hasError ? "true" : "false"}
 				aria-errormessage={
@@ -56,15 +59,19 @@ const TextInput: React.FC<TextFieldProps & FieldProps> = ({
 				}
 				aria-placeholder={props.placeholder}
 			/>
-			<InputErrorLabel
+			<InputErrorMessage
 				center={center}
 				id={`${props.id}-errormessage`}
 				visible={hasError}
 			>
 				{errors[field.name] as React.ReactNode}
-			</InputErrorLabel>
+			</InputErrorMessage>
 		</div>
 	)
+}
+
+export type TextFieldProps = TextInputProps & {
+	name: React.ComponentPropsWithoutRef<typeof Field>["name"]
 }
 
 const TextField: React.FC<TextFieldProps> = props => {

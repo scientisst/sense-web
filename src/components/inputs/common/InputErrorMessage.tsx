@@ -1,13 +1,14 @@
 import joinClassNames from "../../utils/joinClassNames"
+import { tintToClassName } from "../../utils/tints"
 
-export interface InputErrorLabelProps {
+export interface InputErrorMessageProps {
 	children: React.ReactNode
 	center?: boolean
 	id: string
 	visible: boolean
 }
 
-const InputErrorLabel: React.FC<InputErrorLabelProps> = ({
+const InputErrorMessage: React.FC<InputErrorMessageProps> = ({
 	children,
 	center = false,
 	visible,
@@ -16,8 +17,9 @@ const InputErrorLabel: React.FC<InputErrorLabelProps> = ({
 	return (
 		<span
 			className={joinClassNames(
-				"text-tint-red dark:text-tint-red-dark",
-				center && "text-center",
+				"text-ellipsis",
+				tintToClassName["text"]["red"],
+				center ? "text-center" : "",
 				visible ? "block" : "hidden"
 			)}
 			id={id}
@@ -28,4 +30,4 @@ const InputErrorLabel: React.FC<InputErrorLabelProps> = ({
 	)
 }
 
-export default InputErrorLabel
+export default InputErrorMessage
