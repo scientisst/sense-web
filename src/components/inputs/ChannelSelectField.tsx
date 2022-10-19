@@ -139,7 +139,8 @@ const ChannelSelectInput: React.FC<ChannelSelectInputProps & FieldProps> = ({
 							key={index}
 							id={`${props.id}-${index}`}
 							className={joinClassNames(
-								"flex h-12 min-w-[3rem] items-center justify-center rounded-full drop-shadow motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
+								"flex h-12 min-w-[3rem] items-center justify-center rounded-full drop-shadow",
+								"motion-safe:hover:scale-hover motion-safe:hover:drop-shadow-md motion-safe:active:scale-pressed motion-safe:active:drop-shadow-sm",
 								"focus:outline-none focus:ring-[3px] focus:ring-opacity-30 dark:focus:ring-opacity-40",
 								checked
 									? tintBackgroundClass["red"]
