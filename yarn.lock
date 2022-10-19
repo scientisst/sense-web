@@ -491,6 +491,11 @@
     javascript-natural-sort "0.7.1"
     lodash "4.17.21"
 
+"@types/dom-serial@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@types/dom-serial/-/dom-serial-1.0.2.tgz#6cee4938abf5878dfa871bef4123fe45f3ac02e1"
+  integrity sha512-Ci7qiY7Gq6I1ZfE2GSsoFPwMeWKZzF2d9f4/92T8MOUATr4YaDYggPAqv+P8KIfxi28crJMLC5zUw7LVl3KJOA==
+
 "@types/json-schema@^7.0.9":
   version "7.0.11"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.11.tgz#d421b6c527a3037f7c84433fd2c4229e016863d3"
