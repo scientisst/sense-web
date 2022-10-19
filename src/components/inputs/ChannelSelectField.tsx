@@ -15,7 +15,7 @@ import {
 import InputErrorLabel from "./common/InputErrorLabel"
 import InputLabel from "./common/InputLabel"
 
-export interface ChannelSelectorInputProps {
+export interface ChannelSelectInputProps {
 	label?: string
 	id: string
 	name: React.ComponentPropsWithoutRef<typeof Field>["name"]
@@ -59,9 +59,7 @@ const channels: Channels = [
 	}
 ]
 
-const ChannelSelectorInput: React.FC<
-	ChannelSelectorInputProps & FieldProps
-> = ({
+const ChannelSelectInput: React.FC<ChannelSelectInputProps & FieldProps> = ({
 	field,
 	form: { touched, errors },
 	label,
@@ -281,8 +279,8 @@ const ChannelSelectorInput: React.FC<
 	)
 }
 
-const ChannelSelectorField: React.FC<ChannelSelectorInputProps> = props => {
-	return <Field {...props} component={ChannelSelectorInput} />
+const ChannelSelectField: React.FC<ChannelSelectInputProps> = props => {
+	return <Field {...props} component={ChannelSelectInput} />
 }
 
-export default ChannelSelectorField
+export default ChannelSelectField

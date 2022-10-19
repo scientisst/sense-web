@@ -9,7 +9,7 @@ import { tintTextClass } from "../utils/tints"
 import InputErrorLabel from "./common/InputErrorLabel"
 import InputLabel from "./common/InputLabel"
 
-export interface DeviceSelectorInputProps {
+export interface DeviceSelectInputProps {
 	label?: string
 	id: string
 	center?: boolean
@@ -37,7 +37,7 @@ const devices: Devices = [
 	}
 ]
 
-const DeviceSelectorInput: React.FC<DeviceSelectorInputProps & FieldProps> = ({
+const DeviceSelectInput: React.FC<DeviceSelectInputProps & FieldProps> = ({
 	field,
 	form: { touched, errors },
 	label,
@@ -181,8 +181,8 @@ const DeviceSelectorInput: React.FC<DeviceSelectorInputProps & FieldProps> = ({
 	)
 }
 
-const DeviceSelectorField: React.FC<DeviceSelectorInputProps> = props => {
-	return <Field {...props} component={DeviceSelectorInput} />
+const DeviceSelectField: React.FC<DeviceSelectInputProps> = props => {
+	return <Field {...props} component={DeviceSelectInput} />
 }
 
-export default DeviceSelectorField
+export default DeviceSelectField
