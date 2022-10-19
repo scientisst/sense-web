@@ -4,6 +4,12 @@ module.exports = {
 	darkMode: "class",
 	theme: {
 		extend: {
+			borderWidth: {
+				3: "3px"
+			},
+			ringWidth: {
+				3: "3px"
+			},
 			colors: {
 				"tint-yellow": "#FFC56F",
 				"tint-yellow-dark": "#FFCC7A",
