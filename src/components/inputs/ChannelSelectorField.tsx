@@ -3,7 +3,6 @@ import { useCallback, useState } from "react"
 import Image from "next/future/image"
 
 import { Field, FieldProps, useFormikContext } from "formik"
-import { callbackify } from "util"
 
 import CoreBottom from "../../assets/boards/core-bottom.svg"
 import CoreTop from "../../assets/boards/core-top.svg"
