@@ -3,7 +3,7 @@ import React from "react"
 import { Field, FieldProps } from "formik"
 
 import joinClassNames from "../utils/joinClassNames"
-import { tintBorderClass } from "../utils/tints"
+import { tintBorderClass, tintRingClass } from "../utils/tints"
 import InputErrorLabel from "./common/InputErrorLabel"
 import InputLabel from "./common/InputLabel"
 
@@ -48,10 +48,11 @@ const NumberInput: React.FC<NumberFieldProps & FieldProps> = ({
 				{...props}
 				type="number"
 				className={joinClassNames(
-					"rounded-lg border-[3px] bg-primary py-2 px-4 drop-shadow focus:ring-[3px] dark:bg-primary-dark",
-					"focus:outline-none focus:ring-tint-red focus:ring-opacity-30 dark:focus:ring-tint-red-dark dark:focus:ring-opacity-40",
+					"rounded-lg border-[3px] bg-primary py-2 px-4 drop-shadow dark:bg-primary-dark",
+					"focus:outline-none focus:ring-[3px] focus:ring-opacity-30 dark:focus:ring-opacity-40",
 					"text-secondary-black placeholder:text-tertiary-black dark:text-secondary-white dark:placeholder:text-tertiary-white",
-					tintBorderClass["red"]
+					tintBorderClass["red"],
+					tintRingClass["red"]
 				)}
 				aria-invalid={hasError ? "true" : "false"}
 				aria-errormessage={
