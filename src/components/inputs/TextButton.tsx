@@ -1,3 +1,5 @@
+import { forwardRef } from "react"
+
 import joinClassNames from "../utils/joinClassNames"
 import { TintColor, tintToClassName } from "../utils/tints"
 
@@ -20,27 +22,26 @@ const sizeToClassName: Record<TextButtonSize, string> = {
 	lg: "h-16 px-9 text-lg drop-shadow-lg motion-safe:hover:drop-shadow-xl motion-safe:active:drop-shadow-md"
 }
 
-const TextButton: React.FC<TextButtonProps> = ({
-	children,
-	tint,
-	size,
-	className,
-	...props
-}) => {
-	return (
-		<button
-			className={joinClassNames(
-				"flex items-center justify-center rounded-lg font-medium uppercase",
-				"motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
-				tintToClassName["background"][tint],
-				sizeToClassName[size],
-				className
-			)}
-			{...props}
-		>
-			{children}
-		</button>
-	)
-}
+const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
+	({ children, tint, size, className, ...props }, ref) => {
+		return (
+			<button
+				className={joinClassNames(
+					"flex items-center justify-center rounded-lg font-medium uppercase",
+					"motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
+					tintToClassName["background"][tint],
+					sizeToClassName[size],
+					className
+				)}
+				ref={ref}
+				{...props}
+			>
+				{children}
+			</button>
+		)
+	}
+)
+
+TextButton.displayName = "TextButton"
 
 export default TextButton
