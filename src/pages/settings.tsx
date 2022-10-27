@@ -75,7 +75,7 @@ const Page = () => {
 			title="Sense Settings"
 			shortTitle="Settings"
 			returnHref="/"
-			className="container flex flex-col items-center justify-center p-8"
+			className="container flex flex-col items-center justify-start p-8"
 			style={{
 				minHeight: "calc(100vh - 18.5rem)"
 			}}
