@@ -9,9 +9,8 @@ const Page = () => {
 	return (
 		<SenseLayout
 			className="flex w-[480px] flex-col items-center justify-center gap-8 py-8 px-8 sm:w-[640px]"
-			header={false}
 			style={{
-				minHeight: "calc(100vh - 14.5rem)"
+				minHeight: "calc(100vh - 18.5rem)"
 			}}
 		>
 			<ScientISSTSenseLogo className="hidden h-auto w-full sm:block" />
