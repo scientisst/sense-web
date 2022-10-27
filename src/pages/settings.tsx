@@ -159,27 +159,27 @@ const Page = () => {
 										tint="red"
 										options={[
 											{
-												name: "1",
+												name: "AI1",
 												value: "AI1"
 											},
 											{
-												name: "2",
+												name: "AI2",
 												value: "AI2"
 											},
 											{
-												name: "3",
+												name: "AI3",
 												value: "AI3"
 											},
 											{
-												name: "4",
+												name: "AI4",
 												value: "AI4"
 											},
 											{
-												name: "5",
+												name: "AI5",
 												value: "AI5"
 											},
 											{
-												name: "6",
+												name: "AI6",
 												value: "AI6"
 											},
 											{
