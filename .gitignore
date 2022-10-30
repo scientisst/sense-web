@@ -49,3 +49,7 @@ pids
 
 # Yarn Integrity file
 .yarn-integrity
+
+# Profiling files
+*.cpuprofile
+*.heapprofile
