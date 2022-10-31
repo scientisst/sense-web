@@ -8,8 +8,8 @@ import clsx from "clsx"
 
 import SenseLogo from "../../../assets/logos/SenseLogo"
 import { themeTw } from "../../../styles/theme"
-import ImageAnchor from "../../inputs/ImageAnchor"
 import ImageButton from "../../inputs/ImageButton"
+import ImageAnchor from "../../navigation/ImageAnchor"
 import toggleColorScheme from "../../utils/toggleColorScheme"
 
 export interface HeaderProps {

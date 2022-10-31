@@ -15,7 +15,7 @@ import ScientISSTLogo from "../../../assets/logos/ScientISSTLogo"
 import ScientISSTSenseLogo from "../../../assets/logos/ScientISSTSenseLogo"
 import TecnicoLogo from "../../../assets/logos/TecnicoLogo"
 import { themeTw } from "../../../styles/theme"
-import ImageAnchor from "../../inputs/ImageAnchor"
+import ImageAnchor from "../../navigation/ImageAnchor"
 import FooterLinkSection from "./FooterLinkSection"
 
 type FooterSections = Array<{
