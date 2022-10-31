@@ -2,6 +2,8 @@ import Link from "next/link"
 
 import clsx from "clsx"
 
+import { themeTw } from "../../../styles/theme"
+
 export interface FooterLinkSectionProps {
 	title: React.ReactNode
 	links: Array<{
@@ -29,7 +31,12 @@ const FooterLinkSection: React.FC<FooterLinkSectionProps> = ({
 			<h4 className="imagine-font mb-2 text-2xl">{title}</h4>
 			{links.map(({ href, label }, index) => (
 				<Link key={index} href={href}>
-					<a className="text-secondary-white motion-safe:hover:scale-hover motion-safe:active:scale-pressed">
+					<a
+						className={clsx(
+							"motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
+							themeTw.text.textOver.tint["red"]
+						)}
+					>
 						{label}
 					</a>
 				</Link>

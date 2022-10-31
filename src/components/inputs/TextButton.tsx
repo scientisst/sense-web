@@ -31,6 +31,7 @@ const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
 					"flex items-center justify-center rounded-lg font-medium uppercase",
 					"motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
 					themeTw.background.tint[tint],
+					themeTw.text.textOver.tint[tint].primary,
 					sizeToClassName[size],
 					className
 				)}

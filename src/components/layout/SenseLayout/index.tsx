@@ -1,5 +1,8 @@
 import React from "react"
 
+import clsx from "clsx"
+
+import { themeTw } from "../../../styles/theme"
 import Footer from "./Footer"
 import Header from "./Header"
 
@@ -45,7 +48,13 @@ const SenseLayout: React.FC<SenseLayoutProps> = ({
 						{children}
 					</main>
 				</div>
-				<div className="flex justify-center overflow-hidden bg-tint-red text-primary-white drop-shadow-lg dark:bg-tint-red-dark">
+				<div
+					className={clsx(
+						"flex justify-center overflow-hidden drop-shadow-lg",
+						themeTw.background.tint["red"],
+						themeTw.text.textOver.tint["red"].primary
+					)}
+				>
 					{footer ? <Footer /> : null}
 				</div>
 			</div>

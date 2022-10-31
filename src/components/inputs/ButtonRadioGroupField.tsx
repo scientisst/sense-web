@@ -85,6 +85,7 @@ const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
 				className={clsx(
 					"flex h-12 justify-center rounded-lg border-3 drop-shadow",
 					themeTw.background.background.primary,
+					themeTw.text.textOver.background.primary,
 					themeTw.border.tint[tint]
 				)}
 			>
@@ -109,6 +110,8 @@ const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
 								"flex flex-grow items-center justify-center py-2 px-4 font-medium",
 								{
 									[themeTw.background.tint[tint]]:
+										field.value === option.value,
+									[themeTw.text.textOver.tint[tint].primary]:
 										field.value === option.value
 								}
 							)}

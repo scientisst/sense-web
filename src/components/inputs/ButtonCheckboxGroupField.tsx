@@ -116,11 +116,18 @@ const ButtonCheckboxGroup: React.FC<ButtonCheckboxGroupProps & FieldProps> = ({
 								"flex h-12 min-w-[3rem] items-center justify-center rounded-full drop-shadow",
 								"motion-safe:hover:scale-hover motion-safe:hover:drop-shadow-md motion-safe:active:scale-pressed motion-safe:active:drop-shadow-sm",
 								"focus:outline-none focus:ring-[3px] focus:ring-opacity-30 dark:focus:ring-opacity-40",
+								themeTw.ring.tint[tint],
 								{
-									[themeTw.background.tint[tint]]: checked
-								},
-								themeTw.border.tint[tint],
-								themeTw.ring.tint[tint]
+									[themeTw.background.tint[tint]]: checked,
+									[themeTw.text.textOver.tint[tint].primary]:
+										checked,
+									["border-3"]: !checked,
+									[themeTw.border.tint[tint]]: !checked,
+									[themeTw.background.background.primary]:
+										!checked,
+									[themeTw.text.textOver.background.primary]:
+										!checked
+								}
 							)}
 							style={{
 								padding: !checked

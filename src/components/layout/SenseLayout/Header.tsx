@@ -23,7 +23,8 @@ const Header: React.FC<HeaderProps> = ({ returnHref, title, shortTitle }) => {
 		<nav
 			className={clsx(
 				"flex h-16 items-center justify-center drop-shadow-lg",
-				themeTw.background.tint["red"]
+				themeTw.background.tint["red"],
+				themeTw.text.textOver.tint["red"].primary
 			)}
 		>
 			<div className="container grid h-full select-none grid-cols-[4rem_auto_4rem] items-stretch justify-items-stretch sm:grid-cols-[8rem_auto_8rem] sm:px-4">

@@ -1,5 +1,9 @@
 import { Head, Html, Main, NextScript } from "next/document"
 
+import clsx from "clsx"
+
+import { themeTw } from "../styles/theme"
+
 export default function Document() {
 	return (
 		<Html>
@@ -10,7 +14,13 @@ export default function Document() {
 				/>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 			</Head>
-			<body className="bg-primary text-base font-normal leading-6 text-primary-black dark:bg-primary-dark dark:text-primary-white">
+			<body
+				className={clsx(
+					"text-base font-normal leading-6",
+					themeTw.background.background.primary,
+					themeTw.text.textOver.background.primary
+				)}
+			>
 				<Main />
 				<NextScript />
 			</body>
