@@ -1,5 +1,3 @@
-import { useEffect } from "react"
-
 import type { AppProps } from "next/app"
 
 import { config } from "@fortawesome/fontawesome-svg-core"
