@@ -1,9 +1,9 @@
 import { Fragment, useEffect, useRef, useState } from "react"
 
+import clsx from "clsx"
 import { Field, FieldProps, useFormikContext } from "formik"
 
-import joinClassNames from "../utils/joinClassNames"
-import { TintColor, tintToClassName } from "../utils/tints"
+import { TintColor, themeTw } from "../../styles/theme"
 import InputErrorMessage from "./common/InputErrorMessage"
 import InputLabel from "./common/InputLabel"
 
@@ -70,7 +70,7 @@ const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
 	return (
 		<div
 			role="radiogroup"
-			className={joinClassNames(
+			className={clsx(
 				"mb-4 flex flex-col items-stretch gap-2",
 				className
 			)}
@@ -82,18 +82,19 @@ const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
 				{label}
 			</InputLabel>
 			<div
-				className={joinClassNames(
-					"flex h-12 justify-center rounded-lg border-3 bg-primary drop-shadow dark:bg-primary-dark",
-					tintToClassName["border"][tint]
+				className={clsx(
+					"flex h-12 justify-center rounded-lg border-3 drop-shadow",
+					themeTw.background.background.primary,
+					themeTw.border.tint[tint]
 				)}
 			>
 				{options.map((option, index) => (
 					<Fragment key={option.value}>
 						{index !== 0 && (
 							<div
-								className={joinClassNames(
+								className={clsx(
 									"w-[1px] opacity-50",
-									tintToClassName["background"][tint]
+									themeTw.background.tint[tint]
 								)}
 							/>
 						)}
@@ -104,11 +105,12 @@ const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
 							}}
 							id={`${id}-${option.value}`}
 							name={field.name}
-							className={joinClassNames(
+							className={clsx(
 								"flex flex-grow items-center justify-center py-2 px-4 font-medium",
-								field.value === option.value
-									? tintToClassName["background"][tint]
-									: ""
+								{
+									[themeTw.background.tint[tint]]:
+										field.value === option.value
+								}
 							)}
 							onClick={e => {
 								e.preventDefault()

@@ -4,6 +4,7 @@ import Image from "next/future/image"
 
 import { faToolbox, faWaveSquare } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import clsx from "clsx"
 import { Form, Formik } from "formik"
 import * as Yup from "yup"
 
@@ -15,8 +16,7 @@ import ImageRadioGroupField from "../components/inputs/ImageRadioGroupField"
 import NumberField from "../components/inputs/NumberField"
 import SenseLayout from "../components/layout/SenseLayout"
 import FormikAutoSubmit from "../components/utils/FormikAutoSubmit"
-import joinClassNames from "../components/utils/joinClassNames"
-import { tintToClassName } from "../components/utils/tints"
+import { themeTw } from "../styles/theme"
 
 const schema = Yup.object().shape({
 	deviceType: Yup.string().oneOf(["sense", "maker"]).required(),
@@ -191,14 +191,16 @@ const Page = () => {
 											<div className="hidden gap-8 sm:flex">
 												<div className="relative flex flex-col items-center">
 													<div
-														className={joinClassNames(
+														className={clsx(
 															"absolute rounded-lg border-[3px]",
-															tintToClassName[
-																"border"
-															]["red"],
-															hovered === "AI1"
-																? ""
-																: "hidden"
+															themeTw.border.tint[
+																"red"
+															],
+															{
+																hidden:
+																	hovered !==
+																	"AI1"
+															}
 														)}
 														style={{
 															width: "4.5rem",
@@ -208,14 +210,16 @@ const Page = () => {
 														}}
 													/>
 													<div
-														className={joinClassNames(
+														className={clsx(
 															"absolute rounded-lg border-[3px]",
-															tintToClassName[
-																"border"
-															]["red"],
-															hovered === "AI3"
-																? ""
-																: "hidden"
+															themeTw.border.tint[
+																"red"
+															],
+															{
+																hidden:
+																	hovered !==
+																	"AI3"
+															}
 														)}
 														style={{
 															width: "4.5rem",
@@ -225,14 +229,16 @@ const Page = () => {
 														}}
 													/>
 													<div
-														className={joinClassNames(
+														className={clsx(
 															"absolute rounded-lg border-[3px]",
-															tintToClassName[
-																"border"
-															]["red"],
-															hovered === "AI5"
-																? ""
-																: "hidden"
+															themeTw.border.tint[
+																"red"
+															],
+															{
+																hidden:
+																	hovered !==
+																	"AI5"
+															}
 														)}
 														style={{
 															width: "4.5rem",
@@ -256,14 +262,16 @@ const Page = () => {
 												</div>
 												<div className="relative flex flex-col items-center">
 													<div
-														className={joinClassNames(
+														className={clsx(
 															"absolute rounded-lg border-[3px]",
-															tintToClassName[
-																"border"
-															]["red"],
-															hovered === "AI2"
-																? ""
-																: "hidden"
+															themeTw.border.tint[
+																"red"
+															],
+															{
+																hidden:
+																	hovered !==
+																	"AI2"
+															}
 														)}
 														style={{
 															width: "4.5rem",
@@ -273,14 +281,16 @@ const Page = () => {
 														}}
 													/>
 													<div
-														className={joinClassNames(
+														className={clsx(
 															"absolute rounded-lg border-[3px]",
-															tintToClassName[
-																"border"
-															]["red"],
-															hovered === "AI6"
-																? ""
-																: "hidden"
+															themeTw.border.tint[
+																"red"
+															],
+															{
+																hidden:
+																	hovered !==
+																	"AI6"
+															}
 														)}
 														style={{
 															width: "4.5rem",
@@ -290,14 +300,16 @@ const Page = () => {
 														}}
 													/>
 													<div
-														className={joinClassNames(
+														className={clsx(
 															"absolute rounded-lg border-[3px]",
-															tintToClassName[
-																"border"
-															]["red"],
-															hovered === "AI4"
-																? ""
-																: "hidden"
+															themeTw.border.tint[
+																"red"
+															],
+															{
+																hidden:
+																	hovered !==
+																	"AI4"
+															}
 														)}
 														style={{
 															width: "4.5rem",

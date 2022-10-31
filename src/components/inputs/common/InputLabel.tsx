@@ -1,4 +1,4 @@
-import joinClassNames from "../../utils/joinClassNames"
+import clsx from "clsx"
 
 export interface InputLabelProps {
 	children: React.ReactNode
@@ -13,7 +13,7 @@ const InputLabel: React.FC<InputLabelProps> = ({
 }) => {
 	return children ? (
 		<label
-			className={joinClassNames(
+			className={clsx(
 				"imagine-font truncate text-2xl",
 				center ? "text-center" : ""
 			)}

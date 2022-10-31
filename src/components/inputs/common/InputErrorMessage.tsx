@@ -1,5 +1,6 @@
-import joinClassNames from "../../utils/joinClassNames"
-import { tintToClassName } from "../../utils/tints"
+import clsx from "clsx"
+
+import { themeTw } from "../../../styles/theme"
 
 export interface InputErrorMessageProps {
 	children: React.ReactNode
@@ -16,9 +17,9 @@ const InputErrorMessage: React.FC<InputErrorMessageProps> = ({
 }) => {
 	return (
 		<span
-			className={joinClassNames(
+			className={clsx(
 				"text-ellipsis",
-				tintToClassName["text"]["red"],
+				themeTw.text.tint["red"],
 				center ? "text-center" : "",
 				visible ? "block" : "hidden"
 			)}

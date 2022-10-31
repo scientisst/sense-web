@@ -4,12 +4,12 @@ import {
 	faLightbulb as faLightbulbSolid
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import clsx from "clsx"
 
 import SenseLogo from "../../../assets/logos/SenseLogo"
+import { themeTw } from "../../../styles/theme"
 import ImageAnchor from "../../inputs/ImageAnchor"
 import ImageButton from "../../inputs/ImageButton"
-import joinClassNames from "../../utils/joinClassNames"
-import { tintToClassName } from "../../utils/tints"
 import toggleColorScheme from "../../utils/toggleColorScheme"
 
 export interface HeaderProps {
@@ -21,9 +21,9 @@ export interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ returnHref, title, shortTitle }) => {
 	return (
 		<nav
-			className={joinClassNames(
+			className={clsx(
 				"flex h-16 items-center justify-center drop-shadow-lg",
-				tintToClassName["background"]["red"]
+				themeTw.background.tint["red"]
 			)}
 		>
 			<div className="container grid h-full select-none grid-cols-[4rem_auto_4rem] items-stretch justify-items-stretch sm:grid-cols-[8rem_auto_8rem] sm:px-4">

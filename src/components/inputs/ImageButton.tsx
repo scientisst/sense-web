@@ -1,4 +1,4 @@
-import joinClassNames from "../utils/joinClassNames"
+import clsx from "clsx"
 
 export interface ImageAnchorProps {
 	children?: React.ReactNode
@@ -18,7 +18,7 @@ const ImageAnchor: React.FC<ImageAnchorProps> = ({
 }) => {
 	return (
 		<button
-			className={joinClassNames(
+			className={clsx(
 				"flex items-center justify-center leading-none motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
 				className
 			)}

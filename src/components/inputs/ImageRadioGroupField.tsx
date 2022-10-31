@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react"
 
+import clsx from "clsx"
 import { Field, FieldProps, useFormikContext } from "formik"
 
-import joinClassNames from "../utils/joinClassNames"
-import { TintColor, tintToClassName } from "../utils/tints"
+import { TintColor, themeTw } from "../../styles/theme"
 import InputErrorMessage from "./common/InputErrorMessage"
 import InputLabel from "./common/InputLabel"
 
@@ -72,7 +72,7 @@ const ImageRadioGroup: React.FC<ImageRadioGroupProps & FieldProps> = ({
 		<div
 			role="radiogroup"
 			id={id}
-			className={joinClassNames(
+			className={clsx(
 				"mb-4 flex flex-col items-stretch gap-2",
 				className
 			)}
@@ -84,7 +84,7 @@ const ImageRadioGroup: React.FC<ImageRadioGroupProps & FieldProps> = ({
 				{label}
 			</InputLabel>
 			<div
-				className={joinClassNames(
+				className={clsx(
 					"flex w-full flex-wrap items-center",
 					center ? "justify-center" : "mx-[-1.5rem] justify-start"
 				)}
@@ -137,11 +137,12 @@ const ImageRadioGroup: React.FC<ImageRadioGroupProps & FieldProps> = ({
 								}
 							}
 						}}
-						className={joinClassNames(
+						className={clsx(
 							"flex flex-col items-center gap-2 py-4 px-6 font-medium uppercase motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
-							field.value === option.value
-								? tintToClassName["text"][tint]
-								: ""
+							{
+								[themeTw.text.tint[tint]]:
+									field.value === option.value
+							}
 						)}
 						aria-checked={field.value === option.value}
 						aria-label={option.ariaLabel}

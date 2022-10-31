@@ -1,7 +1,8 @@
 import { forwardRef } from "react"
 
-import joinClassNames from "../utils/joinClassNames"
-import { TintColor, tintToClassName } from "../utils/tints"
+import clsx from "clsx"
+
+import { TintColor, themeTw } from "../../styles/theme"
 
 export type TextButtonSize = "base" | "lg"
 
@@ -26,10 +27,10 @@ const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
 	({ children, tint, size, className, ...props }, ref) => {
 		return (
 			<button
-				className={joinClassNames(
+				className={clsx(
 					"flex items-center justify-center rounded-lg font-medium uppercase",
 					"motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
-					tintToClassName["background"][tint],
+					themeTw.background.tint[tint],
 					sizeToClassName[size],
 					className
 				)}

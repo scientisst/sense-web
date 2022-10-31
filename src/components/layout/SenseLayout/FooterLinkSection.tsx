@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import joinClassNames from "../../utils/joinClassNames"
+import clsx from "clsx"
 
 export interface FooterLinkSectionProps {
 	title: React.ReactNode
@@ -20,7 +20,7 @@ const FooterLinkSection: React.FC<FooterLinkSectionProps> = ({
 }) => {
 	return (
 		<div
-			className={joinClassNames(
+			className={clsx(
 				"mt-[-0.75rem] flex flex-col items-start gap-2",
 				className
 			)}

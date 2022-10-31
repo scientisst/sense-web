@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react"
 
+import clsx from "clsx"
 import { Field, FieldProps, useFormikContext } from "formik"
 
-import joinClassNames from "../utils/joinClassNames"
-import { TintColor, tintToClassName } from "../utils/tints"
+import { TintColor, themeTw } from "../../styles/theme"
 import InputErrorMessage from "./common/InputErrorMessage"
 import InputLabel from "./common/InputLabel"
 
@@ -74,7 +74,7 @@ const ButtonCheckboxGroup: React.FC<ButtonCheckboxGroupProps & FieldProps> = ({
 
 	return (
 		<div
-			className={joinClassNames(
+			className={clsx(
 				"mb-4 flex flex-col items-stretch gap-2",
 				className
 			)}
@@ -84,7 +84,7 @@ const ButtonCheckboxGroup: React.FC<ButtonCheckboxGroupProps & FieldProps> = ({
 				{label}
 			</InputLabel>
 			<div
-				className={joinClassNames(
+				className={clsx(
 					"flex max-w-[11rem] flex-wrap gap-4 sm:max-w-none",
 					center ? "justify-center" : "justify-start"
 				)}
@@ -112,15 +112,15 @@ const ButtonCheckboxGroup: React.FC<ButtonCheckboxGroupProps & FieldProps> = ({
 							}}
 							key={index}
 							id={`${id}-${index}`}
-							className={joinClassNames(
+							className={clsx(
 								"flex h-12 min-w-[3rem] items-center justify-center rounded-full drop-shadow",
 								"motion-safe:hover:scale-hover motion-safe:hover:drop-shadow-md motion-safe:active:scale-pressed motion-safe:active:drop-shadow-sm",
 								"focus:outline-none focus:ring-[3px] focus:ring-opacity-30 dark:focus:ring-opacity-40",
-								checked
-									? tintToClassName["background"][tint]
-									: "border-3 bg-primary dark:bg-primary-dark",
-								tintToClassName["border"][tint],
-								tintToClassName["ring"][tint]
+								{
+									[themeTw.background.tint[tint]]: checked
+								},
+								themeTw.border.tint[tint],
+								themeTw.ring.tint[tint]
 							)}
 							style={{
 								padding: !checked
@@ -146,7 +146,7 @@ const ButtonCheckboxGroup: React.FC<ButtonCheckboxGroupProps & FieldProps> = ({
 			</div>
 			{renderedChildren && (
 				<div
-					className={joinClassNames(
+					className={clsx(
 						"flex flex-col gap-2",
 						center ? "items-center" : "items-start"
 					)}
