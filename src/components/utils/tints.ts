@@ -47,7 +47,12 @@ const tintRingClass: Record<TintColor, string> = {
 	orange: "ring-tint-orange dark:ring-tint-orange-dark"
 }
 
-export const tintToClassName = {
+export const tintToClassName: {
+	background: Record<TintColor, string>
+	border: Record<TintColor, string>
+	text: Record<TintColor, string>
+	ring: Record<TintColor, string>
+} = {
 	background: tintBackgroundClass,
 	border: tintBorderClass,
 	text: tintTextClass,
