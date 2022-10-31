@@ -2,7 +2,25 @@ import { Head, Html, Main, NextScript } from "next/document"
 
 import clsx from "clsx"
 
+import InlineScript from "../components/utils/InlineScript"
 import { themeTw } from "../styles/theme"
+
+const code = `
+;(function () {
+const currentColorScheme =
+	"theme" in localStorage
+		? localStorage.theme
+		: window.matchMedia("(prefers-color-scheme: dark)").matches
+		? "dark"
+		: "light"
+
+if (currentColorScheme === "dark") {
+	document.documentElement.classList.add("dark")
+} else {
+	document.documentElement.classList.remove("dark")
+}
+})()
+`
 
 export default function Document() {
 	return (
@@ -21,6 +39,7 @@ export default function Document() {
 					themeTw.text.textOver.background.primary
 				)}
 			>
+				<InlineScript code={code} />
 				<Main />
 				<NextScript />
 			</body>
