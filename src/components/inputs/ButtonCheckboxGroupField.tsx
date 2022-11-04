@@ -3,7 +3,6 @@ import { useCallback, useState } from "react"
 import clsx from "clsx"
 import { Field, FieldProps, useFormikContext } from "formik"
 
-import { TintColor, themeTw } from "../../styles/theme"
 import InputErrorMessage from "./common/InputErrorMessage"
 import InputLabel from "./common/InputLabel"
 
@@ -18,7 +17,6 @@ interface ButtonCheckboxGroupProps {
 		value: string
 		ariaLabel?: string
 	}>
-	tint: TintColor
 	image?: (hovered: string) => React.ReactNode
 }
 
@@ -31,8 +29,7 @@ const ButtonCheckboxGroup: React.FC<ButtonCheckboxGroupProps & FieldProps> = ({
 	options,
 	id,
 	center,
-	image,
-	tint
+	image
 }) => {
 	const [hovered, setHovered] = useState<string>("")
 	const { setFieldValue } = useFormikContext()
@@ -115,17 +112,11 @@ const ButtonCheckboxGroup: React.FC<ButtonCheckboxGroupProps & FieldProps> = ({
 							className={clsx(
 								"flex h-12 min-w-[3rem] items-center justify-center rounded-full drop-shadow",
 								"motion-safe:hover:scale-hover motion-safe:hover:drop-shadow-md motion-safe:active:scale-pressed motion-safe:active:drop-shadow-sm",
-								"focus:outline-none focus:ring-[3px] focus:ring-opacity-30 dark:focus:ring-opacity-40",
-								themeTw.ring.tint[tint],
+								"ring-primary focus:outline-none focus:ring-[3px] focus:ring-opacity-30 dark:focus:ring-opacity-40",
 								{
-									[themeTw.background.tint[tint]]: checked,
-									[themeTw.text.textOver.tint[tint].primary]:
+									["bg-primary text-over-primary-highest"]:
 										checked,
-									["border-3"]: !checked,
-									[themeTw.border.tint[tint]]: !checked,
-									[themeTw.background.background.primary]:
-										!checked,
-									[themeTw.text.textOver.background.primary]:
+									["bg-background text-over-background-highest border-primary w-10 border-3"]:
 										!checked
 								}
 							)}

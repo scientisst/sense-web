@@ -1,9 +1,6 @@
 import { Head, Html, Main, NextScript } from "next/document"
 
-import clsx from "clsx"
-
 import InlineScript from "../components/utils/InlineScript"
-import { themeTw } from "../styles/theme"
 
 const code = `
 ;(function () {
@@ -32,13 +29,7 @@ export default function Document() {
 				/>
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 			</Head>
-			<body
-				className={clsx(
-					"text-base font-normal leading-6",
-					themeTw.background.background.primary,
-					themeTw.text.textOver.background.primary
-				)}
-			>
+			<body className="bg-background text-over-background-highest text-base font-normal leading-6">
 				<InlineScript code={code} />
 				<Main />
 				<NextScript />

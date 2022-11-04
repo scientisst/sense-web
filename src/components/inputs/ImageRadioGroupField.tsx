@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react"
 import clsx from "clsx"
 import { Field, FieldProps, useFormikContext } from "formik"
 
-import { TintColor, themeTw } from "../../styles/theme"
 import InputErrorMessage from "./common/InputErrorMessage"
 import InputLabel from "./common/InputLabel"
 
@@ -13,7 +12,6 @@ interface ImageRadioGroupProps {
 	center?: boolean
 	className?: string
 	style?: React.CSSProperties
-	tint: TintColor
 	options: Array<{
 		img: React.ReactNode
 		name: string
@@ -30,7 +28,6 @@ const ImageRadioGroup: React.FC<ImageRadioGroupProps & FieldProps> = ({
 	className,
 	style,
 	id,
-	tint,
 	options
 }) => {
 	const { setFieldValue } = useFormikContext()
@@ -140,8 +137,7 @@ const ImageRadioGroup: React.FC<ImageRadioGroupProps & FieldProps> = ({
 						className={clsx(
 							"flex flex-col items-center gap-2 py-4 px-6 font-medium uppercase motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
 							{
-								[themeTw.text.tint[tint]]:
-									field.value === option.value
+								["text-primary"]: field.value === option.value
 							}
 						)}
 						aria-checked={field.value === option.value}

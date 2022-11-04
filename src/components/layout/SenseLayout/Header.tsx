@@ -4,10 +4,8 @@ import {
 	faLightbulb as faLightbulbSolid
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import clsx from "clsx"
 
 import SenseLogo from "../../../assets/logos/SenseLogo"
-import { themeTw } from "../../../styles/theme"
 import ImageButton from "../../inputs/ImageButton"
 import ImageAnchor from "../../navigation/ImageAnchor"
 import toggleColorScheme from "../../utils/toggleColorScheme"
@@ -20,13 +18,7 @@ export interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ returnHref, title, shortTitle }) => {
 	return (
-		<nav
-			className={clsx(
-				"flex h-16 items-center justify-center drop-shadow-lg",
-				themeTw.background.tint["red"],
-				themeTw.text.textOver.tint["red"].primary
-			)}
-		>
+		<nav className="bg-primary text-over-primary-highest flex h-16 items-center justify-center drop-shadow-lg">
 			<div className="container grid h-full select-none grid-cols-[4rem_auto_4rem] items-stretch justify-items-stretch sm:grid-cols-[8rem_auto_8rem] sm:px-4">
 				<div className="flex items-center justify-start">
 					{returnHref ? (

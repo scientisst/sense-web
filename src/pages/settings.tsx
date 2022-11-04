@@ -16,7 +16,6 @@ import ImageRadioGroupField from "../components/inputs/ImageRadioGroupField"
 import NumberField from "../components/inputs/NumberField"
 import SenseLayout from "../components/layout/SenseLayout"
 import FormikAutoSubmit from "../components/utils/FormikAutoSubmit"
-import { themeTw } from "../styles/theme"
 
 const schema = Yup.object().shape({
 	deviceType: Yup.string().oneOf(["sense", "maker"]).required(),
@@ -97,7 +96,6 @@ const Page = () => {
 								name="deviceType"
 								center
 								className="w-full max-w-[29.25rem]"
-								tint="red"
 								options={[
 									{
 										name: "Sense",
@@ -139,7 +137,6 @@ const Page = () => {
 											}
 										]}
 										className="w-full max-w-[29.25rem]"
-										tint="red"
 									/>
 									<NumberField
 										label="Sampling Rate"
@@ -149,14 +146,12 @@ const Page = () => {
 										max={16000}
 										center
 										className="w-full max-w-[29.25rem]"
-										tint="red"
 									/>
 									<ButtonCheckboxGroupField
 										label="Channels"
 										id="channels"
 										name="channels"
 										center
-										tint="red"
 										options={[
 											{
 												name: "AI1",
@@ -192,10 +187,7 @@ const Page = () => {
 												<div className="relative flex flex-col items-center">
 													<div
 														className={clsx(
-															"absolute rounded-lg border-[3px]",
-															themeTw.border.tint[
-																"red"
-															],
+															"border-primary absolute rounded-lg border-[3px]",
 															{
 																hidden:
 																	hovered !==
@@ -211,10 +203,7 @@ const Page = () => {
 													/>
 													<div
 														className={clsx(
-															"absolute rounded-lg border-[3px]",
-															themeTw.border.tint[
-																"red"
-															],
+															"border-primary absolute rounded-lg border-[3px]",
 															{
 																hidden:
 																	hovered !==
@@ -230,10 +219,7 @@ const Page = () => {
 													/>
 													<div
 														className={clsx(
-															"absolute rounded-lg border-[3px]",
-															themeTw.border.tint[
-																"red"
-															],
+															"border-primary absolute rounded-lg border-[3px]",
 															{
 																hidden:
 																	hovered !==
@@ -263,10 +249,7 @@ const Page = () => {
 												<div className="relative flex flex-col items-center">
 													<div
 														className={clsx(
-															"absolute rounded-lg border-[3px]",
-															themeTw.border.tint[
-																"red"
-															],
+															"border-primary absolute rounded-lg border-[3px]",
 															{
 																hidden:
 																	hovered !==
@@ -282,10 +265,7 @@ const Page = () => {
 													/>
 													<div
 														className={clsx(
-															"absolute rounded-lg border-[3px]",
-															themeTw.border.tint[
-																"red"
-															],
+															"border-primary absolute rounded-lg border-[3px]",
 															{
 																hidden:
 																	hovered !==
@@ -301,10 +281,7 @@ const Page = () => {
 													/>
 													<div
 														className={clsx(
-															"absolute rounded-lg border-[3px]",
-															themeTw.border.tint[
-																"red"
-															],
+															"border-primary absolute rounded-lg border-[3px]",
 															{
 																hidden:
 																	hovered !==
@@ -346,7 +323,6 @@ const Page = () => {
 										max={16000}
 										center
 										className="w-full max-w-[29.25rem]"
-										tint="red"
 									/>
 								</>
 							)}

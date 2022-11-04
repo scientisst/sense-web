@@ -2,13 +2,10 @@ import { forwardRef } from "react"
 
 import clsx from "clsx"
 
-import { TintColor, themeTw } from "../../styles/theme"
-
 export type TextButtonSize = "base" | "lg"
 
 export interface TextButtonProps {
 	children?: React.ReactNode
-	tint: TintColor
 	/* The size of the button */
 	size: TextButtonSize
 	className?: string
@@ -24,14 +21,13 @@ const sizeToClassName: Record<TextButtonSize, string> = {
 }
 
 const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
-	({ children, tint, size, className, ...props }, ref) => {
+	({ children, size, className, ...props }, ref) => {
 		return (
 			<button
 				className={clsx(
 					"flex items-center justify-center rounded-lg font-medium uppercase",
 					"motion-safe:hover:scale-hover motion-safe:active:scale-pressed",
-					themeTw.background.tint[tint],
-					themeTw.text.textOver.tint[tint].primary,
+					"bg-primary text-over-primary-highest",
 					sizeToClassName[size],
 					className
 				)}

@@ -8,13 +8,11 @@ import {
 	faStackOverflow
 } from "@fortawesome/free-brands-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import clsx from "clsx"
 
 import ItLogo from "../../../assets/logos/ItLogo"
 import ScientISSTLogo from "../../../assets/logos/ScientISSTLogo"
 import ScientISSTSenseLogo from "../../../assets/logos/ScientISSTSenseLogo"
 import TecnicoLogo from "../../../assets/logos/TecnicoLogo"
-import { themeTw } from "../../../styles/theme"
 import ImageAnchor from "../../navigation/ImageAnchor"
 import FooterLinkSection from "./FooterLinkSection"
 
@@ -179,12 +177,7 @@ const Footer = () => {
 					))}
 				</div>
 			</div>
-			<div
-				className={clsx(
-					"my-8 hidden border-t opacity-50 sm:block xl:hidden",
-					themeTw.border.textOver.tint["red"].primary
-				)}
-			/>
+			<div className="text-over-primary-highest my-8 hidden border-t opacity-50 sm:block xl:hidden" />
 			<div className="hidden items-start justify-between gap-8 sm:flex xl:hidden">
 				{footerSections.map((section, index) => (
 					<FooterLinkSection
@@ -194,13 +187,8 @@ const Footer = () => {
 					/>
 				))}
 			</div>
-			<div
-				className={clsx(
-					"mt-8 mb-2 border-t opacity-50",
-					themeTw.border.textOver.tint["red"].primary
-				)}
-			/>
-			<div className="flex flex-col items-center text-secondary-white">
+			<div className="border-over-primary mt-8 mb-2 border-t opacity-50" />
+			<div className="text-secondary-white flex flex-col items-center">
 				<span className="imagine-font mt--2 text-center text-2xl">
 					{/* TODO: Automatically retrieve the version */}
 					VERSION 0.6.0

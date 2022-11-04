@@ -1,7 +1,5 @@
 import clsx from "clsx"
 
-import { themeTw } from "../../../styles/theme"
-
 export interface InputErrorMessageProps {
 	children: React.ReactNode
 	center?: boolean
@@ -17,12 +15,11 @@ const InputErrorMessage: React.FC<InputErrorMessageProps> = ({
 }) => {
 	return (
 		<span
-			className={clsx(
-				"text-ellipsis",
-				themeTw.text.tint["red"],
-				center ? "text-center" : "",
-				visible ? "block" : "hidden"
-			)}
+			className={clsx("text-primary text-ellipsis", {
+				["text-center"]: center,
+				["block"]: visible,
+				["hidden"]: !visible
+			})}
 			id={id}
 			aria-live="polite"
 		>

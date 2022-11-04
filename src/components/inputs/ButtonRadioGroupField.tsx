@@ -3,7 +3,6 @@ import { Fragment, useEffect, useRef, useState } from "react"
 import clsx from "clsx"
 import { Field, FieldProps, useFormikContext } from "formik"
 
-import { TintColor, themeTw } from "../../styles/theme"
 import InputErrorMessage from "./common/InputErrorMessage"
 import InputLabel from "./common/InputLabel"
 
@@ -18,7 +17,6 @@ interface ButtonRadioGroupProps {
 		value: string
 		ariaLabel?: string
 	}>
-	tint: TintColor
 }
 
 const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
@@ -29,8 +27,7 @@ const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
 	className,
 	style,
 	options,
-	id,
-	tint
+	id
 }) => {
 	const { setFieldValue } = useFormikContext()
 	const radioRefs = useRef<Record<number, HTMLButtonElement>>({})
@@ -81,23 +78,11 @@ const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
 			<InputLabel center={center} htmlFor={id}>
 				{label}
 			</InputLabel>
-			<div
-				className={clsx(
-					"flex h-12 justify-center rounded-lg border-3 drop-shadow",
-					themeTw.background.background.primary,
-					themeTw.text.textOver.background.primary,
-					themeTw.border.tint[tint]
-				)}
-			>
+			<div className="bg-background text-over-background-highest border-primary flex h-12 justify-center rounded-lg border-3 drop-shadow">
 				{options.map((option, index) => (
 					<Fragment key={option.value}>
 						{index !== 0 && (
-							<div
-								className={clsx(
-									"w-[1px] opacity-50",
-									themeTw.background.tint[tint]
-								)}
-							/>
+							<div className="background-primary w-[1px] opacity-50" />
 						)}
 						<button
 							role="radio"
@@ -109,9 +94,7 @@ const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
 							className={clsx(
 								"flex flex-grow items-center justify-center py-2 px-4 font-medium",
 								{
-									[themeTw.background.tint[tint]]:
-										field.value === option.value,
-									[themeTw.text.textOver.tint[tint].primary]:
+									["bg-primary text-over-primary-highest"]:
 										field.value === option.value
 								}
 							)}
