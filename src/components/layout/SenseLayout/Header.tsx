@@ -4,11 +4,11 @@ import {
 	faLightbulb as faLightbulbSolid
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { toggleDarkTheme } from "@scientisst/react-ui/dark-theme"
 
 import SenseLogo from "../../../assets/logos/SenseLogo"
 import ImageButton from "../../inputs/ImageButton"
 import ImageAnchor from "../../navigation/ImageAnchor"
-import toggleColorScheme from "../../utils/toggleColorScheme"
 
 export interface HeaderProps {
 	returnHref?: React.ComponentPropsWithoutRef<typeof ImageAnchor>["href"]
@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ returnHref, title, shortTitle }) => {
 				</div>
 				<div className="flex items-center justify-end">
 					<ImageButton
-						onClick={toggleColorScheme}
+						onClick={toggleDarkTheme}
 						className="mr-4 hidden sm:flex"
 					>
 						<FontAwesomeIcon
