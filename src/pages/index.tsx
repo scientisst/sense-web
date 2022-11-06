@@ -17,12 +17,12 @@ const Page = () => {
 			<ScientISSTSenseVerticalLogo className="sm:hidden" />
 			<div className="flex flex-col gap-8 self-stretch sm:flex-row">
 				<Link href="/live">
-					<TextButton tint="red" size="lg" className="flex-grow">
+					<TextButton size="lg" className="flex-grow">
 						Live
 					</TextButton>
 				</Link>
 				<Link href="/settings">
-					<TextButton tint="red" size="lg" className="flex-grow">
+					<TextButton size="lg" className="flex-grow">
 						Settings
 					</TextButton>
 				</Link>
