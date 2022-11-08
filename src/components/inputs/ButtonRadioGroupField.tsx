@@ -78,7 +78,7 @@ const ButtonRadioGroup: React.FC<ButtonRadioGroupProps & FieldProps> = ({
 			<InputLabel center={center} htmlFor={id}>
 				{label}
 			</InputLabel>
-			<div className="bg-background text-over-background-highest border-primary flex h-12 justify-center rounded-lg border-3 drop-shadow">
+			<div className="border-primary bg-background text-over-background-highest flex h-12 justify-center rounded-lg border-3 drop-shadow">
 				{options.map((option, index) => (
 					<Fragment key={option.value}>
 						{index !== 0 && (

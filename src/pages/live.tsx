@@ -33,9 +33,7 @@ const Page = () => {
 				minHeight: "calc(100vh - 18.5rem)"
 			}}
 		>
-			<TextButton tint="red" size="base">
-				Connect
-			</TextButton>
+			<TextButton size="base">Connect</TextButton>
 			<div className="h-[20rem] w-full"></div>
 		</SenseLayout>
 	)

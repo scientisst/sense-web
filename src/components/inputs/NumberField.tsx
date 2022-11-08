@@ -49,7 +49,7 @@ const NumberInput: React.FC<NumberInputProps & FieldProps> = ({
 				className={clsx(
 					"h-12 rounded-lg border-3 px-4 drop-shadow",
 					"ring-primary focus:outline-none focus:ring-3 focus:ring-opacity-30 dark:focus:ring-opacity-40",
-					"bg-background text-over-background-high placeholder:text-over-background-medium border-primary"
+					"border-primary bg-background text-over-background-high placeholder:text-over-background-medium"
 				)}
 				aria-invalid={hasError ? "true" : "false"}
 				aria-errormessage={

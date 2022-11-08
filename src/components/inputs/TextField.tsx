@@ -3,7 +3,6 @@ import React from "react"
 import clsx from "clsx"
 import { Field, FieldProps } from "formik"
 
-import { TintColor, themeTw } from "../../styles/theme"
 import InputErrorMessage from "./common/InputErrorMessage"
 import InputLabel from "./common/InputLabel"
 
@@ -13,7 +12,6 @@ interface TextInputProps {
 	id: string
 	/* Whether the label and error message should be centered or not.... */
 	center?: boolean
-	tint: TintColor
 	className?: string
 	style?: React.CSSProperties
 }
@@ -25,7 +23,6 @@ const TextInput: React.FC<TextInputProps & FieldProps> = ({
 	center = false,
 	className,
 	style,
-	tint,
 	...props
 }) => {
 	const hasError = !!(touched[field.name] && errors[field.name])
@@ -48,12 +45,8 @@ const TextInput: React.FC<TextInputProps & FieldProps> = ({
 				type="text"
 				className={clsx(
 					"h-12 rounded-lg border-3 px-4 drop-shadow",
-					"focus:outline-none focus:ring-3 focus:ring-opacity-30 dark:focus:ring-opacity-40",
-					themeTw.background.background.primary,
-					themeTw.text.textOver.background.secondary,
-					themeTw.placeholder.textOver.background.tertiary,
-					themeTw.border.tint[tint],
-					themeTw.ring.tint[tint]
+					"ring-primary focus:outline-none focus:ring-3 focus:ring-opacity-30 dark:focus:ring-opacity-40",
+					"border-primary bg-background text-over-background-high placeholder:text-over-background-medium"
 				)}
 				aria-invalid={hasError ? "true" : "false"}
 				aria-errormessage={
