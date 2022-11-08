@@ -1,8 +1,7 @@
 import { useEffect } from "react"
 
+import { useDebounce } from "@scientisst/react-ui/hooks"
 import { useFormikContext } from "formik"
-
-import useDebounce from "../../hooks/useDebounce"
 
 export interface FormikAutoSubmitProps {
 	delay: number
