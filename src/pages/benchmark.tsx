@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { D3Chart } from "@scientisst/react-ui/components/data-display"
 import * as d3 from "d3"
@@ -53,8 +53,7 @@ const GraphComponent = () => {
 			width: number,
 			height: number,
 			pixelRatio: number,
-			data: Array<[number, number | null]>,
-			time: number
+			data: Array<[number, number | null]>
 		) => {
 			d3.select(canvasElement)
 				.attr("width", width * pixelRatio)
