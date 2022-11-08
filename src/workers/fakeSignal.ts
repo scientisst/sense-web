@@ -97,19 +97,18 @@ const readSignal = (samplingRate: number, time: number) => {
 		startTime = time
 	}
 
-	const mul = 1
-	const currentSeq =
-		Math.floor(((time - startTime) * samplingRate) / 1000) * mul
+	const mul = 16
+	const currentSeq = Math.floor(((time - startTime) * samplingRate) / 1000)
 	const buffer: Array<{
 		seq: number
 		voltage: number
 	}> = []
 
 	while (seq < currentSeq) {
-		seq += mul
+		seq += 1
 		buffer.push({
-			seq,
-			voltage: fakeSignal[seq % fakeSignal.length]
+			seq: seq * mul,
+			voltage: fakeSignal[(seq * mul) % fakeSignal.length]
 		})
 	}
 

@@ -7,7 +7,7 @@ const GraphComponent = () => {
 	const [data, setData] = useState<Array<[number, number | null]>>([])
 
 	useEffect(() => {
-		const samplingRate = 16000 / 1
+		const samplingRate = 16000 / 16
 		const seconds = 5
 		const downsample = 728
 		const bufferSize = samplingRate * seconds
