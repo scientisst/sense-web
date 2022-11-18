@@ -8,12 +8,12 @@ import {
 	faStackOverflow
 } from "@fortawesome/free-brands-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ImageAnchor } from "@scientisst/react-ui/components/navigation"
 
 import ItLogo from "../../../assets/logos/ItLogo"
 import ScientISSTLogo from "../../../assets/logos/ScientISSTLogo"
 import ScientISSTSenseLogo from "../../../assets/logos/ScientISSTSenseLogo"
 import TecnicoLogo from "../../../assets/logos/TecnicoLogo"
-import ImageAnchor from "../../navigation/ImageAnchor"
 import FooterLinkSection from "./FooterLinkSection"
 
 type FooterSections = Array<{

@@ -4,11 +4,11 @@ import {
 	faLightbulb as faLightbulbSolid
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ImageAnchor } from "@scientisst/react-ui/components/navigation"
 import { toggleDarkTheme } from "@scientisst/react-ui/dark-theme"
 
 import SenseLogo from "../../../assets/logos/SenseLogo"
 import ImageButton from "../../inputs/ImageButton"
-import ImageAnchor from "../../navigation/ImageAnchor"
 
 export interface HeaderProps {
 	returnHref?: React.ComponentPropsWithoutRef<typeof ImageAnchor>["href"]
