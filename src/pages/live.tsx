@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 
-import TextButton from "../components/inputs/TextButton"
+import { TextButton } from "@scientisst/react-ui/components/inputs"
+
 import SenseLayout from "../components/layout/SenseLayout"
 
 const fakeTimeSeries: Array<{

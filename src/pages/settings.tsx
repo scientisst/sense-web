@@ -4,6 +4,12 @@ import Image from "next/future/image"
 
 import { faToolbox, faWaveSquare } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import {
+	ButtonCheckboxGroupField,
+	ButtonRadioGroupField,
+	ImageRadioGroupField,
+	NumberField
+} from "@scientisst/react-ui/components/inputs"
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
 import clsx from "clsx"
 import { Form, Formik } from "formik"
@@ -11,10 +17,6 @@ import * as Yup from "yup"
 
 import CoreBottom from "../assets/boards/core-bottom.svg"
 import CoreTop from "../assets/boards/core-top.svg"
-import ButtonCheckboxGroupField from "../components/inputs/ButtonCheckboxGroupField"
-import ButtonRadioGroupField from "../components/inputs/ButtonRadioGroupField"
-import ImageRadioGroupField from "../components/inputs/ImageRadioGroupField"
-import NumberField from "../components/inputs/NumberField"
 import SenseLayout from "../components/layout/SenseLayout"
 
 const schema = Yup.object().shape({

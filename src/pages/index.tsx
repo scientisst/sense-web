@@ -1,8 +1,9 @@
 import Link from "next/link"
 
+import { TextButton } from "@scientisst/react-ui/components/inputs"
+
 import ScientISSTSenseLogo from "../assets/logos/ScientISSTSenseLogo"
 import ScientISSTSenseVerticalLogo from "../assets/logos/ScientISSTSenseVerticalLogo"
-import TextButton from "../components/inputs/TextButton"
 import SenseLayout from "../components/layout/SenseLayout"
 
 const Page = () => {
