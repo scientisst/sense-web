@@ -4,6 +4,7 @@ import Image from "next/future/image"
 
 import { faToolbox, faWaveSquare } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
 import clsx from "clsx"
 import { Form, Formik } from "formik"
 import * as Yup from "yup"
@@ -15,7 +16,6 @@ import ButtonRadioGroupField from "../components/inputs/ButtonRadioGroupField"
 import ImageRadioGroupField from "../components/inputs/ImageRadioGroupField"
 import NumberField from "../components/inputs/NumberField"
 import SenseLayout from "../components/layout/SenseLayout"
-import FormikAutoSubmit from "../components/utils/FormikAutoSubmit"
 
 const schema = Yup.object().shape({
 	deviceType: Yup.string().oneOf(["sense", "maker"]).required(),
