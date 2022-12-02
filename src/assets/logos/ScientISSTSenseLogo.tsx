@@ -20,7 +20,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
@@ -37,7 +37,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
@@ -47,7 +47,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
@@ -57,7 +57,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
@@ -67,7 +67,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
@@ -77,7 +77,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
@@ -87,7 +87,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
@@ -97,7 +97,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
@@ -107,7 +107,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
@@ -117,7 +117,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
@@ -127,7 +127,7 @@ const ScientISSTSenseLogo: React.FC<ScientISSTSenseLogoProps> = ({
 			<path
 				className={
 					!monochrome
-						? "fill-tint-red dark:fill-tint-red-dark"
+						? "fill-primary-light dark:fill-primary-dark"
 						: undefined
 				}
 				fill={monochrome ? "currentColor" : undefined}
