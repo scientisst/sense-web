@@ -28,10 +28,12 @@ const FooterLinkSection: React.FC<FooterLinkSectionProps> = ({
 		>
 			<h4 className="imagine-font mb-2 text-2xl">{title}</h4>
 			{links.map(({ href, label }, index) => (
-				<Link key={index} href={href}>
-					<a className="text-over-primary-highest motion-safe:hover:scale-hover motion-safe:active:scale-pressed">
-						{label}
-					</a>
+				<Link
+					key={index}
+					href={href}
+					className="text-over-primary-highest motion-safe:hover:scale-hover motion-safe:active:scale-pressed"
+				>
+					{label}
 				</Link>
 			))}
 		</div>
