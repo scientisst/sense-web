@@ -133,7 +133,7 @@ const footerSponsors: FooterSponsors = [
 
 const Footer = () => {
 	return (
-		<footer className="container flex flex-col p-8 pb-4">
+		<footer className="container flex flex-col p-8">
 			<div className="flex flex-col items-start justify-between gap-12 sm:flex-row sm:gap-8">
 				<div className="flex max-w-[21rem] flex-col items-start gap-4">
 					<ScientISSTSenseLogo monochrome className="h-20 w-auto" />
@@ -187,17 +187,16 @@ const Footer = () => {
 					/>
 				))}
 			</div>
-			<div className="border-over-primary mt-8 mb-2 border-t opacity-50" />
+			{/* <div className="border-over-primary mt-8 mb-2 border-t opacity-50" />
 			<div className="text-secondary-white flex flex-col items-center">
 				<span className="imagine-font mt--2 text-center text-2xl">
-					{/* TODO: Automatically retrieve the version */}
 					VERSION 0.6.0
 				</span>
 				<span className="text-center text-lg font-medium">
 					© {new Date().getFullYear()} ScientISST. All rights
 					reserved.
 				</span>
-			</div>
+			</div> */}
 		</footer>
 	)
 }
