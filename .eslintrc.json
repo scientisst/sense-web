@@ -1,3 +1,4 @@
 {
-	"extends": ["@scientisst/eslint-config-next"]
+	"extends": ["@scientisst/eslint-config-next"],
+	"root": true
 }
