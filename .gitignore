@@ -53,3 +53,7 @@ pids
 # Profiling files
 *.cpuprofile
 *.heapprofile
+
+# yalc
+.yalc
+.yalc.lock
