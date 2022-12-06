@@ -1,55 +1,141 @@
 import React from "react"
 
+import {
+	faFacebook,
+	faGithub,
+	faInstagram,
+	faLinkedin,
+	faStackOverflow
+} from "@fortawesome/free-brands-svg-icons"
+import { HeaderAndFooterLayout } from "@scientisst/react-ui/components/layouts"
+
+import ItLogo from "../../../assets/logos/ItLogo"
+import ScientISSTLogo from "../../../assets/logos/ScientISSTLogo"
+import ScientISSTSenseLogo from "../../../assets/logos/ScientISSTSenseLogo"
+import SenseLogo from "../../../assets/logos/SenseLogo"
+import TecnicoLogo from "../../../assets/logos/TecnicoLogo"
 import Footer from "./Footer"
 import Header from "./Header"
 
 export interface SenseLayoutProps {
-	children?: React.ReactNode
-	footer?: boolean
-	header?: boolean
-	style?: React.CSSProperties
+	children: React.ReactNode
 	className?: string
-	title?: React.ComponentPropsWithoutRef<typeof Header>["title"]
-	shortTitle?: React.ComponentPropsWithoutRef<typeof Header>["shortTitle"]
-	returnHref?: React.ComponentPropsWithoutRef<typeof Header>["returnHref"]
+	style?: React.CSSProperties
+	title?: React.ComponentPropsWithoutRef<
+		typeof HeaderAndFooterLayout
+	>["title"]
+	shortTitle?: React.ComponentPropsWithoutRef<
+		typeof HeaderAndFooterLayout
+	>["shortTitle"]
+	returnHref?: React.ComponentPropsWithoutRef<
+		typeof HeaderAndFooterLayout
+	>["returnHref"]
 }
 
-const SenseLayout: React.FC<SenseLayoutProps> = ({
-	children,
-	style,
-	className = "",
-	footer = true,
-	header = true,
-	title,
-	shortTitle,
-	returnHref
-}) => {
+const SenseLayout: React.FC<SenseLayoutProps> = ({ children, ...props }) => {
 	return (
-		<div className="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_auto] overflow-hidden">
-			{header ? (
-				<Header
-					title={title}
-					shortTitle={shortTitle}
-					returnHref={returnHref}
-				/>
-			) : (
-				<div />
-			)}
-			<div
-				className="grid grid-cols-1 grid-rows-[min-content_auto_min-content] content-between overflow-y-auto overflow-x-hidden"
-				tabIndex={-1}
-			>
-				<div></div>
-				<div className="flex items-center justify-center overflow-visible">
-					<main className={className} style={style}>
-						{children}
-					</main>
-				</div>
-				<div className="bg-primary text-over-primary-highest flex justify-center overflow-hidden drop-shadow-lg">
-					{footer ? <Footer /> : null}
-				</div>
-			</div>
-		</div>
+		<HeaderAndFooterLayout
+			headerLogo={<SenseLogo className="h-full w-full p-2" />}
+			footerLogo={
+				<ScientISSTSenseLogo monochrome className="h-20 w-auto" />
+			}
+			motto="Biomedical engineering for everyone."
+			socialMediaLinks={[
+				{
+					href: "https://www.facebook.com/scientisst",
+					icon: faFacebook,
+					ariaLabel: "Facebook"
+				},
+				{
+					href: "https://www.instagram.com/scientissthub",
+					icon: faInstagram,
+					ariaLabel: "Instagram"
+				},
+				{
+					href: "https://www.linkedin.com/company/scientisst",
+					icon: faLinkedin,
+					ariaLabel: "LinkedIn"
+				},
+				{
+					href: "https://github.com/scientisst",
+					icon: faGithub,
+					ariaLabel: "GitHub"
+				},
+				{
+					href: "https://stackoverflow.com/c/scientisst/questions",
+					icon: faStackOverflow,
+					ariaLabel: "Stack Overflow"
+				}
+			]}
+			sectionA={{
+				title: "Sense",
+				links: [
+					{
+						href: "/",
+						label: "Hardware"
+					},
+					{
+						href: "/",
+						label: "SENSE Desktop"
+					},
+					{
+						href: "/",
+						label: "SENSE Mobile"
+					}
+				]
+			}}
+			sectionB={{
+				title: "Resources",
+				links: [
+					{
+						href: "/",
+						label: "Notebooks"
+					},
+					{
+						href: "/",
+						label: "FAQ"
+					},
+					{
+						href: "/",
+						label: "APIs"
+					}
+				]
+			}}
+			sectionC={{
+				title: "ScientISST",
+				links: [
+					{
+						href: "/",
+						label: "About us"
+					},
+					{
+						href: "/",
+						label: "Join us"
+					},
+					{
+						href: "/",
+						label: "Contact us"
+					}
+				]
+			}}
+			sponsorLinks={[
+				{
+					href: "https://scientisst.com",
+					img: <ScientISSTLogo />
+				},
+				{
+					href: "https://it.pt",
+					img: <ItLogo />
+				},
+				{
+					href: "https://tecnico.ulisboa.pt",
+					img: <TecnicoLogo />
+				}
+			]}
+			{...props}
+		>
+			{children}
+		</HeaderAndFooterLayout>
 	)
 }
 
