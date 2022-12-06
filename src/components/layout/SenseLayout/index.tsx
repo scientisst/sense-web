@@ -14,8 +14,6 @@ import ScientISSTLogo from "../../../assets/logos/ScientISSTLogo"
 import ScientISSTSenseLogo from "../../../assets/logos/ScientISSTSenseLogo"
 import SenseLogo from "../../../assets/logos/SenseLogo"
 import TecnicoLogo from "../../../assets/logos/TecnicoLogo"
-import Footer from "./Footer"
-import Header from "./Header"
 
 export interface SenseLayoutProps {
 	children: React.ReactNode
