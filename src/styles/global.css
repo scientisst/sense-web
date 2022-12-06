@@ -17,22 +17,3 @@
 	font-size: inherit;
 	line-height: inherit;
 }
-
-.imagine-font {
-	font-family: "Imagine", sans-serif;
-}
-
-.lexend-font {
-	font-family: "Lexend", sans-serif;
-}
-
-/* Hide number spin buttons */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
-}
-
-input[type="number"] {
-	-moz-appearance: textfield;
-}
