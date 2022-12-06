@@ -243,7 +243,7 @@ const Page = () => {
 														height: "auto"
 													}}
 												/>
-												<span className="imagine-font text-2xl">
+												<span className="font-secondary text-2xl">
 													Top
 												</span>
 											</div>
@@ -305,7 +305,7 @@ const Page = () => {
 														height: "auto"
 													}}
 												/>
-												<span className="imagine-font text-2xl">
+												<span className="font-secondary text-2xl">
 													Bottom
 												</span>
 											</div>
