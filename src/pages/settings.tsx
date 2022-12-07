@@ -81,255 +81,257 @@ const Page = () => {
 				minHeight: "calc(100vh - 18.5rem)"
 			}}
 		>
-			<Formik
-				initialValues={defaultValues}
-				validationSchema={schema}
-				onSubmit={values => {
-					localStorage.setItem("settings", JSON.stringify(values))
-				}}
-			>
-				{({ values: { deviceType } }) => (
-					<Form className="flex w-full flex-col items-center">
-						<FormikAutoSubmit delay={100} />
-						<ImageRadioGroupField
-							label="Device Type"
-							id="deviceType"
-							name="deviceType"
-							center
-							className="w-full max-w-[29.25rem]"
-							options={[
-								{
-									name: "Sense",
-									value: "sense",
-									img: (
-										<FontAwesomeIcon
-											icon={faWaveSquare}
-											className="h-16 w-16"
-										/>
-									)
-								},
-								{
-									name: "Maker",
-									value: "maker",
-									img: (
-										<FontAwesomeIcon
-											icon={faToolbox}
-											className="h-16 w-16"
-										/>
-									)
-								}
-							]}
-						/>
-						{deviceType === "sense" && (
-							<>
-								<ButtonRadioGroupField
-									label="Communication"
-									id="communication"
-									name="communication"
-									center
-									options={[
-										{
-											name: "Bluetooth",
-											value: "bluetooth"
-										},
-										{
-											name: "WiFi",
-											value: "wifi"
-										}
-									]}
-									className="w-full max-w-[29.25rem]"
-								/>
-								<NumberField
-									label="Sampling Rate"
-									name="samplingRate"
-									id="samplingRate"
-									min={1}
-									max={16000}
-									center
-									className="w-full max-w-[29.25rem]"
-								/>
-								<ButtonCheckboxGroupField
-									label="Channels"
-									id="channels"
-									name="channels"
-									center
-									options={[
-										{
-											name: "AI1",
-											value: "AI1"
-										},
-										{
-											name: "AI2",
-											value: "AI2"
-										},
-										{
-											name: "AI3",
-											value: "AI3"
-										},
-										{
-											name: "AI4",
-											value: "AI4"
-										},
-										{
-											name: "AI5",
-											value: "AI5"
-										},
-										{
-											name: "AI6",
-											value: "AI6"
-										},
-										{
-											name: "Digital",
-											value: "DI"
-										}
-									]}
-									image={hovered => (
-										<div className="hidden gap-8 sm:flex">
-											<div className="relative flex flex-col items-center">
-												<div
-													className={clsx(
-														"border-primary absolute rounded-lg border-[3px]",
-														{
-															hidden:
-																hovered !==
-																"AI1"
-														}
-													)}
-													style={{
-														width: "4.5rem",
-														height: "4.5rem",
-														top: "0.25rem",
-														left: "0"
-													}}
-												/>
-												<div
-													className={clsx(
-														"border-primary absolute rounded-lg border-[3px]",
-														{
-															hidden:
-																hovered !==
-																"AI3"
-														}
-													)}
-													style={{
-														width: "4.5rem",
-														height: "4.5rem",
-														top: "calc(4.75rem - 3px)",
-														left: "0"
-													}}
-												/>
-												<div
-													className={clsx(
-														"border-primary absolute rounded-lg border-[3px]",
-														{
-															hidden:
-																hovered !==
-																"AI5"
-														}
-													)}
-													style={{
-														width: "4.5rem",
-														height: "4.5rem",
-														top: "calc(4.75rem - 3px)",
-														right: "0"
-													}}
-												/>
-												<Image
-													src={CoreTop}
-													alt=""
-													className="m-2"
-													style={{
-														maxWidth: "16rem",
-														height: "auto"
-													}}
-												/>
-												<span className="font-secondary text-2xl">
-													Top
-												</span>
+			{loaded && (
+				<Formik
+					initialValues={defaultValues}
+					validationSchema={schema}
+					onSubmit={values => {
+						localStorage.setItem("settings", JSON.stringify(values))
+					}}
+				>
+					{({ values: { deviceType } }) => (
+						<Form className="flex w-full flex-col items-center">
+							<FormikAutoSubmit delay={100} />
+							<ImageRadioGroupField
+								label="Device Type"
+								id="deviceType"
+								name="deviceType"
+								center
+								className="w-full max-w-[29.25rem]"
+								options={[
+									{
+										name: "Sense",
+										value: "sense",
+										img: (
+											<FontAwesomeIcon
+												icon={faWaveSquare}
+												className="h-16 w-16"
+											/>
+										)
+									},
+									{
+										name: "Maker",
+										value: "maker",
+										img: (
+											<FontAwesomeIcon
+												icon={faToolbox}
+												className="h-16 w-16"
+											/>
+										)
+									}
+								]}
+							/>
+							{deviceType === "sense" && (
+								<>
+									<ButtonRadioGroupField
+										label="Communication"
+										id="communication"
+										name="communication"
+										center
+										options={[
+											{
+												name: "Bluetooth",
+												value: "bluetooth"
+											},
+											{
+												name: "WiFi",
+												value: "wifi"
+											}
+										]}
+										className="w-full max-w-[29.25rem]"
+									/>
+									<NumberField
+										label="Sampling Rate"
+										name="samplingRate"
+										id="samplingRate"
+										min={1}
+										max={16000}
+										center
+										className="w-full max-w-[29.25rem]"
+									/>
+									<ButtonCheckboxGroupField
+										label="Channels"
+										id="channels"
+										name="channels"
+										center
+										options={[
+											{
+												name: "AI1",
+												value: "AI1"
+											},
+											{
+												name: "AI2",
+												value: "AI2"
+											},
+											{
+												name: "AI3",
+												value: "AI3"
+											},
+											{
+												name: "AI4",
+												value: "AI4"
+											},
+											{
+												name: "AI5",
+												value: "AI5"
+											},
+											{
+												name: "AI6",
+												value: "AI6"
+											},
+											{
+												name: "Digital",
+												value: "DI"
+											}
+										]}
+										image={hovered => (
+											<div className="hidden gap-8 sm:flex">
+												<div className="relative flex flex-col items-center">
+													<div
+														className={clsx(
+															"border-primary absolute rounded-lg border-[3px]",
+															{
+																hidden:
+																	hovered !==
+																	"AI1"
+															}
+														)}
+														style={{
+															width: "4.5rem",
+															height: "4.5rem",
+															top: "0.25rem",
+															left: "0"
+														}}
+													/>
+													<div
+														className={clsx(
+															"border-primary absolute rounded-lg border-[3px]",
+															{
+																hidden:
+																	hovered !==
+																	"AI3"
+															}
+														)}
+														style={{
+															width: "4.5rem",
+															height: "4.5rem",
+															top: "calc(4.75rem - 3px)",
+															left: "0"
+														}}
+													/>
+													<div
+														className={clsx(
+															"border-primary absolute rounded-lg border-[3px]",
+															{
+																hidden:
+																	hovered !==
+																	"AI5"
+															}
+														)}
+														style={{
+															width: "4.5rem",
+															height: "4.5rem",
+															top: "calc(4.75rem - 3px)",
+															right: "0"
+														}}
+													/>
+													<Image
+														src={CoreTop}
+														alt=""
+														className="m-2"
+														style={{
+															maxWidth: "16rem",
+															height: "auto"
+														}}
+													/>
+													<span className="font-secondary text-2xl">
+														Top
+													</span>
+												</div>
+												<div className="relative flex flex-col items-center">
+													<div
+														className={clsx(
+															"border-primary absolute rounded-lg border-[3px]",
+															{
+																hidden:
+																	hovered !==
+																	"AI2"
+															}
+														)}
+														style={{
+															width: "4.5rem",
+															height: "4.5rem",
+															top: "0.25rem",
+															right: "0"
+														}}
+													/>
+													<div
+														className={clsx(
+															"border-primary absolute rounded-lg border-[3px]",
+															{
+																hidden:
+																	hovered !==
+																	"AI6"
+															}
+														)}
+														style={{
+															width: "4.5rem",
+															height: "4.5rem",
+															top: "calc(4.75rem - 3px)",
+															left: "0"
+														}}
+													/>
+													<div
+														className={clsx(
+															"border-primary absolute rounded-lg border-[3px]",
+															{
+																hidden:
+																	hovered !==
+																	"AI4"
+															}
+														)}
+														style={{
+															width: "4.5rem",
+															height: "4.5rem",
+															top: "calc(4.75rem - 3px)",
+															right: "0"
+														}}
+													/>
+													<Image
+														src={CoreBottom}
+														alt=""
+														className="m-2"
+														style={{
+															maxWidth: "16rem",
+															height: "auto"
+														}}
+													/>
+													<span className="font-secondary text-2xl">
+														Bottom
+													</span>
+												</div>
 											</div>
-											<div className="relative flex flex-col items-center">
-												<div
-													className={clsx(
-														"border-primary absolute rounded-lg border-[3px]",
-														{
-															hidden:
-																hovered !==
-																"AI2"
-														}
-													)}
-													style={{
-														width: "4.5rem",
-														height: "4.5rem",
-														top: "0.25rem",
-														right: "0"
-													}}
-												/>
-												<div
-													className={clsx(
-														"border-primary absolute rounded-lg border-[3px]",
-														{
-															hidden:
-																hovered !==
-																"AI6"
-														}
-													)}
-													style={{
-														width: "4.5rem",
-														height: "4.5rem",
-														top: "calc(4.75rem - 3px)",
-														left: "0"
-													}}
-												/>
-												<div
-													className={clsx(
-														"border-primary absolute rounded-lg border-[3px]",
-														{
-															hidden:
-																hovered !==
-																"AI4"
-														}
-													)}
-													style={{
-														width: "4.5rem",
-														height: "4.5rem",
-														top: "calc(4.75rem - 3px)",
-														right: "0"
-													}}
-												/>
-												<Image
-													src={CoreBottom}
-													alt=""
-													className="m-2"
-													style={{
-														maxWidth: "16rem",
-														height: "auto"
-													}}
-												/>
-												<span className="font-secondary text-2xl">
-													Bottom
-												</span>
-											</div>
-										</div>
-									)}
-								/>
-							</>
-						)}
-						{deviceType === "maker" && (
-							<>
-								<NumberField
-									label="Baud Rate"
-									name="baudRate"
-									id="baudRate"
-									min={0}
-									max={16000}
-									center
-									className="w-full max-w-[29.25rem]"
-								/>
-							</>
-						)}
-					</Form>
-				)}
-			</Formik>
+										)}
+									/>
+								</>
+							)}
+							{deviceType === "maker" && (
+								<>
+									<NumberField
+										label="Baud Rate"
+										name="baudRate"
+										id="baudRate"
+										min={0}
+										max={16000}
+										center
+										className="w-full max-w-[29.25rem]"
+									/>
+								</>
+							)}
+						</Form>
+					)}
+				</Formik>
+			)}
 		</SenseLayout>
 	)
 }
