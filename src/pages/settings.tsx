@@ -11,6 +11,7 @@ import {
 	NumberField
 } from "@scientisst/react-ui/components/inputs"
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
+import { CHANNEL, COMMUNICATION_MODE } from "@scientisst/sense/future"
 import clsx from "clsx"
 import { Form, Formik } from "formik"
 import * as Yup from "yup"
@@ -21,13 +22,14 @@ import SenseLayout from "../components/layout/SenseLayout"
 
 const schema = Yup.object().shape({
 	deviceType: Yup.string().oneOf(["sense", "maker"]).required(),
-	communication: Yup.string()
-		.oneOf(["wifi", "bluetooth"])
+	communication: Yup.number()
+		.oneOf([COMMUNICATION_MODE.WEB_SOCKET, COMMUNICATION_MODE.BLUETOOTH])
 		.test(
 			"bluetooth",
 			"Bluetooth is not supported on your current browser.",
 			value =>
-				value !== "bluetooth" || typeof navigator.serial !== "undefined"
+				value !== COMMUNICATION_MODE.BLUETOOTH ||
+				typeof navigator.serial !== "undefined"
 		)
 		.required(),
 	baudRate: Yup.number().when("deviceType", {
@@ -50,10 +52,17 @@ const Page = () => {
 	const [loaded, setLoaded] = useState(false)
 	const [defaultValues, setDefaultValues] = useState({
 		deviceType: "sense",
-		communication: "bluetooth",
-		baudRate: 9600,
+		communication: COMMUNICATION_MODE.BLUETOOTH,
+		baudRate: 115200,
 		samplingRate: 1000,
-		channels: ["AI1", "AI2", "AI3", "AI4", "AI5", "AI6"]
+		channels: [
+			CHANNEL.AI1,
+			CHANNEL.AI2,
+			CHANNEL.AI3,
+			CHANNEL.AI4,
+			CHANNEL.AI5,
+			CHANNEL.AI6
+		]
 	})
 
 	useEffect(() => {
@@ -64,8 +73,8 @@ const Page = () => {
 				...defaultValues,
 				communication:
 					typeof navigator.serial !== "undefined"
-						? "bluetooth"
-						: "wifi",
+						? COMMUNICATION_MODE.BLUETOOTH
+						: COMMUNICATION_MODE.WEB_SOCKET,
 				...(JSON.parse(localStorage.getItem("settings") ?? "{}") || {})
 			})
 		}
@@ -131,11 +140,11 @@ const Page = () => {
 										options={[
 											{
 												name: "Bluetooth",
-												value: "bluetooth"
+												value: COMMUNICATION_MODE.BLUETOOTH
 											},
 											{
 												name: "WiFi",
-												value: "wifi"
+												value: COMMUNICATION_MODE.WEB_SOCKET
 											}
 										]}
 										className="w-full max-w-[29.25rem]"
@@ -157,31 +166,27 @@ const Page = () => {
 										options={[
 											{
 												name: "AI1",
-												value: "AI1"
+												value: CHANNEL.AI1
 											},
 											{
 												name: "AI2",
-												value: "AI2"
+												value: CHANNEL.AI2
 											},
 											{
 												name: "AI3",
-												value: "AI3"
+												value: CHANNEL.AI3
 											},
 											{
 												name: "AI4",
-												value: "AI4"
+												value: CHANNEL.AI4
 											},
 											{
 												name: "AI5",
-												value: "AI5"
+												value: CHANNEL.AI5
 											},
 											{
 												name: "AI6",
-												value: "AI6"
-											},
-											{
-												name: "Digital",
-												value: "DI"
+												value: CHANNEL.AI6
 											}
 										]}
 										image={hovered => (
@@ -193,7 +198,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	"AI1"
+																	CHANNEL.AI1
 															}
 														)}
 														style={{
@@ -209,7 +214,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	"AI3"
+																	CHANNEL.AI2
 															}
 														)}
 														style={{
@@ -225,7 +230,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	"AI5"
+																	CHANNEL.AI3
 															}
 														)}
 														style={{
@@ -255,7 +260,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	"AI2"
+																	CHANNEL.AI4
 															}
 														)}
 														style={{
@@ -271,7 +276,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	"AI6"
+																	CHANNEL.AI5
 															}
 														)}
 														style={{
@@ -287,7 +292,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	"AI4"
+																	CHANNEL.AI6
 															}
 														)}
 														style={{
