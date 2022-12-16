@@ -18,6 +18,7 @@
 		"@fortawesome/free-solid-svg-icons": "^6.2.0",
 		"@fortawesome/react-fontawesome": "^0.2.0",
 		"@scientisst/react-ui": "file:.yalc/@scientisst/react-ui",
+		"@scientisst/sense": "file:.yalc/@scientisst/sense",
 		"clsx": "^1.2.1",
 		"formik": "^2.2.9",
 		"next": "^13.0.6",
