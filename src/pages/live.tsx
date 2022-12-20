@@ -209,6 +209,7 @@ const Page = () => {
 				setConnectionStatus(CONNECTION_STATUS.CONNECTED)
 				connectionTimeoutRef.current = connectionTimeoutRef.current + 1
 			} catch (error) {
+				connectionTimeoutRef.current = connectionTimeoutRef.current + 1
 				if (error instanceof UserCancelledException) {
 					setConnectionStatus(CONNECTION_STATUS.DISCONNECTED)
 				} else if (error instanceof ConnectionFailedException) {
