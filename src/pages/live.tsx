@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import router from "next/router"
 
 import { TextButton } from "@scientisst/react-ui/components/inputs"
+import { useDarkTheme } from "@scientisst/react-ui/dark-theme"
 import {
 	CHANNEL,
 	COMMUNICATION_MODE,
@@ -13,7 +14,9 @@ import {
 	UserCancelledException,
 	framesToUtf16
 } from "@scientisst/sense/future"
+import resolveConfig from "tailwindcss/resolveConfig"
 
+import tailwindConfig from "../../tailwind.config"
 import CanvasChart from "../components/charts/CanvasChart"
 import SenseLayout from "../components/layout/SenseLayout"
 
@@ -28,14 +31,12 @@ enum CONNECTION_STATUS {
 	STOPPING
 }
 
-type LastValues = {
-	[CHANNEL.AI1]: number | undefined
-	[CHANNEL.AI2]: number | undefined
-	[CHANNEL.AI3]: number | undefined
-	[CHANNEL.AI4]: number | undefined
-	[CHANNEL.AI5]: number | undefined
-	[CHANNEL.AI6]: number | undefined
-}
+const fullConfig = resolveConfig(tailwindConfig)
+const lineColorLight = fullConfig.theme.colors["primary-light"]
+const lineColorDark = fullConfig.theme.colors["primary-dark"]
+const outlineColorLight =
+	fullConfig.theme.colors["over-background-highest-light"]
+const outlineColorDark = fullConfig.theme.colors["over-background-highest-dark"]
 
 const Page = () => {
 	const scientisstRef = useRef(new ScientISST())
@@ -44,19 +45,6 @@ const Page = () => {
 	)
 	const [activeChannels, setActiveChannels] = useState<CHANNEL[]>([])
 	const [activeSamplingRate, setActiveSamplingRate] = useState(0)
-	const [lastValues, dispatchLastValues] = useReducer(
-		(state: LastValues, action: LastValues) => {
-			return { ...state, ...action }
-		},
-		{
-			[CHANNEL.AI1]: undefined,
-			[CHANNEL.AI2]: undefined,
-			[CHANNEL.AI3]: undefined,
-			[CHANNEL.AI4]: undefined,
-			[CHANNEL.AI5]: undefined,
-			[CHANNEL.AI6]: undefined
-		}
-	)
 	const [segment, setSegment] = useState(1)
 	const frameSequenceRef = useRef(0)
 	const connectionTimeoutRef = useRef<number | null>(null)
@@ -72,6 +60,7 @@ const Page = () => {
 		[CHANNEL.AX2]: []
 	})
 	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
+	const isDark = useDarkTheme()
 
 	const bufferRef = useRef<ScientISSTFrame[]>([])
 	const appendBuffer = useCallback(
@@ -113,6 +102,7 @@ const Page = () => {
 			new Promise(async resolve => {
 				while (valid) {
 					try {
+						console.log(Math.ceil(activeSamplingRate / 15))
 						const frames = await scientisstRef.current.readFrames(
 							Math.ceil(activeSamplingRate / 15)
 						)
@@ -122,7 +112,6 @@ const Page = () => {
 						}
 
 						if (valid) {
-							dispatchLastValues(frames[frames.length - 1].analog)
 							appendBuffer(frames, segment, activeSamplingRate)
 
 							for (const frame of frames) {
@@ -369,6 +358,24 @@ const Page = () => {
 		}
 	}, [clearBuffer, connectionStatus, segment])
 
+	const xTickFormatter = useCallback(
+		(value: number) => {
+			const time = value / activeSamplingRate
+			if (time < 0) {
+				return "0:00"
+			}
+
+			const seconds = Math.floor(time % 60)
+			const minutes = Math.floor(time / 60)
+
+			if (seconds < 10) {
+				return `${minutes}:0${seconds}`
+			}
+			return `${minutes}:${seconds}`
+		},
+		[activeSamplingRate]
+	)
+
 	return (
 		<SenseLayout
 			className="container flex flex-col items-center justify-start gap-4 p-8"
@@ -427,25 +434,34 @@ const Page = () => {
 			{connectionStatus === CONNECTION_STATUS.CONNECTION_LOST && (
 				<span>Stopping acquisition...</span>
 			)}
-			{/* {lastValues &&
-				connectionStatus === CONNECTION_STATUS.ACQUIRING &&
-				activeChannels.map(channel => {
-					return (
-						<span key={channel}>{`Channel ${channel}: ${
-							lastValues[channel as number]
-						}`}</span>
-					)
-				})} */}
 			{connectionStatus === CONNECTION_STATUS.ACQUIRING &&
 				activeChannels.map(channel => {
 					return (
-						<CanvasChart
+						<div
 							key={channel}
-							data={graphBufferRef.current[channel]}
-							xMin={xDomain[0]}
-							xMax={xDomain[1]}
-							className="h-64 w-full"
-						/>
+							className="bg-background-accent flex w-full flex-col rounded-md"
+						>
+							<div className="w-full p-4">
+								<CanvasChart
+									data={graphBufferRef.current[channel]}
+									xMin={xDomain[0]}
+									xMax={xDomain[1]}
+									className="h-64 w-full"
+									fontFamily="Lexend"
+									lineColor={
+										isDark ? lineColorDark : lineColorLight
+									}
+									outlineColor={
+										isDark
+											? outlineColorDark
+											: outlineColorLight
+									}
+									yTicks={5}
+									xTicks={5}
+									xTickFormat={xTickFormatter}
+								/>
+							</div>
+						</div>
 					)
 				})}
 		</SenseLayout>
