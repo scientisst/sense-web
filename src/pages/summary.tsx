@@ -42,8 +42,18 @@ const Page = () => {
 
 				frameContent.push(frames[j].sequence)
 
+				let ignore = false
 				for (let k = 0; k < channels.length; k++) {
+					if (frames[j].analog[channels[k]] === null) {
+						ignore = true
+						break
+					}
+
 					frameContent.push(frames[j].analog[channels[k]])
+				}
+
+				if (ignore) {
+					continue
 				}
 
 				fileContent.push(frameContent.join(","))
