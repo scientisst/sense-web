@@ -58,6 +58,7 @@ const Page = () => {
 	)
 	const [segment, setSegment] = useState(1)
 	const frameSequenceRef = useRef(0)
+	const connectionTimeoutRef = useRef<number | null>(null)
 
 	const bufferRef = useRef<ScientISSTFrame[]>([])
 	const appendBuffer = useCallback(
@@ -192,9 +193,21 @@ const Page = () => {
 				JSON.parse(settings).communication ||
 				COMMUNICATION_MODE.BLUETOOTH
 
+			const t = connectionTimeoutRef.current + 1
+			connectionTimeoutRef.current = t
+			setTimeout(async () => {
+				if (connectionTimeoutRef.current === t) {
+					try {
+						await scientisstRef.current.disconnect()
+					} catch {}
+					setConnectionStatus(CONNECTION_STATUS.CONNECTION_FAILED)
+				}
+			}, 5000)
+
 			try {
 				await scientisstRef.current.connect(communicationMode)
 				setConnectionStatus(CONNECTION_STATUS.CONNECTED)
+				connectionTimeoutRef.current = connectionTimeoutRef.current + 1
 			} catch (error) {
 				if (error instanceof UserCancelledException) {
 					setConnectionStatus(CONNECTION_STATUS.DISCONNECTED)
