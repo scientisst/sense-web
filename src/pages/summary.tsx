@@ -26,6 +26,8 @@ const Page = () => {
 
 		const zip = new JSZip()
 
+		let firstTimestamp = 0
+
 		for (let i = 1; i <= segments; i++) {
 			const fileContent = []
 			const frames = utf16ToFrames(
@@ -46,6 +48,10 @@ const Page = () => {
 			const timestamp = new Date(
 				JSON.parse(localStorage.getItem(`aq_seg${i}time`) ?? "0")
 			)
+
+			if (firstTimestamp === 0) {
+				firstTimestamp = timestamp.getTime()
+			}
 
 			const metadata = {
 				Device: "ScientISST Sense",
@@ -86,9 +92,15 @@ const Page = () => {
 			zip.file(`segment_${i}.csv`, fileContent.join("\n"))
 		}
 
+		if (firstTimestamp === 0) {
+			firstTimestamp = new Date().getTime()
+		}
+
+		const timestampISO = new Date(firstTimestamp).toISOString()
+
 		zip.generateAsync({ type: "blob" }).then(content => {
 			// save as but let the user choose the name
-			FileSaver.saveAs(content)
+			FileSaver.saveAs(content, `${timestampISO}.zip`)
 		})
 	}
 
