@@ -61,6 +61,7 @@ const Page = () => {
 	})
 	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
 	const isDark = useDarkTheme()
+	const saveTimestampRef = useRef(false)
 
 	const bufferRef = useRef<ScientISSTFrame[]>([])
 	const appendBuffer = useCallback(
@@ -102,7 +103,6 @@ const Page = () => {
 			new Promise(async resolve => {
 				while (valid) {
 					try {
-						console.log(Math.ceil(activeSamplingRate / 15))
 						const frames = await scientisstRef.current.readFrames(
 							Math.ceil(activeSamplingRate / 15)
 						)
@@ -112,6 +112,31 @@ const Page = () => {
 						}
 
 						if (valid) {
+							if (saveTimestampRef.current) {
+								saveTimestampRef.current = false
+
+								if (segment === 1) {
+									localStorage.setItem(
+										`aq_seg${segment}time`,
+										JSON.stringify(Date.now())
+									)
+								} else {
+									localStorage.setItem(
+										`aq_seg${segment}time`,
+										JSON.stringify(
+											JSON.parse(
+												localStorage.getItem(
+													`aq_seg1time`
+												) ?? "0"
+											) +
+												(frameSequenceRef.current /
+													activeSamplingRate) *
+													1000
+										)
+									)
+								}
+							}
+
 							appendBuffer(frames, segment, activeSamplingRate)
 
 							for (const frame of frames) {
@@ -148,7 +173,8 @@ const Page = () => {
 								])
 							}
 						} else {
-							frameSequenceRef.current = 0
+							frameSequenceRef.current =
+								frameSequenceRef.current + frames.length
 						}
 					} catch (error) {
 						if (valid) {
@@ -157,10 +183,11 @@ const Page = () => {
 									CONNECTION_STATUS.CONNECTION_LOST
 								)
 							} else {
+								// TODO: Possibly handle this differently
 								setConnectionStatus(
-									CONNECTION_STATUS.CONNECTION_FAILED
+									CONNECTION_STATUS.CONNECTION_LOST
 								)
-								throw error
+								//throw error
 							}
 						}
 					}
@@ -181,7 +208,7 @@ const Page = () => {
 							activeSamplingRate
 						)
 
-						if (frames.length === 0 || !valid) {
+						if (frames.length === 0) {
 							break
 						}
 
@@ -193,10 +220,11 @@ const Page = () => {
 									CONNECTION_STATUS.CONNECTION_LOST
 								)
 							} else {
+								// TODO: Possibly handle this differently
 								setConnectionStatus(
-									CONNECTION_STATUS.CONNECTION_FAILED
+									CONNECTION_STATUS.CONNECTION_LOST
 								)
-								throw error
+								//throw error
 							}
 						}
 					}
@@ -297,6 +325,8 @@ const Page = () => {
 			setActiveSamplingRate(sampleRate)
 			graphBufferSizeRef.current = sampleRate * 5
 			setSegment(1)
+			saveTimestampRef.current = true
+			frameSequenceRef.current = 0
 
 			for (const key in localStorage) {
 				if (key.startsWith("aq_")) {
@@ -329,6 +359,10 @@ const Page = () => {
 			setSegment(segment + 1)
 			localStorage.setItem("aq_segments", JSON.stringify(segment + 1))
 			setConnectionStatus(CONNECTION_STATUS.ACQUIRING)
+			saveTimestampRef.current = true
+			for (const key in graphBufferRef.current) {
+				graphBufferRef.current[key] = []
+			}
 		} else if (connectionStatus === CONNECTION_STATUS.ACQUIRING) {
 			setConnectionStatus(CONNECTION_STATUS.PAUSED)
 			clearBuffer(segment)
