@@ -1,6 +1,7 @@
 import { TextButton } from "@scientisst/react-ui/components/inputs"
 import {
 	CHANNEL,
+	CHANNEL_SIZE,
 	ScientISSTAdcCharacteristics,
 	utf16ToFrames
 } from "@scientisst/sense/future"
@@ -33,13 +34,36 @@ const Page = () => {
 				adcChars
 			)
 
+			if (frames.length === 0) {
+				continue
+			}
+
+			const resolutionBits = []
+			for (let j = 0; j < channels.length; j++) {
+				resolutionBits.push(CHANNEL_SIZE[channels[j]])
+			}
+
+			const timestamp = new Date(
+				JSON.parse(localStorage.getItem(`aq_seg${i}time`) ?? "0")
+			)
+
+			const metadata = {
+				Device: "ScientISST Sense",
+				Channels: channelNames,
+				"Sampling rate (Hz)": localStorage.getItem("aq_samplingRate"),
+				"ISO 8601": timestamp.toISOString(),
+				Timestamp: timestamp.getTime(),
+				"Resolution (bits)": resolutionBits
+			}
+
+			fileContent.push("#" + JSON.stringify(metadata, null, null))
+
 			// append header
-			fileContent.push("Sequence," + channelNames.join(","))
+			fileContent.push("#NSeq\t" + channelNames.join("\t"))
 
 			// append data
 			for (let j = 0; j < frames.length; j++) {
 				const frameContent = []
-
 				frameContent.push(frames[j].sequence)
 
 				let ignore = false
@@ -56,14 +80,15 @@ const Page = () => {
 					continue
 				}
 
-				fileContent.push(frameContent.join(","))
+				fileContent.push(frameContent.join("\t"))
 			}
 
 			zip.file(`segment_${i}.csv`, fileContent.join("\n"))
 		}
 
 		zip.generateAsync({ type: "blob" }).then(content => {
-			FileSaver.saveAs(content, "data.zip")
+			// save as but let the user choose the name
+			FileSaver.saveAs(content)
 		})
 	}
 
