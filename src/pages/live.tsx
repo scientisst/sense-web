@@ -14,6 +14,7 @@ import {
 	framesToUtf16
 } from "@scientisst/sense/future"
 
+import CanvasChart from "../components/charts/CanvasChart"
 import SenseLayout from "../components/layout/SenseLayout"
 
 enum CONNECTION_STATUS {
@@ -59,6 +60,18 @@ const Page = () => {
 	const [segment, setSegment] = useState(1)
 	const frameSequenceRef = useRef(0)
 	const connectionTimeoutRef = useRef<number | null>(null)
+	const graphBufferSizeRef = useRef(0)
+	const graphBufferRef = useRef<Record<CHANNEL, [number, number | null][]>>({
+		[CHANNEL.AI1]: [],
+		[CHANNEL.AI2]: [],
+		[CHANNEL.AI3]: [],
+		[CHANNEL.AI4]: [],
+		[CHANNEL.AI5]: [],
+		[CHANNEL.AI6]: [],
+		[CHANNEL.AX1]: [],
+		[CHANNEL.AX2]: []
+	})
+	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
 
 	const bufferRef = useRef<ScientISSTFrame[]>([])
 	const appendBuffer = useCallback(
@@ -111,6 +124,40 @@ const Page = () => {
 						if (valid) {
 							dispatchLastValues(frames[frames.length - 1].analog)
 							appendBuffer(frames, segment, activeSamplingRate)
+
+							for (const frame of frames) {
+								for (const channel of activeChannels) {
+									const analog = frame.analog[channel]
+
+									if (analog === undefined) {
+										console.log(
+											"analog is undefined",
+											channel,
+											frame
+										)
+									} else {
+										graphBufferRef.current[channel].push([
+											frameSequenceRef.current,
+											frame.analog[channel]
+										])
+									}
+
+									if (
+										graphBufferRef.current[channel].length >
+										graphBufferSizeRef.current
+									) {
+										graphBufferRef.current[channel].shift()
+									}
+								}
+
+								frameSequenceRef.current++
+
+								setXDomain([
+									frameSequenceRef.current -
+										graphBufferSizeRef.current,
+									frameSequenceRef.current
+								])
+							}
 						} else {
 							frameSequenceRef.current = 0
 						}
@@ -259,6 +306,7 @@ const Page = () => {
 
 			setActiveChannels(channels)
 			setActiveSamplingRate(sampleRate)
+			graphBufferSizeRef.current = sampleRate * 5
 			setSegment(1)
 
 			for (const key in localStorage) {
@@ -379,13 +427,25 @@ const Page = () => {
 			{connectionStatus === CONNECTION_STATUS.CONNECTION_LOST && (
 				<span>Stopping acquisition...</span>
 			)}
-			{lastValues &&
+			{/* {lastValues &&
 				connectionStatus === CONNECTION_STATUS.ACQUIRING &&
 				activeChannels.map(channel => {
 					return (
 						<span key={channel}>{`Channel ${channel}: ${
 							lastValues[channel as number]
 						}`}</span>
+					)
+				})} */}
+			{connectionStatus === CONNECTION_STATUS.ACQUIRING &&
+				activeChannels.map(channel => {
+					return (
+						<CanvasChart
+							key={channel}
+							data={graphBufferRef.current[channel]}
+							xMin={xDomain[0]}
+							xMax={xDomain[1]}
+							className="h-64 w-full"
+						/>
 					)
 				})}
 		</SenseLayout>
