@@ -22,6 +22,8 @@ export interface CanvasChartProps {
 	fontSize?: number
 	fontFamily?: string
 	fontWeight?: number
+	lineColor?: string
+	outlineColor?: string
 }
 
 const CanvasChart: React.FC<CanvasChartProps> = ({
@@ -42,7 +44,9 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 	leftMargin,
 	fontSize,
 	fontFamily,
-	fontWeight
+	fontWeight,
+	lineColor,
+	outlineColor
 }) => {
 	const [parentElement, setParentElement] = useState<HTMLDivElement | null>(
 		null
@@ -171,10 +175,10 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 				.context(context)
 
 			line(data)
-			context.strokeStyle = "red"
+			context.strokeStyle = lineColor ?? "red"
 			context.stroke()
 
-			context.strokeStyle = "black"
+			context.strokeStyle = outlineColor ?? "black"
 
 			// Draw y axis
 			context.beginPath()
@@ -184,6 +188,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 
 			context.textAlign = "right"
 			context.textBaseline = "middle"
+			context.fillStyle = outlineColor ?? "black"
 
 			for (const yTickValue of yTicksValues) {
 				const yTickPosition = yScale(yTickValue)
@@ -249,7 +254,9 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 		xTickFormat,
 		fontSize,
 		fontWeight,
-		fontFamily
+		fontFamily,
+		lineColor,
+		outlineColor
 	])
 
 	return (
