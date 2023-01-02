@@ -1,3 +1,5 @@
+import { useCallback } from "react"
+
 import { TextButton } from "@scientisst/react-ui/components/inputs"
 import {
 	CHANNEL,
@@ -11,7 +13,7 @@ import JSZip from "jszip"
 import SenseLayout from "../components/layout/SenseLayout"
 
 const Page = () => {
-	const convertToCSV = () => {
+	const convertToCSV = useCallback(() => {
 		const adcChars = ScientISSTAdcCharacteristics.fromJSON(
 			localStorage.getItem("aq_adcChars")
 		)
@@ -101,7 +103,7 @@ const Page = () => {
 		zip.generateAsync({ type: "blob" }).then(content => {
 			FileSaver.saveAs(content, `${timestampISO}.zip`)
 		})
-	}
+	}, [])
 
 	return (
 		<SenseLayout
