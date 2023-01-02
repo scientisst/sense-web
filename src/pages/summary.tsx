@@ -58,7 +58,9 @@ const Page = () => {
 			const metadata = {
 				Device: "ScientISST Sense",
 				Channels: channelNames,
-				"Sampling rate (Hz)": localStorage.getItem("aq_samplingRate"),
+				"Sampling rate (Hz)": JSON.parse(
+					localStorage.getItem("aq_sampleRate")
+				),
 				"ISO 8601": timestamp.toISOString(),
 				Timestamp: timestamp.getTime(),
 				"Resolution (bits)": resolutionBits
