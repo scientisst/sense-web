@@ -99,7 +99,6 @@ const Page = () => {
 		const timestampISO = new Date(firstTimestamp).toISOString()
 
 		zip.generateAsync({ type: "blob" }).then(content => {
-			// save as but let the user choose the name
 			FileSaver.saveAs(content, `${timestampISO}.zip`)
 		})
 	}
