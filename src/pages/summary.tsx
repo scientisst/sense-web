@@ -202,7 +202,7 @@ const Page = () => {
 		await v.render()
 
 		const imgData = canvas.toDataURL("image/png")
-		doc.addImage(imgData, "PNG", 0, 0, 1122.52, 222.75)
+		doc.addImage(imgData, "PNG", 0, 0, 400, 400 * 0.75)
 
 		console.log(svgString)
 
