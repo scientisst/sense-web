@@ -470,7 +470,7 @@ const Page = () => {
 			pdf.setFont("Lexend", "regular")
 			pdf.setFontSize(6)
 			pdf.setTextColor(...TEXT_SECONDARY)
-			pdf.text(channelNames[0], DOCUMENT_MARGIN, DOCUMENT_MARGIN + 82, {
+			pdf.text(channelNames[1], DOCUMENT_MARGIN, DOCUMENT_MARGIN + 82, {
 				align: "left",
 				baseline: "top"
 			})
