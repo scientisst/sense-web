@@ -266,7 +266,7 @@ const Page = () => {
 					} catch {}
 					setConnectionStatus(CONNECTION_STATUS.CONNECTION_FAILED)
 				}
-			}, 5000)
+			}, 30000)
 
 			try {
 				await scientisstRef.current.connect(communicationMode)
