@@ -7,10 +7,9 @@ import {
 	ScientISSTAdcCharacteristics,
 	utf16ToFrames
 } from "@scientisst/sense/future"
-import { Canvg, presets } from "canvg"
+import { Canvg } from "canvg"
 import * as d3 from "d3"
 import FileSaver from "file-saver"
-import { prepareDataForValidation } from "formik"
 import jsPDF from "jspdf"
 import JSZip from "jszip"
 
@@ -222,7 +221,7 @@ const Page = () => {
 		const samplingRate = JSON.parse(localStorage.getItem("aq_sampleRate"))
 
 		if (frames.length === 0) {
-			// TODO: improve behaviour
+			// TODO: improve behavior
 			throw new Error("No frames found")
 		}
 
