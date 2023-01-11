@@ -520,10 +520,10 @@
     react-dom "^18.2.0"
     tailwindcss "^3.2.1"
 
-"@scientisst/sense@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@scientisst/sense/-/sense-2.0.0.tgz#ecdcabbca63a7f9b26cf1c74632778b1b6cd5443"
-  integrity sha512-5easi5MXq6vqiRG7l36Mlg/4bIPhyUCK4Y07mkzUEopEzjre5k0ae5npmhnHn3i+L7zQMbeob2jFo8Tte+F1DA==
+"@scientisst/sense@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@scientisst/sense/-/sense-2.0.2.tgz#e4814fa13065c0dc8206af6c40ddd737c85e9ce7"
+  integrity sha512-74QlefTYThpwZ9J+lds6MHHYJSHUQl/amBMcnP/eM60pcJlVSndbc98J5TstG54H13OdJokUOKYmkt3nj0IDSA==
 
 "@swc/helpers@0.4.14":
   version "0.4.14"
