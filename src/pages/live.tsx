@@ -21,7 +21,7 @@ import {
 	UserCancelledException,
 	framesToUtf16
 } from "@scientisst/sense/future"
-import { Form, Formik, FormikHelpers, FormikValues } from "formik"
+import { Form, Formik } from "formik"
 import resolveConfig from "tailwindcss/resolveConfig"
 
 import tailwindConfig from "../../tailwind.config"
