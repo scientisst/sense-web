@@ -153,7 +153,7 @@ const Page = () => {
 			format: "a4",
 			floatPrecision: 16,
 			putOnlyUsedFonts: true,
-			compress: false
+			compress: true
 		})
 
 		const DOCUMENT_WIDTH = 297
@@ -233,382 +233,337 @@ const Page = () => {
 			throw new Error("No frames found")
 		}
 
-		const svgWidth = samplingRate * 10
-		const svgHeight = svgWidth / (1282 / 180.5)
-
-		// get the last 10 seconds of data
-		// const last10Seconds = frames.slice(-samplingRate * 10)
-
-		// generate svg using d3.js
-
-		const xScale = d3
-			.scaleLinear()
-			.domain([0, svgWidth - 1])
-			.range([0, svgWidth])
-
-		const yScale = d3.scaleLinear().domain([0, 4095]).range([svgHeight, 0])
-
-		// pdf.rect(
-		// 	DOCUMENT_MARGIN,
-		// 	DOCUMENT_MARGIN,
-		// 	DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2,
-		// 	DOCUMENT_HEIGHT - DOCUMENT_MARGIN * 2
-		// )
-
-		// Header with logo and summary
-		await addSvgToPDF(
-			pdf,
-			"/static/scientisst-break.svg",
-			DOCUMENT_MARGIN,
-			DOCUMENT_MARGIN,
-			25,
-			25 / (350 / 111.79),
-			DOCUMENT_DPI
-		)
-
-		pdf.setTextColor(...TEXT_PRIMARY)
-		pdf.setFont("Lexend", "semibold")
-		pdf.setFontSize(11.5)
-		pdf.text(
-			"Acquisition Summary",
-			DOCUMENT_WIDTH - DOCUMENT_MARGIN,
-			DOCUMENT_MARGIN,
-			{
-				align: "right",
-				baseline: "top"
+		const pages = Math.ceil(channels.length / 3)
+		for (let page = 0; page < pages; page++) {
+			if (page > 0) {
+				pdf.addPage()
 			}
-		)
-		pdf.setFont("Lexend", "regular")
-		pdf.setFontSize(6)
-		pdf.text(
-			"Ten-second preview automatically generated\n by SENSE WEB at sense.scientisst.com",
-			DOCUMENT_WIDTH - DOCUMENT_MARGIN,
-			DOCUMENT_MARGIN + 5,
-			{
-				align: "right",
-				baseline: "top"
-			}
-		)
 
-		// Fields titles
-		pdf.setFont("Lexend", "regular")
-		pdf.setFontSize(6)
-		pdf.setTextColor(...TEXT_SECONDARY)
-		pdf.text("DEVICE", DOCUMENT_MARGIN, DOCUMENT_MARGIN + 15, {
-			align: "left",
-			baseline: "top"
-		})
-		pdf.text(
-			"SAMPLING FREQUENCY",
-			DOCUMENT_MARGIN + 35,
-			DOCUMENT_MARGIN + 15,
-			{
-				align: "left",
-				baseline: "top"
-			}
-		)
-		pdf.text("DATE", DOCUMENT_MARGIN + 75, DOCUMENT_MARGIN + 15, {
-			align: "left",
-			baseline: "top"
-		})
-		pdf.text("TIME", DOCUMENT_MARGIN + 105, DOCUMENT_MARGIN + 15, {
-			align: "left",
-			baseline: "top"
-		})
-		pdf.text("TECHNICIAN", DOCUMENT_MARGIN + 135, DOCUMENT_MARGIN + 15, {
-			align: "left",
-			baseline: "top"
-		})
-		pdf.text("PATIENT/CODE", DOCUMENT_MARGIN + 175, DOCUMENT_MARGIN + 15, {
-			align: "left",
-			baseline: "top"
-		})
+			const channelsOnPage =
+				page < pages - 1 ? 3 : channels.length - 3 * page
+			const svgAspectRatio =
+				channelsOnPage <= 2 ? 1282 / 180.5 : 1282 / 114.5
+			const backgroundAspectRatio =
+				channelsOnPage <= 2 ? 1282 / 212 : 1282 / 147
+			const smallChart = channelsOnPage > 2
 
-		// Field values
-		pdf.setFontSize(8)
-		pdf.setFont("Lexend", "regular")
-		pdf.setTextColor(...TEXT_PRIMARY)
-		pdf.text("ScientISST CORE", DOCUMENT_MARGIN, DOCUMENT_MARGIN + 18, {
-			align: "left",
-			baseline: "top"
-		})
-		pdf.text(
-			`${samplingRate} Hz`,
-			DOCUMENT_MARGIN + 35,
-			DOCUMENT_MARGIN + 18,
-			{
-				align: "left",
-				baseline: "top"
-			}
-		)
-		pdf.text(
-			`${new Date(timestamp).toLocaleDateString("en-UK", {
-				year: "numeric",
-				month: "short",
-				day: "numeric"
-			})}`,
-			DOCUMENT_MARGIN + 75,
-			DOCUMENT_MARGIN + 18,
-			{
-				align: "left",
-				baseline: "top"
-			}
-		)
-		pdf.text(
-			new Date(timestamp).toLocaleTimeString("en-US", {
-				hour: "2-digit",
-				minute: "2-digit"
-			}),
-			DOCUMENT_MARGIN + 105,
-			DOCUMENT_MARGIN + 18,
-			{
-				align: "left",
-				baseline: "top"
-			}
-		)
-		pdf.text(
-			"Someone's Name",
-			DOCUMENT_MARGIN + 135,
-			DOCUMENT_MARGIN + 18,
-			{
-				align: "left",
-				baseline: "top"
-			}
-		)
-		pdf.text(
-			"Someone's Name or Code",
-			DOCUMENT_MARGIN + 175,
-			DOCUMENT_MARGIN + 18,
-			{
-				align: "left",
-				baseline: "top"
-			}
-		)
+			const svgWidth = samplingRate * 10
+			const svgHeight = svgWidth / svgAspectRatio
 
-		// First channel, if it exists
-		if (channels.length > 0) {
-			pdf.setFont("Lexend", "regular")
-			pdf.setFontSize(6)
-			pdf.setTextColor(...TEXT_SECONDARY)
-			pdf.text(channelNames[0], DOCUMENT_MARGIN, DOCUMENT_MARGIN + 27, {
-				align: "left",
-				baseline: "top"
-			})
+			// generate svg using d3.js
+			const xScale = d3
+				.scaleLinear()
+				.domain([0, svgWidth - 1])
+				.range([0, svgWidth])
 
+			const yScale = d3
+				.scaleLinear()
+				.domain([0, 4095])
+				.range([svgHeight, 0])
+
+			// pdf.rect(
+			// 	DOCUMENT_MARGIN,
+			// 	DOCUMENT_MARGIN,
+			// 	DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2,
+			// 	DOCUMENT_HEIGHT - DOCUMENT_MARGIN * 2
+			// )
+
+			// Header with logo and summary
 			await addSvgToPDF(
 				pdf,
-				"/static/axis_higher.svg",
+				"/static/scientisst-break.svg",
 				DOCUMENT_MARGIN,
-				DOCUMENT_MARGIN + 27 + 3.5,
-				DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2,
-				(DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) / (1282 / 212),
+				DOCUMENT_MARGIN,
+				25,
+				25 / (350 / 111.79),
 				DOCUMENT_DPI
 			)
-			// Draw x-axis
-			pdf.setFont("Lexend", "light")
-			pdf.setFontSize(6)
-			pdf.setTextColor(...TEXT_SECONDARY)
 
-			for (let i = 0; i < 10; i++) {
-				pdf.text(
-					i.toString(),
-					DOCUMENT_MARGIN +
-						((DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) * i) / 10,
-					DOCUMENT_MARGIN + 27 + 45.5,
-					{
-						align: i === 0 ? "left" : "center",
-						baseline: "top"
-					}
-				)
-			}
-
+			pdf.setTextColor(...TEXT_PRIMARY)
+			pdf.setFont("Lexend", "semibold")
+			pdf.setFontSize(11.5)
 			pdf.text(
-				"SECONDS",
+				"Acquisition Summary",
 				DOCUMENT_WIDTH - DOCUMENT_MARGIN,
-				DOCUMENT_MARGIN + 27 + 45.5,
+				DOCUMENT_MARGIN,
+				{
+					align: "right",
+					baseline: "top"
+				}
+			)
+			pdf.setFont("Lexend", "regular")
+			pdf.setFontSize(6)
+			pdf.text(
+				"Ten-second preview automatically generated\n by SENSE WEB at sense.scientisst.com",
+				DOCUMENT_WIDTH - DOCUMENT_MARGIN,
+				DOCUMENT_MARGIN + 5,
 				{
 					align: "right",
 					baseline: "top"
 				}
 			)
 
-			const svg = d3
-				.create("svg")
-				.attr("viewBox", [0, 0, svgWidth, svgHeight])
-				.attr("font-family", "Imagine")
-
-			const data = frames
-				.slice(-svgWidth)
-				.map((frame, i) => [i, frame.analog[channels[0]]]) as [
-				number,
-				number
-			][]
-
-			svg.append("path")
-				.datum(data)
-				.attr("fill", "none")
-				.attr("stroke", "red")
-				.attr("stroke-width", 10)
-				.attr(
-					"d",
-					d3
-						.line()
-						.x(d => xScale(d[0]))
-						.y(d => yScale(d[1]))
-				)
-
-			await addSvgToPDF(
-				pdf,
-				svg.node(),
-				DOCUMENT_MARGIN,
-				DOCUMENT_MARGIN +
-					27 +
-					3.5 +
-					(DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) / (1282 / 16.25),
-				DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2,
-				(DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) / (1282 / 180.5),
-				DOCUMENT_DPI
-			)
-
-			svg.remove()
-		}
-
-		if (channels.length > 1) {
+			// Fields titles
 			pdf.setFont("Lexend", "regular")
 			pdf.setFontSize(6)
 			pdf.setTextColor(...TEXT_SECONDARY)
-			pdf.text(channelNames[1], DOCUMENT_MARGIN, DOCUMENT_MARGIN + 82, {
+			pdf.text("DEVICE", DOCUMENT_MARGIN, DOCUMENT_MARGIN + 15, {
 				align: "left",
 				baseline: "top"
 			})
-
-			await addSvgToPDF(
-				pdf,
-				"/static/axis_higher.svg",
-				DOCUMENT_MARGIN,
-				DOCUMENT_MARGIN + 82 + 3.5,
-				DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2,
-				(DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) / (1282 / 212),
-				DOCUMENT_DPI
-			)
-			// Draw x-axis
-			pdf.setFont("Lexend", "light")
-			pdf.setFontSize(6)
-			pdf.setTextColor(...TEXT_SECONDARY)
-
-			for (let i = 0; i < 10; i++) {
-				pdf.text(
-					i.toString(),
-					DOCUMENT_MARGIN +
-						((DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) * i) / 10,
-					DOCUMENT_MARGIN + 82 + 45.5,
-					{
-						align: i === 0 ? "left" : "center",
-						baseline: "top"
-					}
-				)
-			}
-
 			pdf.text(
-				"SECONDS",
-				DOCUMENT_WIDTH - DOCUMENT_MARGIN,
-				DOCUMENT_MARGIN + 82 + 45.5,
+				"SAMPLING FREQUENCY",
+				DOCUMENT_MARGIN + 35,
+				DOCUMENT_MARGIN + 15,
 				{
-					align: "right",
+					align: "left",
+					baseline: "top"
+				}
+			)
+			pdf.text("DATE", DOCUMENT_MARGIN + 75, DOCUMENT_MARGIN + 15, {
+				align: "left",
+				baseline: "top"
+			})
+			pdf.text("TIME", DOCUMENT_MARGIN + 105, DOCUMENT_MARGIN + 15, {
+				align: "left",
+				baseline: "top"
+			})
+			pdf.text(
+				"TECHNICIAN",
+				DOCUMENT_MARGIN + 135,
+				DOCUMENT_MARGIN + 15,
+				{
+					align: "left",
+					baseline: "top"
+				}
+			)
+			pdf.text(
+				"PATIENT/CODE",
+				DOCUMENT_MARGIN + 175,
+				DOCUMENT_MARGIN + 15,
+				{
+					align: "left",
 					baseline: "top"
 				}
 			)
 
-			const svg = d3
-				.create("svg")
-				.attr("viewBox", [0, 0, svgWidth, svgHeight])
-				.attr("font-family", "Imagine")
-
-			const data = frames
-				.slice(-svgWidth)
-				.map((frame, i) => [i, frame.analog[channels[1]]]) as [
-				number,
-				number
-			][]
-
-			svg.append("path")
-				.datum(data)
-				.attr("fill", "none")
-				.attr("stroke", "red")
-				.attr("stroke-width", 10)
-				.attr(
-					"d",
-					d3
-						.line()
-						.x(d => xScale(d[0]))
-						.y(d => yScale(d[1]))
-				)
-
-			await addSvgToPDF(
-				pdf,
-				svg.node(),
-				DOCUMENT_MARGIN,
-				DOCUMENT_MARGIN +
-					82 +
-					3.5 +
-					(DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) / (1282 / 16.25),
-				DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2,
-				(DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) / (1282 / 180.5),
-				DOCUMENT_DPI
+			// Field values
+			pdf.setFontSize(8)
+			pdf.setFont("Lexend", "regular")
+			pdf.setTextColor(...TEXT_PRIMARY)
+			pdf.text("ScientISST CORE", DOCUMENT_MARGIN, DOCUMENT_MARGIN + 18, {
+				align: "left",
+				baseline: "top"
+			})
+			pdf.text(
+				`${samplingRate} Hz`,
+				DOCUMENT_MARGIN + 35,
+				DOCUMENT_MARGIN + 18,
+				{
+					align: "left",
+					baseline: "top"
+				}
+			)
+			pdf.text(
+				`${new Date(timestamp).toLocaleDateString("en-UK", {
+					year: "numeric",
+					month: "short",
+					day: "numeric"
+				})}`,
+				DOCUMENT_MARGIN + 75,
+				DOCUMENT_MARGIN + 18,
+				{
+					align: "left",
+					baseline: "top"
+				}
+			)
+			pdf.text(
+				new Date(timestamp).toLocaleTimeString("en-US", {
+					hour: "2-digit",
+					minute: "2-digit"
+				}),
+				DOCUMENT_MARGIN + 105,
+				DOCUMENT_MARGIN + 18,
+				{
+					align: "left",
+					baseline: "top"
+				}
+			)
+			pdf.text(
+				"Someone's Name",
+				DOCUMENT_MARGIN + 135,
+				DOCUMENT_MARGIN + 18,
+				{
+					align: "left",
+					baseline: "top"
+				}
+			)
+			pdf.text(
+				"Someone's Name or Code",
+				DOCUMENT_MARGIN + 175,
+				DOCUMENT_MARGIN + 18,
+				{
+					align: "left",
+					baseline: "top"
+				}
 			)
 
-			svg.remove()
-		}
+			let offset = 27
+			for (
+				let channel = page * 3;
+				channel < page * 3 + channelsOnPage;
+				channel++
+			) {
+				pdf.setFont("Lexend", "regular")
+				pdf.setFontSize(6)
+				pdf.setTextColor(...TEXT_SECONDARY)
+				pdf.text(
+					channelNames[channel],
+					DOCUMENT_MARGIN,
+					DOCUMENT_MARGIN + offset,
+					{
+						align: "left",
+						baseline: "top"
+					}
+				)
 
-		pdf.setFont("Lexend", "regular")
-		pdf.setFontSize(6)
-		pdf.setTextColor(...TEXT_SECONDARY)
-		pdf.text("OBSERVATIONS", DOCUMENT_MARGIN, DOCUMENT_MARGIN + 137, {
-			align: "left",
-			baseline: "top"
-		})
+				await addSvgToPDF(
+					pdf,
+					smallChart
+						? "/static/axis_lower.svg"
+						: "/static/axis_higher.svg",
+					DOCUMENT_MARGIN,
+					DOCUMENT_MARGIN + offset + 3.5,
+					DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2,
+					(DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) /
+						backgroundAspectRatio,
+					DOCUMENT_DPI
+				)
+				// Draw x-axis
+				pdf.setFont("Lexend", "light")
+				pdf.setFontSize(6)
+				pdf.setTextColor(...TEXT_SECONDARY)
 
-		const observations =
-			"Lorem ipsum dolor sit amet consectetur adipisicing elit. Illum reprehenderit fuga, a, culpa consequatur dolorem molestias magni vero maxime quia suscipit ipsam debitis. Enim alias neque blanditiis soluta nisi odio doloribus ut sit, reiciendis esse, reprehenderit eius hic, repudiandae adipisci natus expedita fuga ad asperiores. Aliquid vero labore quaerat! Consectetur quaerat veritatis, placeat deserunt ullam neque sequi fuga quasi nulla tempora iusto aut? Perferendis id repellat in deleniti molestias. Molestiae alias quo soluta libero qui iste, sed eum magni non voluptas beatae atque dicta accusamus totam. Id ullam reprehenderit, fugit laborum odio dignissimos vel obcaecati minus, qui eos eum provident!"
-		const d_obs = pdf.splitTextToSize(
-			observations,
-			DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2
-		)
+				for (let i = 0; i < 10; i++) {
+					pdf.text(
+						i.toString(),
+						DOCUMENT_MARGIN +
+							((DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) * i) / 10,
+						DOCUMENT_MARGIN + offset + (smallChart ? 32.5 : 45.5),
+						{
+							align: i === 0 ? "left" : "center",
+							baseline: "top"
+						}
+					)
+				}
 
-		pdf.setTextColor(...TEXT_PRIMARY)
-		pdf.text(d_obs, DOCUMENT_MARGIN, DOCUMENT_MARGIN + 137 + 3.5, {
-			align: "left",
-			baseline: "top"
-		})
+				pdf.text(
+					"SECONDS",
+					DOCUMENT_WIDTH - DOCUMENT_MARGIN,
+					DOCUMENT_MARGIN + offset + (smallChart ? 32.5 : 45.5),
+					{
+						align: "right",
+						baseline: "top"
+					}
+				)
 
-		// Notices
-		pdf.setFont("Lexend", "light")
-		pdf.setFontSize(6)
-		pdf.setTextColor(...TEXT_SECONDARY)
-		pdf.text(
-			[
-				"(C) 2023 ScientISST",
-				"Designed by ScientISST at Instituto de Telecomunicações, Lisbon, Portugal"
-			],
-			DOCUMENT_MARGIN,
-			DOCUMENT_HEIGHT - DOCUMENT_MARGIN - 2.5,
-			{
+				const svg = d3
+					.create("svg")
+					.attr("viewBox", [0, 0, svgWidth, svgHeight])
+					.attr("font-family", "Imagine")
+
+				const data = frames
+					.slice(-svgWidth)
+					.map((frame, i) => [
+						i,
+						frame.analog[channels[channel]]
+					]) as [number, number][]
+
+				svg.append("path")
+					.datum(data)
+					.attr("fill", "none")
+					.attr("stroke", "red")
+					.attr("stroke-width", 10)
+					.attr(
+						"d",
+						d3
+							.line()
+							.x(d => xScale(d[0]))
+							.y(d => yScale(d[1]))
+					)
+
+				await addSvgToPDF(
+					pdf,
+					svg.node(),
+					DOCUMENT_MARGIN,
+					DOCUMENT_MARGIN +
+						offset +
+						3.5 +
+						(DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) / (1282 / 16.25),
+					DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2,
+					(DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2) / svgAspectRatio,
+					DOCUMENT_DPI
+				)
+
+				svg.remove()
+
+				if (!smallChart) {
+					offset += 57
+				} else {
+					offset += 37
+				}
+			}
+
+			pdf.setFont("Lexend", "regular")
+			pdf.setFontSize(6)
+			pdf.setTextColor(...TEXT_SECONDARY)
+			pdf.text("OBSERVATIONS", DOCUMENT_MARGIN, DOCUMENT_MARGIN + 140, {
 				align: "left",
-				baseline: "bottom"
-			}
-		)
-		pdf.text(
-			[
-				"ScientISST hardware and software are not medical devices certified for diagnosis or treatment.",
-				"This is PDF Summary is provided to you as is only for research and educational purposes."
-			],
-			DOCUMENT_WIDTH - DOCUMENT_MARGIN,
-			DOCUMENT_HEIGHT - DOCUMENT_MARGIN - 2.5,
-			{
-				align: "right",
-				baseline: "bottom"
-			}
-		)
+				baseline: "top"
+			})
+
+			const observations =
+				"Lorem ipsum dolor sit amet consectetur adipisicing elit. Illum reprehenderit fuga, a, culpa consequatur dolorem molestias magni vero maxime quia suscipit ipsam debitis. Enim alias neque blanditiis soluta nisi odio doloribus ut sit, reiciendis esse, reprehenderit eius hic, repudiandae adipisci natus expedita fuga ad asperiores. Aliquid vero labore quaerat! Consectetur quaerat veritatis, placeat deserunt ullam neque sequi fuga quasi nulla tempora iusto aut? Perferendis id repellat in deleniti molestias. Molestiae alias quo soluta libero qui iste, sed eum magni non voluptas beatae atque dicta accusamus totam. Id ullam reprehenderit, fugit laborum odio dignissimos vel obcaecati minus, qui eos eum provident!"
+			const d_obs = pdf.splitTextToSize(
+				observations,
+				DOCUMENT_WIDTH - DOCUMENT_MARGIN * 2
+			)
+
+			pdf.setTextColor(...TEXT_PRIMARY)
+			pdf.text(d_obs, DOCUMENT_MARGIN, DOCUMENT_MARGIN + 140 + 3.5, {
+				align: "left",
+				baseline: "top"
+			})
+
+			// Notices
+			pdf.setFont("Lexend", "light")
+			pdf.setFontSize(6)
+			pdf.setTextColor(...TEXT_SECONDARY)
+			pdf.text(
+				[
+					"(C) 2023 ScientISST",
+					"Designed by ScientISST at Instituto de Telecomunicações, Lisbon, Portugal"
+				],
+				DOCUMENT_MARGIN,
+				DOCUMENT_HEIGHT - DOCUMENT_MARGIN - 2.5,
+				{
+					align: "left",
+					baseline: "bottom"
+				}
+			)
+			pdf.text(
+				[
+					"ScientISST hardware and software are not medical devices certified for diagnosis or treatment.",
+					"This is PDF Summary is provided to you as is only for research and educational purposes."
+				],
+				DOCUMENT_WIDTH - DOCUMENT_MARGIN,
+				DOCUMENT_HEIGHT - DOCUMENT_MARGIN - 2.5,
+				{
+					align: "right",
+					baseline: "bottom"
+				}
+			)
+		}
 
 		const timestampISO = new Date(timestamp).toISOString()
 		pdf.save(`${timestampISO}.pdf`)
