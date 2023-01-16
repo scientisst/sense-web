@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import React, {
+	Fragment,
+	useCallback,
+	useEffect,
+	useRef,
+	useState
+} from "react"
 
 import router from "next/router"
 
-import { TextButton } from "@scientisst/react-ui/components/inputs"
+import { TextButton, TextField } from "@scientisst/react-ui/components/inputs"
+import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme"
 import {
 	CHANNEL,
@@ -14,6 +21,7 @@ import {
 	UserCancelledException,
 	framesToUtf16
 } from "@scientisst/sense/future"
+import { Form, Formik, FormikHelpers, FormikValues } from "formik"
 import resolveConfig from "tailwindcss/resolveConfig"
 
 import tailwindConfig from "../../tailwind.config"
@@ -339,6 +347,13 @@ const Page = () => {
 			localStorage.setItem("aq_segments", JSON.stringify(1))
 			localStorage.setItem("aq_gracefullyStopped", JSON.stringify(false))
 
+			for (const channel of channels) {
+				localStorage.setItem(
+					`aq_channelName${channel}`,
+					CHANNEL[channel]
+				)
+			}
+
 			flushBuffer()
 
 			try {
@@ -468,36 +483,71 @@ const Page = () => {
 			{connectionStatus === CONNECTION_STATUS.CONNECTION_LOST && (
 				<span>Stopping acquisition...</span>
 			)}
-			{connectionStatus === CONNECTION_STATUS.ACQUIRING &&
-				activeChannels.map(channel => {
-					return (
-						<div
-							key={channel}
-							className="bg-background-accent flex w-full flex-col rounded-md"
-						>
-							<div className="w-full p-4">
-								<CanvasChart
-									data={graphBufferRef.current[channel]}
-									xMin={xDomain[0]}
-									xMax={xDomain[1]}
-									className="h-64 w-full"
-									fontFamily="Lexend"
-									lineColor={
-										isDark ? lineColorDark : lineColorLight
-									}
-									outlineColor={
-										isDark
-											? outlineColorDark
-											: outlineColorLight
-									}
-									yTicks={5}
-									xTicks={5}
-									xTickFormat={xTickFormatter}
-								/>
-							</div>
-						</div>
-					)
-				})}
+			{connectionStatus === CONNECTION_STATUS.ACQUIRING && (
+				<Formik
+					initialValues={{
+						channelName: activeChannels.reduce((acc, channel) => {
+							acc[channel] = CHANNEL[channel]
+							return acc
+						}, {} as Record<number, string>)
+					}}
+					onSubmit={async values => {
+						const { channelName } = values
+
+						for (const channel of activeChannels) {
+							localStorage.setItem(
+								`aq_channelName${channel}`,
+								channelName[channel]
+							)
+						}
+					}}
+				>
+					<Form className="flex w-full flex-col gap-4">
+						<FormikAutoSubmit delay={100} />
+						{activeChannels.map(channel => {
+							return (
+								<Fragment key={channel}>
+									<div className="flex w-full flex-row">
+										<TextField
+											id={`channelName.${channel}`}
+											name={`channelName.${channel}`}
+											className="mb-0"
+										/>
+									</div>
+									<div className="bg-background-accent flex w-full flex-col rounded-md">
+										<div className="w-full p-4">
+											<CanvasChart
+												data={
+													graphBufferRef.current[
+														channel
+													]
+												}
+												xMin={xDomain[0]}
+												xMax={xDomain[1]}
+												className="h-64 w-full"
+												fontFamily="Lexend"
+												lineColor={
+													isDark
+														? lineColorDark
+														: lineColorLight
+												}
+												outlineColor={
+													isDark
+														? outlineColorDark
+														: outlineColorLight
+												}
+												yTicks={5}
+												xTicks={5}
+												xTickFormat={xTickFormatter}
+											/>
+										</div>
+									</div>
+								</Fragment>
+							)
+						})}
+					</Form>
+				</Formik>
+			)}
 		</SenseLayout>
 	)
 }

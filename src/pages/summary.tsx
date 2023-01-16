@@ -57,7 +57,11 @@ const Page = () => {
 			localStorage.getItem("aq_channels")
 		)
 
-		const channelNames: string[] = channels.map(channel => CHANNEL[channel])
+		const channelNames: string[] = channels.map(
+			channel =>
+				localStorage.getItem(`aq_channelName${channel}`) ??
+				CHANNEL[channel]
+		)
 
 		const segments: number = JSON.parse(localStorage.getItem("aq_segments"))
 
@@ -205,7 +209,11 @@ const Page = () => {
 		const channels: CHANNEL[] = JSON.parse(
 			localStorage.getItem("aq_channels")
 		)
-		const channelNames: string[] = channels.map(channel => CHANNEL[channel])
+		const channelNames: string[] = channels.map(
+			channel =>
+				localStorage.getItem(`aq_channelName${channel}`) ??
+				CHANNEL[channel]
+		)
 		const segmentCount: number = JSON.parse(
 			localStorage.getItem("aq_segments")
 		)
