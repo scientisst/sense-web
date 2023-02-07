@@ -1,5 +1,6 @@
 {
 	"name": "@scientisst/tsconfig",
+	"repository": "https://github.com/scientisst/sense.git",
 	"version": "1.0.0",
 	"files": [
 		"base.json",
