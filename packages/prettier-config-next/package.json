@@ -1,0 +1,15 @@
+{
+	"name": "@scientisst/prettier-config-next",
+	"version": "1.3.0",
+	"main": "index.js",
+	"dependencies": {
+		"@trivago/prettier-plugin-sort-imports": "latest",
+		"prettier": "latest"
+	},
+	"devDependencies": {
+		"@vue/compiler-sfc": "latest"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

@@ -1,0 +1,18 @@
+{
+	"name": "@scientisst/eslint-config-next",
+	"version": "1.1.0",
+	"main": "index.js",
+	"dependencies": {
+		"@typescript-eslint/eslint-plugin": "^5.49.0",
+		"@typescript-eslint/parser": "^5.49.0",
+		"eslint": "^8.32.0",
+		"eslint-config-next": "^13.0.0",
+		"eslint-config-prettier": "latest",
+		"eslint-config-turbo": "latest",
+		"eslint-plugin-prettier": "latest",
+		"prettier": "latest"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

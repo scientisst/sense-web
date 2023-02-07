@@ -11,9 +11,9 @@
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
-		"@scientisst/eslint-config-next": "latest",
-		"@scientisst/prettier-config-next": "latest",
-		"turbo": "^1.7.2"
+		"@scientisst/eslint-config-next": "workspace:*",
+		"@scientisst/prettier-config-next": "workspace:*",
+		"turbo": "^1.7.3"
 	},
 	"engines": {
 		"node": ">=18.0.0"
