@@ -1,0 +1,54 @@
+{
+	"name": "@scientisst/sense",
+	"repository": "https://github.com/scientisst/sense.git",
+	"version": "2.1.0",
+	"contributors": [
+		{
+			"name": "Rui Maciel",
+			"email": "ruigouveiamaciel@gmail.com",
+			"url": "https://github.com/ruigouveiamaciel"
+		},
+		{
+			"name": "Afonso Raposo",
+			"email": "afonso@craposo.com",
+			"url": "https://afonsoraposo.com/"
+		}
+	],
+	"maintainers": [
+		{
+			"name": "Rui Maciel",
+			"email": "ruigouveiamaciel@gmail.com",
+			"url": "https://github.com/ruigouveiamaciel"
+		}
+	],
+	"scripts": {
+		"prettier": "prettier --check .",
+		"prettier:fix": "prettier --write .",
+		"prebuild": "rm -rf dist/*",
+		"build": "tsc",
+		"prepublish": "yarn build"
+	},
+	"main": "dist/scientisst.js",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"import": "./src/scientisst.js",
+			"require": "./dist/scientisst.js"
+		},
+		"./future": {
+			"import": "./src/future/index.ts",
+			"require": "./dist/future/index.js"
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"future": [
+				"src/future/index.ts"
+			]
+		}
+	},
+	"devDependencies": {
+		"@types/dom-serial": "^1.0.3",
+		"typescript": "^4.8.4"
+	}
+}
