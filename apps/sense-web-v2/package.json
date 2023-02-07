@@ -14,7 +14,7 @@
 		"@fortawesome/free-regular-svg-icons": "^6.2.0",
 		"@fortawesome/free-solid-svg-icons": "^6.2.0",
 		"@fortawesome/react-fontawesome": "^0.2.0",
-		"@scientisst/react-ui": "workspace:*",
+		"@scientisst/react-ui": "0.4.x",
 		"@scientisst/sense": "workspace:*",
 		"canvg": "^4.0.1",
 		"clsx": "^1.2.1",
@@ -22,7 +22,7 @@
 		"formik": "^2.2.9",
 		"jspdf": "^2.5.1",
 		"jszip": "^3.10.1",
-		"next": "^13.0.6",
+		"next": "^13.1.6",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"yup": "^0.32.11"
