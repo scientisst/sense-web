@@ -1,0 +1,15 @@
+<svg width="175.57" height="176" xmlns="http://www.w3.org/2000/svg">
+
+ <g>
+  <title>Layer 1</title>
+  <rect x="123.37001" y="44.25" fill="#fdc86e" height="34.63" width="7.73" data-name="Rectangle 54" id="Rectangle_54"/>
+  <rect x="44.43001" y="44.25" fill="#fdc86e" height="34.63" width="7.73" data-name="Rectangle 55" id="Rectangle_55"/>
+  <path fill="#484848" d="m0,0l0,79.09l17.79,0l0,-61.3l60.95,0l0,61.21l17.78,-0.01l0,-61.2l61.26,0l0,61.3l17.79,0l0,-79.09l-175.57,0z" data-name="Path 91" id="Path_91"/>
+  <path fill="#484848" d="m157.78,158.21l-139.99,0l0,-61.33l-17.79,0l0,79.12l175.57,0l0,-79.12l-17.79,0l0,61.33z" data-name="Path 92" id="Path_92"/>
+  <g transform="rotate(180, 87.7725, 124.182)" id="svg_1">
+   <rect x="123.36" y="111.69" fill="#fdc86e" height="24.75" width="7.73" data-name="Rectangle 56" id="Rectangle_56"/>
+   <rect x="44.43001" y="111.69" fill="#fdc86e" height="24.75" width="7.73" data-name="Rectangle 57" id="Rectangle_57"/>
+   <rect x="83.92" y="89.47924" fill="#fdc86e" transform="rotate(90, 87.785, 132.809)" height="86.66" width="7.73" data-name="Rectangle 58" id="Rectangle_58"/>
+  </g>
+ </g>
+</svg>
