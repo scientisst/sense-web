@@ -96,13 +96,13 @@ README file.
 
 This repository also contains the source code for the following applications:
 
-1. [`sense-web@v2`]() - The updated version of SENSE WEB, built using Next.js 13.
+1. [`sense-web-v2`]() - The updated version of SENSE WEB, built using Next.js 13.
    This version provides a user-friendly web interface that makes it easy to
    acquire time series data, such as biosignals, without the need for coding. It
    utilizes the @scientisst/sense library for communication with ScientISST
    devices and the @scientisst/next-ui library for its user interface components.
 
-2. [`sense-web@v1`]() - The original version of SENSE WEB, built using Vue.js.
+2. [`sense-web-v1`]() - The original version of SENSE WEB, built using Vue.js.
    This version is kept for backwards compatibility in case any issues arise in
    the new version.
 
