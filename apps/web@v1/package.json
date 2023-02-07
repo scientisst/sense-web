@@ -1,6 +1,6 @@
 {
 	"name": "sense",
-	"version": "0.5.4",
+	"version": "1.5.4",
 	"private": true,
 	"scripts": {
 		"dev": "vue-cli-service serve --port 3001",
