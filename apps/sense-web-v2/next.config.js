@@ -5,7 +5,7 @@
  **/
 const nextConfig = {
 	reactStrictMode: true,
-	transpilePackages: ["@scientisst/sense"]
+	transpilePackages: ["@scientisst/sense", "@scientisst/react-ui"]
 }
 
 module.exports = nextConfig

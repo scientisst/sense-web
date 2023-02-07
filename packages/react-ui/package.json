@@ -1,0 +1,166 @@
+{
+	"name": "@scientisst/react-ui",
+	"repository": "https://github.com/scientisst/sense.git",
+	"version": "0.5.0",
+	"author": "Rui Maciel <ruigouveiamaciel@gmail.com>",
+	"contributors": [
+		{
+			"name": "Rui Maciel",
+			"email": "ruigouveiamaciel@gmail.com",
+			"url": "https://github.com/ruigouveiamaciel"
+		}
+	],
+	"maintainers": [
+		{
+			"name": "Rui Maciel",
+			"email": "ruigouveiamaciel@gmail.com",
+			"url": "https://github.com/ruigouveiamaciel"
+		}
+	],
+	"scripts": {
+		"postinstall": "pnpm build",
+		"prebuild": "rm -rf dist/*",
+		"build": "pnpm build:cjs && pnpm build:esm",
+		"build:cjs": "tsc --project tsconfig.build-cjs.json",
+		"build:esm": "tsc --project tsconfig.build-esm.json",
+		"prepublish": "pnpm build",
+		"clean": "tsc-multi --clean",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"prettier": "prettier .",
+		"prettier:fix": "prettier . --write"
+	},
+	"dependencies": {
+		"@fortawesome/fontawesome-svg-core": "^6.2.0",
+		"@fortawesome/free-brands-svg-icons": "^6.2.0",
+		"@fortawesome/free-regular-svg-icons": "^6.2.0",
+		"@fortawesome/free-solid-svg-icons": "^6.2.0",
+		"@fortawesome/react-fontawesome": "^0.2.0",
+		"clsx": "^1.2.1",
+		"d3": "^7.6.1",
+		"formik": "^2.2.9",
+		"next": "^13.0.6",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"tailwindcss": "^3.2.1"
+	},
+	"devDependencies": {
+		"@scientisst/eslint-config-next": "^1.0.1",
+		"@scientisst/prettier-config-next": "^1.2.0",
+		"@trivago/prettier-plugin-sort-imports": "^3.4.0",
+		"@types/d3": "^7.4.0",
+		"@types/dom-serial": "^1.0.3",
+		"@types/node": "^18.11.9",
+		"@types/react": "^18.0.24",
+		"autoprefixer": "^10.4.13",
+		"eslint": "^8.26.0",
+		"postcss": "^8.4.18",
+		"prettier": "^2.7.1",
+		"typescript": "^4.8.4"
+	},
+	"exports": {
+		"./package.json": "./package.json",
+		"./styles.css": "./dist/styles.css",
+		"./hooks": {
+			"import": "./src/hooks/index.ts",
+			"types": "./dist/esm/src/hooks/index.d.ts",
+			"require": "./dist/cjs/src/hooks/index.js"
+		},
+		"./tailwindcss-config": {
+			"import": "./tailwind.config.js",
+			"types": "./dist/esm/tailwind.config.d.ts",
+			"require": "./dist/cjs/tailwind.config.js"
+		},
+		"./dark-theme": {
+			"import": "./src/dark-theme/index.ts",
+			"types": "./dist/esm/src/dark-theme/index.d.ts",
+			"require": "./dist/cjs/src/dark-theme/index.js"
+		},
+		"./components/inputs": {
+			"import": "./src/components/inputs/index.ts",
+			"types": "./dist/esm/src/components/inputs/index.d.ts",
+			"require": "./dist/cjs/src/components/inputs/index.js"
+		},
+		"./components/inputs/common": {
+			"import": "./src/components/inputs/common/index.ts",
+			"types": "./dist/esm/src/components/inputs/common/index.d.ts",
+			"require": "./dist/cjs/src/components/inputs/common/index.js"
+		},
+		"./components/data-display": {
+			"import": "./src/components/data-display/index.ts",
+			"types": "./dist/esm/src/components/data-display/index.d.ts",
+			"require": "./dist/cjs/src/components/data-display/index.js"
+		},
+		"./components/navigation": {
+			"import": "./src/components/navigation/index.ts",
+			"types": "./dist/esm/src/components/navigation/index.d.ts",
+			"require": "./dist/cjs/src/components/navigation/index.js"
+		},
+		"./components/utils": {
+			"import": "./src/components/utils/index.ts",
+			"types": "./dist/esm/src/components/utils/index.d.ts",
+			"require": "./dist/cjs/src/components/utils/index.js"
+		},
+		"./components/layouts": {
+			"import": "./src/components/layouts/index.ts",
+			"types": "./dist/esm/src/components/layouts/index.d.ts",
+			"require": "./dist/cjs/src/components/layouts/index.js"
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"hooks": [
+				"src/hooks/index.ts",
+				"dist/esm/src/hooks/index.d.ts",
+				"dist/cjs/src/hooks/index.d.ts"
+			],
+			"tailwindcss-config": [
+				"tailwind.config.js",
+				"dist/esm/src/tailwind.config.d.ts",
+				"dist/cjs/src/tailwind.config.d.ts"
+			],
+			"dark-theme": [
+				"src/dark-theme/index.ts",
+				"dist/esm/src/dark-theme/index.d.ts",
+				"dist/cjs/src/dark-theme/index.d.ts"
+			],
+			"components/inputs": [
+				"src/components/inputs/index.ts",
+				"dist/esm/src/components/inputs/index.d.ts",
+				"dist/cjs/src/components/inputs/index.d.ts"
+			],
+			"components/inputs/common": [
+				"src/components/inputs/common/index.ts",
+				"dist/esm/src/components/inputs/common/index.d.ts",
+				"dist/cjs/src/components/inputs/common/index.d.ts"
+			],
+			"components/data-display": [
+				"src/components/data-display/index.ts",
+				"dist/esm/src/components/data-display/index.d.ts",
+				"dist/cjs/src/components/data-display/index.d.ts"
+			],
+			"components/navigation": [
+				"src/components/navigation/index.ts",
+				"dist/esm/src/components/navigation/index.d.ts",
+				"dist/cjs/src/components/navigation/index.d.ts"
+			],
+			"components/utils": [
+				"src/components/utils/index.ts",
+				"dist/esm/src/components/utils/index.d.ts",
+				"dist/cjs/src/components/utils/index.d.ts"
+			],
+			"components/layouts": [
+				"src/components/layouts/index.ts",
+				"dist/esm/src/components/layouts/index.d.ts",
+				"dist/cjs/src/components/layouts/index.d.ts"
+			]
+		}
+	},
+	"peerDependencies": {
+		"formik": ">= 2.2.9",
+		"next": ">= 13",
+		"react": ">= 18.2.0",
+		"react-dom": ">= 18.2.0",
+		"tailwindcss": ">= 3.2.1"
+	}
+}

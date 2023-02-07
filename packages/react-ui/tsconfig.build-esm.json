@@ -1,0 +1,9 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"outDir": "dist/esm",
+		"module": "esnext",
+		"sourceMap": true
+	}
+}
