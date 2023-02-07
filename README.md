@@ -1,3 +1,18 @@
+# Table of Contents
+
+-   [Introduction](#introduction)
+-   [Project Structure](#project-structure)
+-   [Packages](#packages)
+-   [Applications](#applications)
+-   [Setting Up the Development Environment](#setting-up-the-development-environment)
+    -   [Prerequisites](#prerequisites)
+    -   [Installing the Prerequisites](#installing-the-prerequisites)
+    -   [Running the Development Environment](#running-the-development-environment)
+    -   [Building the Repository](#building-the-repository)
+-   [Contributing](#contributing)
+-   [Disclaimer](#disclaimer)
+-   [Acknowledgements](#acknowledgements)
+
 # Introduction
 
 This repository contains the source code for SENSE WEB, a user-friendly
