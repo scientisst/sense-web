@@ -1,49 +1,22 @@
 {
-	"name": "sense-web",
-	"version": "0.6.0",
-	"repository": "https://github.com/scientisst/sense-web.git",
+	"name": "@scientisst/sense-monorepo",
 	"private": true,
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
 	"scripts": {
-		"dev": "next dev",
-		"build": "next build",
-		"start": "next start",
-		"lint": "next lint",
-		"prettier": "prettier --check .",
-		"prettier:fix": "prettier --write ."
-	},
-	"dependencies": {
-		"@fortawesome/fontawesome-svg-core": "^6.2.0",
-		"@fortawesome/free-brands-svg-icons": "^6.2.0",
-		"@fortawesome/free-regular-svg-icons": "^6.2.0",
-		"@fortawesome/free-solid-svg-icons": "^6.2.0",
-		"@fortawesome/react-fontawesome": "^0.2.0",
-		"@scientisst/react-ui": "^0.4.0",
-		"@scientisst/sense": "^2.0.2",
-		"canvg": "^4.0.1",
-		"clsx": "^1.2.1",
-		"file-saver": "^2.0.5",
-		"formik": "^2.2.9",
-		"jspdf": "^2.5.1",
-		"jszip": "^3.10.1",
-		"next": "^13.0.6",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
-		"yup": "^0.32.11"
+		"build": "turbo run build",
+		"dev": "turbo run dev --parallel",
+		"format": "prettier --write ."
 	},
 	"devDependencies": {
-		"@scientisst/eslint-config-next": "^1.0.2",
-		"@scientisst/prettier-config-next": "^1.1.0",
-		"@trivago/prettier-plugin-sort-imports": "^3.4.0",
-		"@types/d3": "^7.4.0",
-		"@types/dom-serial": "^1.0.3",
-		"@types/file-saver": "^2.0.5",
-		"@types/node": "18.8.3",
-		"@types/react": "18.0.21",
-		"autoprefixer": "^10.4.12",
-		"eslint": "^8.26.0",
-		"postcss": "^8.4.17",
-		"prettier": "^2.7.1",
-		"tailwindcss": "^3.1.8",
-		"typescript": "4.8.4"
-	}
+		"@scientisst/eslint-config-next": "latest",
+		"@scientisst/prettier-config-next": "latest",
+		"turbo": "^1.7.2"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"packageManager": "pnpm@7.26.3"
 }
