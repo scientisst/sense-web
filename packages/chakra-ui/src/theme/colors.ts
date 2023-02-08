@@ -1,194 +1,134 @@
-import Color from "color"
-
-const gray = {
-	50: "#f9f9fa",
-	100: "#ecedf0",
-	200: "#dee1e5",
-	300: "#ced3d9",
-	400: "#bfc4cd",
-	500: "#adb3bf",
-	600: "#99a0af",
-	700: "#828998",
-	800: "#676c79",
-	900: "#3c3f46"
-}
-
-const brandGray = Object.entries(gray).reduce(
-	(acc, [key, value]) => ({
-		...acc,
-		[key]: Color(value)
-			.mix(Color("#4682f2"), 0.04 + 0.2 * (Number(key) / 1000))
-			.hex()
-	}),
-	{}
-)
-
 const colors = {
 	white: "#ffffff",
 	black: "#000000",
-	brand: {
-		// Brand palette generated using:
-		// https://smart-swatch.netlify.app/#474ce6
-		light: "#4682f2",
-		dark: "#474ce6",
-		gray: brandGray,
-		50: "#e2efff",
-		100: "#b5cffe",
-		200: "#87aff8",
-		300: "#588ef3", // Closest to the light variant
-		400: "#2c6eef",
-		500: "#1455d5",
-		600: "#0c42a7",
-		700: "#052f78",
-		800: "#001c4a",
-		900: "#00091e"
+	scientisst: {
+		yellow: {
+			// Palette generated using:
+			// https://smart-swatch.netlify.app/#ffcc7a
+			light: "#FFCC7A", // Light variant, meant to be used on dark themes
+			dark: "#FFC56F", // Dark variant, meant to be used on light themes
+			50: "#ffe9e0",
+			100: "#ffc4b5",
+			200: "#f89f86",
+			300: "#f47958",
+			400: "#f05429", // Closest to the light variant
+			500: "#d63a0f",
+			600: "#a72c0b",
+			700: "#781e07",
+			800: "#4a1001",
+			900: "#1f0200"
+		},
+		green: {
+			// Palette generated using:
+			// https://smart-swatch.netlify.app/#5eba4e
+			light: "#5EBA4E", // Light variant, meant to be used on dark themes
+			dark: "#5DAF4F", // Dark variant, meant to be used on light themes
+			50: "#e8fae6",
+			100: "#caebc4",
+			200: "#aadba1",
+			300: "#89cd7e",
+			400: "#69bf5a", // Closest to the light variant
+			500: "#4fa540",
+			600: "#3d8031",
+			700: "#2a5c22",
+			800: "#163812",
+			900: "#021400"
+		},
+		mint: {
+			// Palette generated using:
+			// https://smart-swatch.netlify.app/#56c7c3
+			light: "#56C7C3", // Light variant, meant to be used on dark themes
+			dark: "#00A9A1", // Dark variant, meant to be used on light themes
+			50: "#defcfa",
+			100: "#bfeeec",
+			200: "#9be0de",
+			300: "#76d3cf",
+			400: "#53c6c2", // Closest to the light variant
+			500: "#39aca8",
+			600: "#288683",
+			700: "#18615f",
+			800: "#053a39",
+			900: "#001616"
+		},
+		blue: {
+			// Palette generated using:
+			// https://smart-swatch.netlify.app/#138ebf
+			light: "#138EBF", // Light variant, meant to be used on dark themes
+			dark: "#0089BF", // Dark variant, meant to be used on light themes
+			50: "#dbfaff",
+			100: "#b1e7fc",
+			200: "#86d7f5",
+			300: "#5ac5f0",
+			400: "#2eb5ea",
+			500: "#159bd1", // Closest to the light variant
+			600: "#0479a3",
+			700: "#005676",
+			800: "#00354a",
+			900: "#00131d"
+		},
+		purple: {
+			// Palette generated using:
+			// https://smart-swatch.netlify.app/#5875b0
+			light: "#5875B0", // Light variant, meant to be used on dark themes
+			dark: "#5050A0", // Dark variant, meant to be used on light themes
+			50: "#e9f1ff",
+			100: "#c8d4eb",
+			200: "#a7b7d9",
+			300: "#859bc7",
+			400: "#637eb5", // Closest to the light variant
+			500: "#4a659c",
+			600: "#384e7a",
+			700: "#273859",
+			800: "#162238",
+			900: "#030b19"
+		},
+		red: {
+			// Palette generated using:
+			// https://smart-swatch.netlify.app/#f05463
+			light: "#F05463", // Light variant, meant to be used on dark themes
+			dark: "#EF4B59", // Dark variant, meant to be used on light themes
+			50: "#ffe5e8",
+			100: "#fdb7be",
+			200: "#f68994",
+			300: "#f15b69", // Closest to the light variant
+			400: "#eb2e40",
+			500: "#d21626",
+			600: "#a40e1d",
+			700: "#760815",
+			800: "#48030a",
+			900: "#1e0001"
+		},
+		orange: {
+			// Palette generated using:
+			// https://smart-swatch.netlify.app/#f26c46
+			light: "#F26C46", // Light variant, meant to be used on dark themes
+			dark: "#F1643D", // Dark variant, meant to be used on light themes
+			50: "#ffe9e1",
+			100: "#fec5b5",
+			200: "#f8a087",
+			300: "#f37a58", // Closest to the light variant
+			400: "#ef562a",
+			500: "#d53c10",
+			600: "#a72e0c",
+			700: "#782007",
+			800: "#491202",
+			900: "#1f0400"
+		}
 	},
-	// Brand gray palette generated using:
-	// https://palx.jxnblk.com/
-	gray,
-	blue: {
-		50: "#f7fafe",
-		100: "#e6eefd",
-		200: "#d3e1fc",
-		300: "#bfd4fb",
-		400: "#a9c5f9",
-		500: "#8fb3f7",
-		600: "#719ff5",
-		700: "#4c86f2",
-		800: "#3969c4",
-		900: "#213e73"
-	},
-	indigo: {
-		50: "#faf9ff",
-		100: "#eeebfe",
-		200: "#e2ddfd",
-		300: "#d5cefc",
-		400: "#c6bcfa",
-		500: "#b5a9f9",
-		600: "#a292f7",
-		700: "#8976f5",
-		800: "#684ff3",
-		900: "#3c2c97"
-	},
-	violet: {
-		50: "#fcf8ff",
-		100: "#f6e9fd",
-		200: "#f0d9fc",
-		300: "#e9c7fb",
-		400: "#e1b3fa",
-		500: "#d89cf8",
-		600: "#cd80f6",
-		700: "#be5bf3",
-		800: "#9d3cd1",
-		900: "#5d247b"
-	},
-	fuschia: {
-		50: "#fef7fd",
-		100: "#fde7fa",
-		200: "#fcd5f6",
-		300: "#fbc1f2",
-		400: "#f9aaed",
-		500: "#f78ee7",
-		600: "#f56ae0",
-		700: "#e542cd",
-		800: "#b635a2",
-		900: "#6c1f60"
-	},
-	pink: {
-		50: "#fef8fa",
-		100: "#fde8f0",
-		200: "#fcd7e4",
-		300: "#fbc4d7",
-		400: "#f9afc9",
-		500: "#f896b8",
-		600: "#f576a2",
-		700: "#f24783",
-		800: "#c03867",
-		900: "#72213d"
-	},
-	red: {
-		50: "#fef8f7",
-		100: "#fde9e6",
-		200: "#fcd9d3",
-		300: "#fac7be",
-		400: "#f9b3a6",
-		500: "#f79b8b",
-		600: "#f47d68",
-		700: "#e75c43",
-		800: "#b74935",
-		900: "#6c2b1f"
-	},
-	orange: {
-		50: "#fef9f0",
-		100: "#fcecce",
-		200: "#f9ddaa",
-		300: "#f6cd81",
-		400: "#f3bb52",
-		500: "#e1a941",
-		600: "#c9973a",
-		700: "#ad8232",
-		800: "#886627",
-		900: "#503c17"
-	},
-	yellow: {
-		50: "#f8fddc",
-		100: "#e6f789",
-		200: "#d4ed45",
-		300: "#c7df40",
-		400: "#b8cf3c",
-		500: "#a9bd37",
-		600: "#97a931",
-		700: "#81912a",
-		800: "#667221",
-		900: "#3c4313"
-	},
-	lime: {
-		50: "#f0fde9",
-		100: "#cffab7",
-		200: "#a5f679",
-		300: "#7fec44",
-		400: "#76db3f",
-		500: "#6cc83a",
-		600: "#60b334",
-		700: "#539a2c",
-		800: "#417923",
-		900: "#264715"
-	},
-	green: {
-		50: "#edfef0",
-		100: "#c4fbcc",
-		200: "#8ff79f",
-		300: "#46f160",
-		400: "#41e059",
-		500: "#3bcd51",
-		600: "#35b749",
-		700: "#2d9d3e",
-		800: "#247c31",
-		900: "#15491d"
-	},
-	teal: {
-		50: "#ebfef7",
-		100: "#bdfae5",
-		200: "#80f6cd",
-		300: "#45edb2",
-		400: "#40dca5",
-		500: "#3ac997",
-		600: "#34b487",
-		700: "#2d9a74",
-		800: "#237a5c",
-		900: "#154836"
-	},
-	cyan: {
-		50: "#effcfe",
-		100: "#cdf4fb",
-		200: "#a6ecf9",
-		300: "#76e2f5",
-		400: "#45d5ef",
-		500: "#3fc3da",
-		600: "#38aec3",
-		700: "#3095a7",
-		800: "#267684",
-		900: "#16454e"
+	// Gray palette taken from TailwindCSS:
+	// https://tailwindcss.com/docs/background-color
+	// Used as the color for text and icons
+	gray: {
+		50: "rgb(249, 250, 251)",
+		100: "rgb(243, 244, 246)",
+		200: "rgb(229, 231, 235)",
+		300: "rgb(209, 213, 219)",
+		400: "rgb(156, 163, 175)",
+		500: "rgb(107, 114, 128)",
+		600: "rgb(75, 85, 99)",
+		700: "rgb(55, 65, 81)",
+		800: "rgb(31, 41, 55)",
+		900: "rgb(17, 24, 39)"
 	}
 }
 
