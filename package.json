@@ -12,7 +12,7 @@
 	},
 	"devDependencies": {
 		"@scientisst/eslint-config-next": "workspace:*",
-		"@scientisst/prettier-config-next": "workspace:*",
+		"@scientisst/prettier-config": "workspace:*",
 		"turbo": "^1.7.3"
 	},
 	"engines": {

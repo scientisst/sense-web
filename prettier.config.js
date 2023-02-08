@@ -1,3 +1,3 @@
 module.exports = {
-	...require("@scientisst/prettier-config-next")
+	...require("@scientisst/prettier-config")
 }
