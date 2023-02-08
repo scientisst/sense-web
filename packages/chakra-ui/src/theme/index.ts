@@ -14,19 +14,19 @@ export const defaultScientISSTTheme = {
 	styles: {
 		...theme.styles,
 		global: {
-			"html, body": {
-				color: "gray.800",
-				bg: "brand.gray.50",
-				fontFamily: "body",
-				lineHeight: "base",
-				fontSize: "md",
-				fontWeight: "normal",
-				letterSpacing: "normal",
-				_dark: {
-					color: "gray.100",
-					bg: "brand.gray.900"
-				}
-			}
+			// "html, body": {
+			// 	color: "gray.800",
+			// 	bg: "brand.gray.50",
+			// 	fontFamily: "body",
+			// 	lineHeight: "base",
+			// 	fontSize: "md",
+			// 	fontWeight: "normal",
+			// 	letterSpacing: "normal",
+			// 	_dark: {
+			// 		color: "gray.100",
+			// 		bg: "brand.gray.900"
+			// 	}
+			// }
 		}
 	},
 	fonts: {
