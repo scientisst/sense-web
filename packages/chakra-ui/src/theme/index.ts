@@ -35,6 +35,13 @@ export const defaultScientISSTTheme = {
 		mono: "monospace"
 	},
 	colors,
+	sizes: {
+		...theme.sizes,
+		container: {
+			...theme.sizes.container,
+			"2xl": "1536px"
+		}
+	},
 	components: {
 		...theme.components,
 		Button
