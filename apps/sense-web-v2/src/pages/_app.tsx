@@ -1,3 +1,5 @@
+import React from "react"
+
 import type { AppProps } from "next/app"
 
 import { ChakraProvider } from "@chakra-ui/react"
@@ -5,7 +7,7 @@ import { config } from "@fortawesome/fontawesome-svg-core"
 import "@fortawesome/fontawesome-svg-core/styles.css"
 import { Lexend } from "@next/font/google"
 import localFont from "@next/font/local"
-import { defaultScientISSTTheme } from "@scientisst/chakra-ui"
+import { NoSSR, defaultScientISSTTheme } from "@scientisst/chakra-ui"
 
 import "../styles/global.css"
 
@@ -22,14 +24,16 @@ const imagine = localFont({
 
 export default function MyApp({ Component, pageProps }: AppProps) {
 	return (
-		<ChakraProvider theme={defaultScientISSTTheme}>
-			<style jsx global>{`
-				:root {
-					--font-lexend: ${lexend.style.fontFamily};
-					--font-imagine: ${imagine.style.fontFamily};
-				}
-			`}</style>
-			<Component {...pageProps} />
-		</ChakraProvider>
+		<NoSSR>
+			<ChakraProvider theme={defaultScientISSTTheme}>
+				<style jsx global>{`
+					:root {
+						--font-lexend: ${lexend.style.fontFamily};
+						--font-imagine: ${imagine.style.fontFamily};
+					}
+				`}</style>
+				<Component {...pageProps} />
+			</ChakraProvider>
+		</NoSSR>
 	)
 }
