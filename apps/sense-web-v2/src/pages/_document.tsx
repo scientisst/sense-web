@@ -1,5 +1,6 @@
 import { Head, Html, Main, NextScript } from "next/document"
 
+import { ColorModeScript } from "@chakra-ui/react"
 import { DarkThemeScript } from "@scientisst/react-ui/dark-theme"
 
 export default function Document() {
@@ -13,6 +14,7 @@ export default function Document() {
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 			</Head>
 			<body className="bg-background text-over-background-highest text-base font-normal leading-6">
+				<ColorModeScript initialColorMode="system" />
 				<DarkThemeScript />
 				<Main />
 				<NextScript />
