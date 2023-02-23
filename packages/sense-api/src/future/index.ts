@@ -75,7 +75,7 @@ export class ScientISST {
 	private packetSize = 0
 	private webSocket?: WebSocket = undefined
 	private connectionLost = false
-	private majorVersion = 0
+	public majorVersion = 0
 
 	public isIdle() {
 		return this.idle

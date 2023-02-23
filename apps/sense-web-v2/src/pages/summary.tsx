@@ -74,7 +74,8 @@ const Page = () => {
 			const frames = utf16ToFrames(
 				localStorage.getItem(`aq_seg${i}`),
 				channels,
-				adcChars
+				adcChars,
+				Number(localStorage.getItem(`aq_seqRes`) ?? "4")
 			)
 
 			if (frames.length === 0) {
@@ -221,7 +222,8 @@ const Page = () => {
 		const frames = utf16ToFrames(
 			localStorage.getItem(`aq_seg${selectedSegment}`),
 			channels,
-			adcChars
+			adcChars,
+			Number(localStorage.getItem(`aq_seqRes`) ?? "4")
 		)
 		const timestamp = new Date(
 			JSON.parse(localStorage.getItem(`aq_seg${selectedSegment}time`))

@@ -348,6 +348,11 @@ const Page = () => {
 			localStorage.setItem("aq_sampleRate", JSON.stringify(sampleRate))
 			localStorage.setItem("aq_segments", JSON.stringify(1))
 			localStorage.setItem("aq_gracefullyStopped", JSON.stringify(false))
+			localStorage.setItem(
+				"aq_seqRes",
+				JSON.stringify(scientisstRef.current.majorVersion <= 1 ? 4 : 12)
+			)
+			Number(localStorage.getItem(`aq_seqRes`) ?? "4")
 
 			for (const channel of channels) {
 				localStorage.setItem(

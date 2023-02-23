@@ -47,7 +47,8 @@ export const framesToUtf16 = (frames: ScientISSTFrame[]) => {
 export const utf16ToFrames = (
 	utf16: string,
 	channels: CHANNEL[],
-	adcChars: ScientISSTAdcCharacteristics
+	adcChars: ScientISSTAdcCharacteristics,
+	seqResolution: number
 ) => {
 	const frames: ScientISSTFrame[] = []
 	let seq = 0
@@ -107,7 +108,13 @@ export const utf16ToFrames = (
 		}
 
 		if (!discardFrame) {
-			frames.push(new ScientISSTFrame(adcChars, analog, seq++ % 16))
+			frames.push(
+				new ScientISSTFrame(
+					adcChars,
+					analog,
+					seq++ % 2 ** seqResolution
+				)
+			)
 		}
 	}
 
