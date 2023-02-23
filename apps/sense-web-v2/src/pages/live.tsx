@@ -51,6 +51,7 @@ const Page = () => {
 	const [connectionStatus, setConnectionStatus] = useState(
 		CONNECTION_STATUS.DISCONNECTED
 	)
+	const [firmwareVersion, setFirmwareVersion] = useState("")
 	const [activeChannels, setActiveChannels] = useState<CHANNEL[]>([])
 	const [activeSamplingRate, setActiveSamplingRate] = useState(0)
 	const [segment, setSegment] = useState(1)
@@ -280,6 +281,7 @@ const Page = () => {
 				await scientisstRef.current.connect(communicationMode)
 				setConnectionStatus(CONNECTION_STATUS.CONNECTED)
 				connectionTimeoutRef.current = connectionTimeoutRef.current + 1
+				setFirmwareVersion(await scientisstRef.current.getVersion())
 			} catch (error) {
 				connectionTimeoutRef.current = connectionTimeoutRef.current + 1
 				if (error instanceof UserCancelledException) {
@@ -432,6 +434,11 @@ const Page = () => {
 			shortTitle="Live"
 			returnHref="/"
 		>
+			{(connectionStatus === CONNECTION_STATUS.CONNECTED ||
+				connectionStatus === CONNECTION_STATUS.ACQUIRING ||
+				connectionStatus === CONNECTION_STATUS.PAUSED) && (
+				<span>{`Firmware version: ${firmwareVersion}`}</span>
+			)}
 			<div className="flex flex-row gap-4">
 				{(connectionStatus === CONNECTION_STATUS.DISCONNECTED ||
 					connectionStatus === CONNECTION_STATUS.CONNECTING ||
