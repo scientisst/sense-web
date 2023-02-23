@@ -1,3 +1,5 @@
+import semver from "semver"
+
 import { ScientISSTAdcCharacteristics } from "./adcCharacteristics"
 import { CHANNEL_SIZE } from "./constants"
 import {
@@ -73,6 +75,7 @@ export class ScientISST {
 	private packetSize = 0
 	private webSocket?: WebSocket = undefined
 	private connectionLost = false
+	private majorVersion = 0
 
 	public isIdle() {
 		return this.idle
@@ -319,6 +322,10 @@ export class ScientISST {
 
 		let packetSize = 3 * externalChannels + 2
 
+		if (this.majorVersion > 1) {
+			packetSize += 1
+		}
+
 		if (internalChannels % 2) {
 			packetSize += (internalChannels * 12 - 4) / 8
 		} else {
@@ -356,16 +363,31 @@ export class ScientISST {
 		let crc = 0
 		let b: number
 
-		for (let i = 0; i < data.length - 1; i++) {
-			b = data[i]
-			crc = CRC4tab[crc] ^ (b >> 4)
-			crc = CRC4tab[crc] ^ (b & 0x0f)
+		if (this.majorVersion <= 1) {
+			for (let i = 0; i < data.length - 1; i++) {
+				b = data[i]
+				crc = CRC4tab[crc] ^ (b >> 4)
+				crc = CRC4tab[crc] ^ (b & 0x0f)
+			}
+
+			crc = CRC4tab[crc] ^ (data[data.length - 1] >> 4)
+			crc = CRC4tab[crc]
+
+			return crc == (data[data.length - 1] & 0x0f)
+		} else {
+			for (let i = 0; i < data.length - 2; i++) {
+				b = data[i]
+				crc = CRC4tab[crc] ^ (b >> 4)
+				crc = CRC4tab[crc] ^ (b & 0x0f)
+			}
+
+			crc = CRC4tab[crc] ^ (data[data.length - 2] >> 4)
+			crc = CRC4tab[crc] ^ (data[data.length - 1] >> 4)
+			crc = CRC4tab[crc] ^ (data[data.length - 1] & 0x0f)
+			crc = CRC4tab[crc]
+
+			return crc == (data[data.length - 2] & 0x0f)
 		}
-
-		crc = CRC4tab[crc] ^ (data[data.length - 1] >> 4)
-		crc = CRC4tab[crc]
-
-		return crc == (data[data.length - 1] & 0x0f)
 	}
 
 	public async readFrames(count = 1): Promise<Array<ScientISSTFrame | null>> {
@@ -424,7 +446,11 @@ export class ScientISST {
 				[CHANNEL.AX2]: undefined
 			}
 
-			const sequenceNumber = frameBuffer[frameBuffer.length - 1] >> 4
+			const sequenceNumber =
+				this.majorVersion > 1
+					? (frameBuffer[frameBuffer.length - 2] >> 4) |
+					  (frameBuffer[frameBuffer.length - 1] << 4)
+					: frameBuffer[frameBuffer.length - 1] >> 4
 
 			let byteOffset = 0
 			let midFrame = false
@@ -586,6 +612,15 @@ export class ScientISST {
 
 		const version = await this.recvUntil(0x00)
 		this.version = new TextDecoder().decode(version).slice(0, -1).trim()
+
+		// Check if version string is a valid semver
+		if (!semver.valid(this.version)) {
+			this.version = "1.0.0"
+		} else {
+			this.version = semver.coerce(this.version).version
+		}
+
+		this.majorVersion = semver.major(this.version)
 
 		const adcCharacteristics = await this.recv(24)
 
