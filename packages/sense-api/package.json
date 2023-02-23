@@ -49,6 +49,10 @@
 	},
 	"devDependencies": {
 		"@types/dom-serial": "^1.0.3",
+		"@types/semver": "^7.3.13",
 		"typescript": "^4.8.4"
+	},
+	"dependencies": {
+		"semver": "^7.3.8"
 	}
 }

@@ -259,9 +259,14 @@ importers:
   packages/sense-api:
     specifiers:
       '@types/dom-serial': ^1.0.3
+      '@types/semver': ^7.3.13
+      semver: ^7.3.8
       typescript: ^4.8.4
+    dependencies:
+      semver: 7.3.8
     devDependencies:
       '@types/dom-serial': 1.0.3
+      '@types/semver': 7.3.13
       typescript: 4.9.5
 
   packages/tsconfig:
@@ -4566,7 +4571,6 @@ packages:
 
   /@types/semver/7.3.13:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
-    dev: false
 
   /@types/serve-index/1.9.1:
     resolution: {integrity: sha512-d/Hs3nWDxNL2xAczmOVZNj92YZCS6RGxfBPjKzuu/XirCgXdpKEb88dYNbrYGint6IVWLNP+yonwVAuRC0T2Dg==}
