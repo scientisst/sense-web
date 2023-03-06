@@ -41,6 +41,8 @@ export class ScientISST {
 	private frameReadingLocked = false
 	private channels: CHANNEL[] = []
 	private packetSize = 0
+	private lastSequence = -1
+	private sequenceResolution = 0
 
 	public isIdle() {
 		return this.state === SCIENTISST_STATE.IDLE
@@ -76,6 +78,14 @@ export class ScientISST {
 		}
 
 		return this.adcCharacteristics
+	}
+
+	public getSequenceResolution() {
+		if (!this.isConnected()) {
+			throw new NotConnectedException()
+		}
+
+		return this.sequenceResolution
 	}
 
 	public async connect(mode: COMMUNICATION_MODE) {
@@ -200,6 +210,8 @@ export class ScientISST {
 
 		this.channels = []
 		this.packetSize = 0
+		this.lastSequence = -1
+		this.sequenceResolution = 0
 	}
 
 	public async start(
@@ -566,6 +578,8 @@ export class ScientISST {
 		} else {
 			this.version = semver.coerce(versionString)
 		}
+
+		this.sequenceResolution = this.version.major < 2 ? 4 : 12
 
 		const adcCharacteristics = await this.recv(24)
 
