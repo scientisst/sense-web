@@ -146,8 +146,8 @@ export class ScientISST {
 			case COMMUNICATION_MODE.WEB_SOCKET:
 				// TODO: Support web socket communication.
 				// As of the time of writing this, web socket communication is
-				// broken on the firmware side and therefore there's no way to test
-				// it.
+				// broken on the firmware side and therefore there's no way to
+				// test it.
 				throw new NotImplementedException()
 			default:
 				throw new NotImplementedException()
@@ -176,8 +176,8 @@ export class ScientISST {
 			case COMMUNICATION_MODE.WEB_SOCKET:
 				// TODO: Support web socket communication.
 				// As of the time of writing this, web socket communication is
-				// broken on the firmware side and therefore there's no way to test
-				// it.
+				// broken on the firmware side and therefore there's no way to
+				// test it.
 				throw new NotImplementedException()
 			default:
 				break
@@ -471,7 +471,7 @@ export class ScientISST {
 			case COMMUNICATION_MODE.BLUETOOTH:
 				try {
 					// DO NOT REMOVE THIS CONSOLE.LOG
-					// IF REMOVED, IT WILL BREAK THE APPLICATION FOR MacOS (IN BTH)
+					// IF REMOVED, IT WILL BREAK THE APPLICATION FOR MacOS
 					if (this.isMacOS()) {
 						console.log("Sending...", data)
 					}
@@ -486,8 +486,8 @@ export class ScientISST {
 			case COMMUNICATION_MODE.WEB_SOCKET:
 				// TODO: Support web socket communication.
 				// As of the time of writing this, web socket communication is
-				// broken on the firmware side and therefore there's no way to test
-				// it.
+				// broken on the firmware side and therefore there's no way to
+				// test it.
 				throw new NotImplementedException()
 			default:
 				throw new NotImplementedException()
@@ -523,8 +523,8 @@ export class ScientISST {
 			case COMMUNICATION_MODE.WEB_SOCKET:
 				// TODO: Support web socket communication.
 				// As of the time of writing this, web socket communication is
-				// broken on the firmware side and therefore there's no way to test
-				// it.
+				// broken on the firmware side and therefore there's no way to
+				// test it.
 				throw new NotImplementedException()
 			default:
 				throw new NotImplementedException()
