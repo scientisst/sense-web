@@ -98,6 +98,7 @@ importers:
       '@types/file-saver': ^2.0.5
       '@types/node': ^18.8.3
       '@types/react': ^18.0.21
+      '@types/semver': ^7.3.13
       autoprefixer: ^10.4.12
       canvg: ^4.0.1
       clsx: ^1.2.1
@@ -110,6 +111,7 @@ importers:
       postcss: ^8.4.17
       react: ^18.2.0
       react-dom: ^18.2.0
+      semver: ^7.3.8
       tailwindcss: ^3.1.8
       typescript: ^4.8.4
       yup: ^0.32.11
@@ -126,6 +128,7 @@ importers:
       '@scientisst/chakra-ui': link:../../packages/chakra-ui
       '@scientisst/react-ui': 0.4.0_vbm3sfvbalftwhcxvvevm4kgcq
       '@scientisst/sense': link:../../packages/sense-api
+      '@types/semver': 7.3.13
       canvg: 4.0.1
       clsx: 1.2.1
       file-saver: 2.0.5
@@ -136,6 +139,7 @@ importers:
       next: 13.1.6_pjwopsidmaokadturxaafygjp4
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
+      semver: 7.3.8
       yup: 0.32.11
     devDependencies:
       '@babel/core': 7.20.12

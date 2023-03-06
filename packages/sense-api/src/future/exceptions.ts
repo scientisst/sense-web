@@ -4,7 +4,7 @@ export class ScientISSTException extends Error {
 	}
 }
 
-export class ConnectionInProgressException extends ScientISSTException {
+export class ConnectionAlreadyInProgressException extends ScientISSTException {
 	constructor() {
 		super("Connection with the device is already in progress")
 	}
@@ -12,11 +12,11 @@ export class ConnectionInProgressException extends ScientISSTException {
 
 export class NotImplementedException extends ScientISSTException {
 	constructor() {
-		super("Not implemented")
+		super("This feature is not implemented")
 	}
 }
 
-export class NotSupportedException extends ScientISSTException {
+export class CommunicationModeNotSupportedException extends ScientISSTException {
 	constructor() {
 		super(
 			"This communication mode is not supported in this browser or platform"

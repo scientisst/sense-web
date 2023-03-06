@@ -67,7 +67,11 @@ export const utf16ToFrames = (
 			[CHANNEL.AI5]: undefined,
 			[CHANNEL.AI6]: undefined,
 			[CHANNEL.AX1]: undefined,
-			[CHANNEL.AX2]: undefined
+			[CHANNEL.AX2]: undefined,
+			[CHANNEL.I1]: undefined,
+			[CHANNEL.I2]: undefined,
+			[CHANNEL.O1]: undefined,
+			[CHANNEL.O2]: undefined
 		}
 
 		let discardFrame = false

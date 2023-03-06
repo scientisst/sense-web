@@ -22,6 +22,7 @@ import {
 	framesToUtf16
 } from "@scientisst/sense/future"
 import { Form, Formik } from "formik"
+import { SemVer } from "semver"
 import resolveConfig from "tailwindcss/resolveConfig"
 
 import tailwindConfig from "../../tailwind.config"
@@ -51,7 +52,9 @@ const Page = () => {
 	const [connectionStatus, setConnectionStatus] = useState(
 		CONNECTION_STATUS.DISCONNECTED
 	)
-	const [firmwareVersion, setFirmwareVersion] = useState("")
+	const [firmwareVersion, setFirmwareVersion] = useState<SemVer>(
+		new SemVer("0.0.0")
+	)
 	const [activeChannels, setActiveChannels] = useState<CHANNEL[]>([])
 	const [activeSamplingRate, setActiveSamplingRate] = useState(0)
 	const [segment, setSegment] = useState(1)
@@ -285,7 +288,7 @@ const Page = () => {
 				await scientisstRef.current.connect(communicationMode)
 				setConnectionStatus(CONNECTION_STATUS.CONNECTED)
 				connectionTimeoutRef.current = connectionTimeoutRef.current + 1
-				setFirmwareVersion(await scientisstRef.current.getVersion())
+				setFirmwareVersion(scientisstRef.current.getVersion())
 			} catch (error) {
 				connectionTimeoutRef.current = connectionTimeoutRef.current + 1
 				if (error instanceof UserCancelledException) {
@@ -329,9 +332,10 @@ const Page = () => {
 				CHANNEL.AI6
 			]
 			const sampleRate = JSON.parse(settings).sampleRate || 1000
-			scientisstRef.current.getAdcCharacteristics().then(adcChars => {
-				localStorage.setItem("aq_adcChars", adcChars.toJSON())
-			})
+			const adcCharacteristics =
+				scientisstRef.current.getAdcCharacteristics()
+
+			localStorage.setItem("aq_adcChars", adcCharacteristics.toJSON())
 
 			channels.sort()
 
@@ -354,9 +358,10 @@ const Page = () => {
 			localStorage.setItem("aq_gracefullyStopped", JSON.stringify(false))
 			localStorage.setItem(
 				"aq_seqRes",
-				JSON.stringify(scientisstRef.current.majorVersion <= 1 ? 4 : 12)
+				JSON.stringify(
+					scientisstRef.current.getVersion().major < 2 ? 4 : 12
+				)
 			)
-			Number(localStorage.getItem(`aq_seqRes`) ?? "4")
 
 			for (const channel of channels) {
 				localStorage.setItem(
