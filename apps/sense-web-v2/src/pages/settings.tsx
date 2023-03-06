@@ -187,6 +187,14 @@ const Page = () => {
 											{
 												name: "AI6",
 												value: CHANNEL.AI6
+											},
+											{
+												name: "AX1",
+												value: CHANNEL.AX1
+											},
+											{
+												name: "AX2",
+												value: CHANNEL.AX2
 											}
 										]}
 										image={hovered => (
@@ -237,6 +245,22 @@ const Page = () => {
 															width: "4.5rem",
 															height: "4.5rem",
 															top: "calc(4.75rem - 3px)",
+															right: "0"
+														}}
+													/>
+													<div
+														className={clsx(
+															"border-primary absolute rounded-lg border-[3px]",
+															{
+																hidden:
+																	hovered !==
+																	CHANNEL.AX1
+															}
+														)}
+														style={{
+															width: "4.5rem",
+															height: "4.5rem",
+															top: "0.25rem",
 															right: "0"
 														}}
 													/>
@@ -300,6 +324,22 @@ const Page = () => {
 															height: "4.5rem",
 															top: "calc(4.75rem - 3px)",
 															right: "0"
+														}}
+													/>
+													<div
+														className={clsx(
+															"border-primary absolute rounded-lg border-[3px]",
+															{
+																hidden:
+																	hovered !==
+																	CHANNEL.AX2
+															}
+														)}
+														style={{
+															width: "4.5rem",
+															height: "4.5rem",
+															top: "0.25rem",
+															left: "0"
 														}}
 													/>
 													<Image
