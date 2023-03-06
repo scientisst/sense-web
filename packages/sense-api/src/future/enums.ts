@@ -6,7 +6,11 @@ export enum CHANNEL {
 	AI5 = 5,
 	AI6 = 6,
 	AX1 = 7,
-	AX2 = 8
+	AX2 = 8,
+	I1 = 9,
+	I2 = 10,
+	O1 = 11,
+	O2 = 12
 }
 
 export enum COMMUNICATION_MODE {

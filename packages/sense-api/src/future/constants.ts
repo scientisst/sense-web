@@ -8,5 +8,9 @@ export const CHANNEL_SIZE: Record<CHANNEL, number> = {
 	[CHANNEL.AI5]: 12,
 	[CHANNEL.AI6]: 12,
 	[CHANNEL.AX1]: 24,
-	[CHANNEL.AX2]: 24
+	[CHANNEL.AX2]: 24,
+	[CHANNEL.I1]: 1,
+	[CHANNEL.I2]: 1,
+	[CHANNEL.O1]: 1,
+	[CHANNEL.O2]: 1
 }

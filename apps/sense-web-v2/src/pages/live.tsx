@@ -66,7 +66,11 @@ const Page = () => {
 		[CHANNEL.AI5]: [],
 		[CHANNEL.AI6]: [],
 		[CHANNEL.AX1]: [],
-		[CHANNEL.AX2]: []
+		[CHANNEL.AX2]: [],
+		[CHANNEL.I1]: [],
+		[CHANNEL.I2]: [],
+		[CHANNEL.O1]: [],
+		[CHANNEL.O2]: []
 	})
 	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
 	const isDark = useDarkTheme()
