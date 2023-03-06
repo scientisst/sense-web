@@ -43,6 +43,8 @@ export class ScientISST {
 	private packetSize = 0
 	private lastSequence = -1
 	private sequenceResolution = 0
+	private framesLost = 0
+	private framesReceived = 0
 
 	public isIdle() {
 		return this.state === SCIENTISST_STATE.IDLE
@@ -86,6 +88,22 @@ export class ScientISST {
 		}
 
 		return this.sequenceResolution
+	}
+
+	public getFramesLost() {
+		if (!this.isConnected()) {
+			throw new NotConnectedException()
+		}
+
+		return this.framesLost
+	}
+
+	public getFramesReceived() {
+		if (!this.isConnected()) {
+			throw new NotConnectedException()
+		}
+
+		return this.framesReceived
 	}
 
 	public async connect(mode: COMMUNICATION_MODE) {
@@ -212,6 +230,8 @@ export class ScientISST {
 		this.packetSize = 0
 		this.lastSequence = -1
 		this.sequenceResolution = 0
+		this.framesLost = 0
+		this.framesReceived = 0
 	}
 
 	public async start(
@@ -327,9 +347,11 @@ export class ScientISST {
 				this.packetSize * (i + 1) + offset
 			)
 
+			let bytesLost = 0
 			while (!this.validateCRC4(frameBuffer)) {
 				buffer = new Uint8Array([...buffer, ...(await this.recv(1))])
 				offset++
+				bytesLost++
 
 				frameBuffer = buffer.slice(
 					this.packetSize * i + offset,
@@ -337,8 +359,14 @@ export class ScientISST {
 				)
 			}
 
-			// TODO: Detect packet loss and stop acquisition if more than
-			// 2 ** sequenceNumberBits packets are lost in a row
+			if (
+				bytesLost >=
+				this.packetSize * (2 ** this.sequenceResolution - 1)
+			) {
+				// Too many bytes lost, abort
+				await this.disconnect()
+				throw new ConnectionLostException()
+			}
 
 			const frameSkeleton: Record<CHANNEL, number | undefined> = {
 				[CHANNEL.AI1]: undefined,
@@ -360,6 +388,34 @@ export class ScientISST {
 					? (frameBuffer[frameBuffer.length - 2] >> 4) |
 					  (frameBuffer[frameBuffer.length - 1] << 4)
 					: frameBuffer[frameBuffer.length - 1] >> 4
+
+			if (this.lastSequence > 0) {
+				if (this.lastSequence === sequenceNumber) {
+					// Ilegal state, we should never receive the same sequence
+					// number twice. We most likely lost connection for
+					// a long time, so we should disconnect and throw an
+					// connection lost exception.
+					await this.disconnect()
+					throw new ConnectionLostException()
+				}
+
+				const lostFrames =
+					sequenceNumber - this.lastSequence > 0
+						? sequenceNumber - this.lastSequence - 1
+						: 2 ** this.sequenceResolution -
+						  this.lastSequence +
+						  sequenceNumber -
+						  1
+
+				for (let i = 0; i < lostFrames; i++) {
+					frames.push(null)
+				}
+
+				this.framesReceived += lostFrames
+			}
+
+			this.lastSequence = sequenceNumber
+			this.framesReceived++
 
 			let byteOffset = 0
 			let midFrame = false
