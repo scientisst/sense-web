@@ -6,3 +6,8 @@
 -   Remove: .devcontainer directory
 -   Remove: .vscode directory
 -   Remove: .github directory
+-   Remove: .eslintignore
+-   Remove: .eslintrc
+-   Remove: .gitignore
+-   Remove: .nojekyll
+-   Remove: .prettierrc
