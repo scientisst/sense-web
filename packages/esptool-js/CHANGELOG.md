@@ -1,3 +1,11 @@
+# Version 0.2.4
+
+-   Remove: lib directory
+-   Modified package.json: Remove dependencies used only by the frontend demo
+-   Modified package.json: Removed all scripts
+-   Modified package.json: Removed files field
+-   Remove: lib directory
+
 # Version 0.2.3
 
 -   Remove: rollup.config.js
