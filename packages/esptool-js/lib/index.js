@@ -1,2 +1,2 @@
-export { ESPLoader } from "./esploader";
-export { Transport } from "./webserial";
+export { ESPLoader } from "./esploader"
+export { Transport } from "./webserial"
