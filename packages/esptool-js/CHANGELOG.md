@@ -1,3 +1,7 @@
+# Version 0.2.5
+
+- Changed: packaged.json 'main' field to point to the correct file (src/index.ts)
+
 # Version 0.2.4
 
 -   Remove: lib directory

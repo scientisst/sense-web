@@ -1,9 +1,7 @@
 {
 	"name": "esptool-js",
-	"version": "0.2.4",
-	"module": "lib/index.js",
-	"main": "lib/index.js",
-	"types": "lib/index.d.ts",
+	"version": "0.2.5",
+	"main": "src/index.ts",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/espressif/esptool-js.git"

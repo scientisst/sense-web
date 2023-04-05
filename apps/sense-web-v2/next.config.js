@@ -5,7 +5,11 @@
  **/
 const nextConfig = {
 	reactStrictMode: true,
-	transpilePackages: ["@scientisst/sense", "@scientisst/chakra-ui"]
+	transpilePackages: [
+		"@scientisst/sense",
+		"@scientisst/chakra-ui",
+		"esptool-js"
+	]
 }
 
 module.exports = nextConfig
