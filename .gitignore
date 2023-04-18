@@ -32,3 +32,7 @@ yarn-error.log*
 
 # turbo
 .turbo
+
+# IDE files
+.idea
+.vscode
