@@ -55,6 +55,17 @@ export class WebSerialTransport implements Transport {
 		this.bufferSize = bufferSize
 	}
 
+	/**
+	 * Returns true if the current device is a MacOS device
+	 */
+	private isMacOS(): boolean {
+		return (
+			navigator &&
+			typeof navigator.userAgent === "string" &&
+			navigator.userAgent.includes("Mac OS")
+		)
+	}
+
 	async open() {
 		if (this.isOpen()) {
 			throw new AlreadyConnectedException(this)
@@ -80,10 +91,24 @@ export class WebSerialTransport implements Transport {
 
 		// Open the serial port
 		try {
+			// DO NOT REMOVE THIS TIMEOUT
+			// MacOS WILL NOT WORK WITHOUT IT
+			if (this.isMacOS()) {
+				await new Promise(resolve => {
+					setTimeout(resolve, 2000)
+				})
+			}
 			await this.device.open({
 				baudRate: this.baudRate,
 				bufferSize: this.bufferSize
 			})
+			// DO NOT REMOVE THIS TIMEOUT
+			// MacOS WILL NOT WORK WITHOUT IT
+			if (this.isMacOS()) {
+				await new Promise(resolve => {
+					setTimeout(resolve, 8000)
+				})
+			}
 		} catch (e) {
 			this.device = undefined
 
@@ -162,6 +187,11 @@ export class WebSerialTransport implements Transport {
 			const writer = this.device.writable.getWriter()
 			this.writer = writer
 			try {
+				// DO NOT REMOVE THIS CONSOLE.LOG
+				// IF REMOVED, IT WILL BREAK THE APPLICATION FOR MacOS
+				if (this.isMacOS()) {
+					console.log("Sending...", data)
+				}
 				await writer.write(data)
 			} catch (e) {
 				if (e instanceof DOMException && e.name === "NetworkError") {
