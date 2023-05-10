@@ -1,3 +1,8 @@
+# Version 0.2.6
+
+- Updated src/index.ts to fix typescript export errors
+- Added a couple of @ts-expect-error to src/webserial.ts to fix typescript errors
+
 # Version 0.2.5
 
 - Changed: packaged.json 'main' field to point to the correct file (src/index.ts)

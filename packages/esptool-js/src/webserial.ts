@@ -193,6 +193,7 @@ class Transport {
 
 	_DTR_state = false
 	async setRTS(state: boolean) {
+		// @ts-expect-error
 		await this.device.setSignals({ requestToSend: state })
 		// # Work-around for adapters on Windows using the usbser.sys driver:
 		// # generate a dummy change to DTR so that the set-control-line-state
@@ -203,6 +204,7 @@ class Transport {
 
 	async setDTR(state: boolean) {
 		this._DTR_state = state
+		// @ts-expect-error
 		await this.device.setSignals({ dataTerminalReady: state })
 	}
 

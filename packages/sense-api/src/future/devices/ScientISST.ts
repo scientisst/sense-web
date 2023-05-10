@@ -34,7 +34,7 @@ export class ScientISST implements Device {
 	private readonly samplingRate: number
 	private version: SemVer | null = null
 	private adcCharacteristics: ScientISSTAdcCharacteristics | null = null
-	private timeoutID: number | null = null
+	private timeoutID: NodeJS.Timeout | null = null
 
 	constructor(
 		communicationMode: SCIENTISST_COMUNICATION_MODE,
@@ -213,7 +213,7 @@ export class ScientISST implements Device {
 				])
 			)
 
-			this.timeoutID = setInterval(async () => {
+			this.timeoutID = setTimeout(async () => {
 				await this.acquire()
 			}, 0)
 		}

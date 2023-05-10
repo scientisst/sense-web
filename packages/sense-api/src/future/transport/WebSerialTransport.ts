@@ -213,7 +213,7 @@ export class WebSerialTransport implements Transport {
 		// Read from the serial port
 		const reader = this.device.readable.getReader()
 		this.reader = reader
-		let timeoutId = 0
+		let timeoutId: NodeJS.Timeout | null = null
 		try {
 			try {
 				if (timeoutMilliseconds > 0) {
@@ -248,7 +248,7 @@ export class WebSerialTransport implements Transport {
 				}
 				throw e
 			} finally {
-				if (timeoutId !== 0) {
+				if (timeoutId !== null) {
 					clearTimeout(timeoutId)
 				}
 				reader.releaseLock()

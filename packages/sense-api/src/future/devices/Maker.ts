@@ -11,7 +11,7 @@ export class Maker implements Device {
 	private readonly transport: Transport
 	private status: DEVICE_STATUS = DEVICE_STATUS.DISCONNECTED
 	private frameReader: FrameReader | null = null
-	private timeoutID: number | null = null
+	private timeoutID: NodeJS.Timeout | null = null
 	private startTimestamp: number | null = null
 	private frameCount = 0
 	private channels: string[] = []
