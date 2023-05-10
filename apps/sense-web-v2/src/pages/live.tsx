@@ -6,30 +6,29 @@ import React, {
 	useState
 } from "react"
 
-import router from "next/router"
+import Link from "next/link"
+import { useRouter } from "next/router"
 
 import { TextButton, TextField } from "@scientisst/react-ui/components/inputs"
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme"
 import {
-	CHANNEL,
-	COMMUNICATION_MODE,
-	ConnectionFailedException,
-	ConnectionLostException,
-	ScientISST,
-	ScientISSTFrame,
-	UserCancelledException,
-	framesToUtf16
+	CancelledByUserException,
+	Device,
+	Frame,
+	Maker,
+	SCIENTISST_CHANNEL,
+	SCIENTISST_COMUNICATION_MODE,
+	ScientISST
 } from "@scientisst/sense/future"
 import { Form, Formik } from "formik"
-import { SemVer } from "semver"
 import resolveConfig from "tailwindcss/resolveConfig"
 
 import tailwindConfig from "../../tailwind.config"
 import CanvasChart from "../components/charts/CanvasChart"
 import SenseLayout from "../components/layout/SenseLayout"
 
-enum CONNECTION_STATUS {
+enum STATUS {
 	DISCONNECTED,
 	CONNECTION_LOST,
 	CONNECTION_FAILED,
@@ -37,7 +36,10 @@ enum CONNECTION_STATUS {
 	CONNECTED,
 	ACQUIRING,
 	PAUSED,
-	STOPPING
+	STOPPING,
+	STOPPED,
+	STOPPED_AND_SAVED,
+	OUT_OF_STORAGE
 }
 
 const fullConfig = resolveConfig(tailwindConfig)
@@ -48,398 +50,363 @@ const outlineColorLight =
 const outlineColorDark = fullConfig.theme.colors["over-background-highest-dark"]
 
 const Page = () => {
-	const scientisstRef = useRef(new ScientISST())
-	const [connectionStatus, setConnectionStatus] = useState(
-		CONNECTION_STATUS.DISCONNECTED
-	)
-	const [firmwareVersion, setFirmwareVersion] = useState<SemVer>(
-		new SemVer("0.0.0")
-	)
-	const [activeChannels, setActiveChannels] = useState<CHANNEL[]>([])
-	const [activeSamplingRate, setActiveSamplingRate] = useState(0)
-	const [segment, setSegment] = useState(1)
-	const frameSequenceRef = useRef(0)
-	const connectionTimeoutRef = useRef<number | null>(null)
-	const graphBufferSizeRef = useRef(0)
-	const graphBufferRef = useRef<Record<CHANNEL, [number, number | null][]>>({
-		[CHANNEL.AI1]: [],
-		[CHANNEL.AI2]: [],
-		[CHANNEL.AI3]: [],
-		[CHANNEL.AI4]: [],
-		[CHANNEL.AI5]: [],
-		[CHANNEL.AI6]: [],
-		[CHANNEL.AX1]: [],
-		[CHANNEL.AX2]: [],
-		[CHANNEL.I1]: [],
-		[CHANNEL.I2]: [],
-		[CHANNEL.O1]: [],
-		[CHANNEL.O2]: []
-	})
-	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
+	const router = useRouter()
+	const deviceRef = useRef<Device | null>(null)
+	const [status, setStatus] = useState(STATUS.DISCONNECTED)
+	// Determines whether an acquisition has started or not. If an acquisiton
+	// has started, a download button will be shown if the acquistion fails.
+	const [acquisitionStarted, setAcquisitionStarted] = useState(false)
+	const segmentRef = useRef(1)
+	// Store buffer contains the frames that are queued to be saved to
+	// localStorage
+	const [storeBuffer, setStoreBuffer] = useState<Frame[]>([])
+	const storeBufferThreshold = useRef(1000)
+	const [firmwareVersion, setFirmwareVersion] = useState<string | null>(null)
+
+	const channelsRef = useRef<string[]>([])
 	const isDark = useDarkTheme()
-	const saveTimestampRef = useRef(false)
+	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
+	const graphBufferRef = useRef<[number, Frame][]>([])
+	const frameSequenceRef = useRef(0)
 
-	const bufferRef = useRef<ScientISSTFrame[]>([])
-	const appendBuffer = useCallback(
-		(frames: ScientISSTFrame[], segment: number, bufferLimit: number) => {
-			const newState = [...bufferRef.current, ...frames]
-
-			if (newState.length >= bufferLimit) {
-				const i = newState.length - (newState.length % 16)
-				const newData = framesToUtf16(newState.slice(0, i))
-				const oldData = localStorage.getItem("aq_seg" + segment) ?? ""
-
-				localStorage.setItem("aq_seg" + segment, oldData + newData)
-
-				bufferRef.current = newState.slice(i)
-			} else {
-				bufferRef.current = newState
-			}
-		},
-		[]
-	)
-
-	const clearBuffer = useCallback((segment: number) => {
-		const i = bufferRef.current.length - (bufferRef.current.length % 16)
-		const newData = framesToUtf16(bufferRef.current.slice(0, i))
-		const oldData = localStorage.getItem("aq_seg" + segment) ?? ""
-
-		localStorage.setItem("aq_seg" + segment, oldData + newData)
-		bufferRef.current = []
-	}, [])
-
-	const flushBuffer = useCallback(() => {
-		bufferRef.current = []
-	}, [])
-
+	// The following useEffect ensures that the device is disconnected when the
+	// user leaves the page
 	useEffect(() => {
-		if (connectionStatus === CONNECTION_STATUS.ACQUIRING) {
-			let valid = true
-
-			new Promise(async resolve => {
-				while (valid) {
-					try {
-						const frames = await scientisstRef.current.readFrames(
-							Math.ceil(activeSamplingRate / 15)
-						)
-
-						if (frames.length === 0) {
-							break
-						}
-
-						if (valid) {
-							if (saveTimestampRef.current) {
-								saveTimestampRef.current = false
-
-								if (segment === 1) {
-									localStorage.setItem(
-										`aq_seg${segment}time`,
-										JSON.stringify(Date.now())
-									)
-								} else {
-									localStorage.setItem(
-										`aq_seg${segment}time`,
-										JSON.stringify(
-											JSON.parse(
-												localStorage.getItem(
-													`aq_seg1time`
-												) ?? "0"
-											) +
-												(frameSequenceRef.current /
-													activeSamplingRate) *
-													1000
-										)
-									)
-								}
-							}
-
-							appendBuffer(frames, segment, activeSamplingRate)
-
-							for (const frame of frames) {
-								for (const channel of activeChannels) {
-									const analog = frame.analog[channel]
-
-									if (analog === undefined) {
-										console.log(
-											"analog is undefined",
-											channel,
-											frame
-										)
-									} else {
-										graphBufferRef.current[channel].push([
-											frameSequenceRef.current,
-											frame.analog[channel]
-										])
-									}
-
-									if (
-										graphBufferRef.current[channel].length >
-										graphBufferSizeRef.current
-									) {
-										graphBufferRef.current[channel].shift()
-									}
-								}
-
-								frameSequenceRef.current++
-
-								setXDomain([
-									frameSequenceRef.current -
-										graphBufferSizeRef.current,
-									frameSequenceRef.current
-								])
-							}
-						} else {
-							frameSequenceRef.current =
-								frameSequenceRef.current + frames.length
-						}
-					} catch (error) {
-						if (valid) {
-							if (error instanceof ConnectionLostException) {
-								setConnectionStatus(
-									CONNECTION_STATUS.CONNECTION_LOST
-								)
-							} else {
-								// TODO: Possibly handle this differently
-								setConnectionStatus(
-									CONNECTION_STATUS.CONNECTION_LOST
-								)
-								//throw error
-							}
-						}
-					}
-				}
-				resolve(undefined)
-			})
-
-			return () => {
-				valid = false
-			}
-		} else if (connectionStatus === CONNECTION_STATUS.PAUSED) {
-			let valid = true
-
-			new Promise(async resolve => {
-				while (valid) {
-					try {
-						const frames = await scientisstRef.current.readFrames(
-							activeSamplingRate
-						)
-
-						if (frames.length === 0) {
-							break
-						}
-
-						frameSequenceRef.current += frames.length
-					} catch (error) {
-						if (valid) {
-							if (error instanceof ConnectionLostException) {
-								setConnectionStatus(
-									CONNECTION_STATUS.CONNECTION_LOST
-								)
-							} else {
-								// TODO: Possibly handle this differently
-								setConnectionStatus(
-									CONNECTION_STATUS.CONNECTION_LOST
-								)
-								//throw error
-							}
-						}
-					}
-				}
-				resolve(undefined)
-			})
-
-			return () => {
-				valid = false
+		return () => {
+			if (deviceRef.current) {
+				deviceRef.current.disconnect().catch(() => {
+					// Ignore any errors. We are already leaving the page
+				})
 			}
 		}
-	}, [
-		activeChannels,
-		activeSamplingRate,
-		appendBuffer,
-		connectionStatus,
-		segment
-	])
+	}, [])
+
+	// This function stored all queued frames to localStorage
+	const saveData = useCallback((buffer: Array<Frame | null>) => {
+		if (buffer.length === 0) return
+
+		try {
+			const serialized = buffer.map(frame => frame?.serialize()).join("")
+
+			const dataKey = "aq_seg" + segmentRef.current
+
+			if (!(dataKey in localStorage)) {
+				localStorage.setItem(
+					dataKey + "time",
+					JSON.stringify(Date.now())
+				)
+
+				const channels = deviceRef.current?.getChannels()
+				if (channels) {
+					localStorage.setItem(
+						"aq_channels",
+						JSON.stringify(channels)
+					)
+				}
+			}
+
+			const sampleRate = deviceRef.current?.getSamplingRate()
+			if (sampleRate) {
+				localStorage.setItem(
+					"aq_sampleRate",
+					JSON.stringify(sampleRate)
+				)
+			}
+
+			localStorage.setItem(
+				dataKey,
+				(localStorage.getItem(dataKey) ?? "") + serialized
+			)
+
+			setStoreBuffer([])
+		} catch (e) {
+			if (e instanceof DOMException && e.name === "QuotaExceededError") {
+				// We are out of localStorage, show the user the error
+				setStatus(STATUS.OUT_OF_STORAGE)
+				setStoreBuffer([]) // Prevent state loops
+
+				// Disconnect from the device, we can't continue the acquisition
+				deviceRef.current.onError = () => {
+					// We don't care about errors any more, we can't save
+					// any new date regardless.
+				}
+				deviceRef.current.disconnect().finally(() => {
+					// Ignore
+				})
+				return
+			}
+
+			console.error(e)
+			throw e
+		}
+	}, [])
+
+	// Save data to local storage
+	useEffect(() => {
+		if (storeBuffer.length >= storeBufferThreshold.current) {
+			const start = Date.now()
+			saveData(storeBuffer)
+			const saveTime = Date.now() - start
+
+			console.log("Saved data in " + saveTime + "ms")
+
+			const sampleRate = deviceRef.current?.getSamplingRate()
+			storeBufferThreshold.current = Math.max(
+				sampleRate * 5,
+				sampleRate * (saveTime / 1000 / 0.005)
+			)
+
+			console.log("Save threshold: " + storeBufferThreshold.current)
+		} else if (status === STATUS.PAUSED) {
+			saveData(storeBuffer)
+		} else if (status === STATUS.STOPPED) {
+			saveData(storeBuffer)
+
+			setStatus(STATUS.STOPPED_AND_SAVED)
+			router.push("/summary", {}).then(() => {
+				// Ignore
+			})
+		}
+	}, [router, saveData, status, storeBuffer])
 
 	const connect = useCallback(async () => {
-		if (
-			connectionStatus === CONNECTION_STATUS.DISCONNECTED ||
-			connectionStatus === CONNECTION_STATUS.CONNECTION_FAILED ||
-			connectionStatus === CONNECTION_STATUS.CONNECTION_LOST
-		) {
-			setConnectionStatus(CONNECTION_STATUS.CONNECTING)
+		setStatus(STATUS.CONNECTING)
+		setAcquisitionStarted(false)
 
-			const settings = localStorage.getItem("settings") || "{}"
-			const communicationMode =
-				JSON.parse(settings).communication ||
-				COMMUNICATION_MODE.BLUETOOTH
+		// Read settings from local storage
+		const settings = JSON.parse(
+			localStorage.getItem("settings") || "{}"
+		) as Record<string, unknown>
 
-			const t = connectionTimeoutRef.current + 1
-			connectionTimeoutRef.current = t
-			setTimeout(async () => {
-				if (connectionTimeoutRef.current === t) {
-					try {
-						await scientisstRef.current.disconnect()
-					} catch {}
-					setConnectionStatus(CONNECTION_STATUS.CONNECTION_FAILED)
-				}
-			}, 30000)
+		switch (settings.deviceType) {
+			case "maker":
+				const baudRate = (settings.baudRate ?? 9600) as number
+				deviceRef.current = new Maker(baudRate)
 
-			try {
-				await scientisstRef.current.connect(communicationMode)
-				setConnectionStatus(CONNECTION_STATUS.CONNECTED)
-				connectionTimeoutRef.current = connectionTimeoutRef.current + 1
-				setFirmwareVersion(scientisstRef.current.getVersion())
-			} catch (error) {
-				connectionTimeoutRef.current = connectionTimeoutRef.current + 1
-				if (error instanceof UserCancelledException) {
-					setConnectionStatus(CONNECTION_STATUS.DISCONNECTED)
-				} else if (error instanceof ConnectionFailedException) {
-					setConnectionStatus(CONNECTION_STATUS.CONNECTION_FAILED)
-				} else {
-					throw error
-				}
-			}
+				// Set the initial threshold for maker
+				storeBufferThreshold.current = 200
+
+				break
+			case "sense":
+				const communicationMode = (settings.communication ??
+					SCIENTISST_COMUNICATION_MODE.WEBSERIAL) as SCIENTISST_COMUNICATION_MODE
+				const channels = (settings.channels ?? [
+					"AI1",
+					"AI2",
+					"AI3",
+					"AI4",
+					"AI5",
+					"AI6"
+				]) as SCIENTISST_CHANNEL[]
+				const samplingRate = (settings.samplingRate ?? 1000) as number
+
+				deviceRef.current = new ScientISST(
+					communicationMode,
+					new Set(channels),
+					samplingRate
+				)
+
+				// Set the initial save threshold for ScientISST to 10 seconds
+				storeBufferThreshold.current = samplingRate * 5
+
+				break
+			default:
+				setStatus(STATUS.CONNECTION_FAILED)
+				throw new Error("Device type not supported.")
 		}
-	}, [connectionStatus])
+
+		try {
+			await deviceRef.current.connect()
+			segmentRef.current = 1
+			setFirmwareVersion(
+				deviceRef.current.getFirmwareVersion()
+					? deviceRef.current.getFirmwareVersion().version
+					: null
+			)
+			setStatus(STATUS.CONNECTED)
+		} catch (error) {
+			console.error(error)
+			if (error instanceof CancelledByUserException) {
+				setStatus(STATUS.DISCONNECTED)
+				return
+			}
+
+			setStatus(STATUS.CONNECTION_FAILED)
+		}
+	}, [])
 
 	const disconnect = useCallback(async () => {
-		if (
-			connectionStatus === CONNECTION_STATUS.CONNECTED ||
-			connectionStatus === CONNECTION_STATUS.ACQUIRING
-		) {
-			try {
-				if (!scientisstRef.current.isIdle()) {
-					await scientisstRef.current.stop()
-				}
-				await scientisstRef.current.disconnect()
-			} catch {}
-			setConnectionStatus(CONNECTION_STATUS.DISCONNECTED)
-		}
-	}, [connectionStatus])
+		await deviceRef.current?.disconnect()
+		setStatus(STATUS.DISCONNECTED)
+	}, [])
 
 	const start = useCallback(async () => {
-		if (connectionStatus === CONNECTION_STATUS.CONNECTED) {
-			setConnectionStatus(CONNECTION_STATUS.ACQUIRING)
-
-			// Read channels and sample rate from settings
-			const settings = localStorage.getItem("settings") || "{}"
-			const channels = JSON.parse(settings).channels || [
-				CHANNEL.AI1,
-				CHANNEL.AI2,
-				CHANNEL.AI3,
-				CHANNEL.AI4,
-				CHANNEL.AI5,
-				CHANNEL.AI6
-			]
-			const sampleRate = JSON.parse(settings).sampleRate || 1000
-			const adcCharacteristics =
-				scientisstRef.current.getAdcCharacteristics()
-
-			localStorage.setItem("aq_adcChars", adcCharacteristics.toJSON())
-
-			channels.sort()
-
-			setActiveChannels(channels)
-			setActiveSamplingRate(sampleRate)
-			graphBufferSizeRef.current = sampleRate * 5
-			setSegment(1)
-			saveTimestampRef.current = true
-			frameSequenceRef.current = 0
-
+		try {
+			// cleanup all localstorage items that start with aq_
 			for (const key in localStorage) {
 				if (key.startsWith("aq_")) {
 					localStorage.removeItem(key)
 				}
 			}
 
-			localStorage.setItem("aq_channels", JSON.stringify(channels))
-			localStorage.setItem("aq_sampleRate", JSON.stringify(sampleRate))
-			localStorage.setItem("aq_segments", JSON.stringify(1))
-			localStorage.setItem("aq_gracefullyStopped", JSON.stringify(false))
+			// Save device type and ADC characteristics to localStorage
 			localStorage.setItem(
-				"aq_seqRes",
-				JSON.stringify(
-					scientisstRef.current.getVersion().major < 2 ? 4 : 12
-				)
+				"aq_deviceType",
+				deviceRef.current instanceof Maker ? "maker" : "sense"
 			)
 
-			for (const channel of channels) {
-				localStorage.setItem(
-					`aq_channelName${channel}`,
-					CHANNEL[channel]
-				)
+			const adcCharacteristics =
+				deviceRef.current?.getAdcCharacteristics()
+
+			if (adcCharacteristics !== null) {
+				localStorage.setItem("aq_adcChars", adcCharacteristics.toJSON())
 			}
 
-			flushBuffer()
+			// Save the total number of segments to localStorage.
+			// This is going to start at zero because we are starting the
+			// first acquisition.
+			localStorage.setItem(
+				"aq_segments",
+				JSON.stringify(segmentRef.current)
+			)
 
-			try {
-				await scientisstRef.current.start(channels, sampleRate, false)
-			} catch (error) {
-				if (error instanceof ConnectionLostException) {
-					setConnectionStatus(CONNECTION_STATUS.CONNECTION_LOST)
-				} else {
-					setConnectionStatus(CONNECTION_STATUS.CONNECTION_FAILED)
-					throw error
+			deviceRef.current.onFrames = data => {
+				if (data === null) return
+
+				setStoreBuffer(prev => [
+					...prev,
+					...data.filter(d => d !== null)
+				])
+
+				if (channelsRef.current.length === 0) {
+					channelsRef.current = Object.keys(data[0].channels).sort()
 				}
-			}
-		}
-	}, [connectionStatus, flushBuffer])
 
-	const pauseResume = useCallback(async () => {
-		if (connectionStatus === CONNECTION_STATUS.PAUSED) {
-			setSegment(segment + 1)
-			localStorage.setItem("aq_segments", JSON.stringify(segment + 1))
-			setConnectionStatus(CONNECTION_STATUS.ACQUIRING)
-			saveTimestampRef.current = true
-			for (const key in graphBufferRef.current) {
-				graphBufferRef.current[key] = []
+				const graphBufferLimit = Math.ceil(
+					deviceRef.current.getSamplingRate() * 5
+				)
+
+				for (let i = 0; i < data.length; i++) {
+					const frame = data[i]
+
+					graphBufferRef.current.push([
+						frameSequenceRef.current,
+						frame
+					])
+
+					if (graphBufferRef.current.length > graphBufferLimit) {
+						graphBufferRef.current.shift()
+					}
+
+					frameSequenceRef.current++
+				}
+
+				setXDomain([
+					frameSequenceRef.current - graphBufferLimit,
+					frameSequenceRef.current
+				])
+
+				// We set this to true so that the user will be shown a
+				// download button in case the acquisition is stopped due
+				// to a localStorage being full or connection being lost.
+				setAcquisitionStarted(true)
 			}
-		} else if (connectionStatus === CONNECTION_STATUS.ACQUIRING) {
-			setConnectionStatus(CONNECTION_STATUS.PAUSED)
-			clearBuffer(segment)
+
+			deviceRef.current.onError = e => {
+				console.error(e)
+				setStatus(STATUS.CONNECTION_LOST)
+			}
+
+			// Ensure we don't store frames from previous acquisitions
+			setStoreBuffer([])
+
+			// Reset the list of channels being acquired so it can be filled
+			// again with the channels from the new acquisition.
+			channelsRef.current = []
+
+			await deviceRef.current?.startAcquisition()
+			setStatus(STATUS.ACQUIRING)
+		} catch (error) {
+			console.error(error)
+			setStatus(STATUS.CONNECTION_LOST)
 		}
-	}, [clearBuffer, connectionStatus, segment])
+	}, [])
 
 	const stop = useCallback(async () => {
-		if (
-			connectionStatus === CONNECTION_STATUS.ACQUIRING ||
-			connectionStatus === CONNECTION_STATUS.PAUSED
-		) {
-			if (connectionStatus === CONNECTION_STATUS.ACQUIRING) {
-				clearBuffer(segment)
-			}
-
-			setConnectionStatus(CONNECTION_STATUS.STOPPING)
-
-			try {
-				if (!scientisstRef.current.isIdle()) {
-					await scientisstRef.current.stop()
-				}
-				await scientisstRef.current.disconnect()
-				router.push("/summary")
-			} catch (error) {
-				console.error(error)
-			}
+		deviceRef.current.onError = () => {
+			// We are already stopping and disconnecting the device, we don't
+			// really care about errors from this point onwards.
 		}
-	}, [clearBuffer, connectionStatus, segment])
+		setStatus(STATUS.STOPPING)
+		try {
+			await deviceRef.current?.stopAcquisition()
+			await deviceRef.current?.disconnect()
+		} catch (e) {
+			// Ignore the errors. See the comment in the onError handler above.
+		}
+		setStatus(STATUS.STOPPED)
+	}, [])
 
-	const xTickFormatter = useCallback(
-		(value: number) => {
-			const time = value / activeSamplingRate
-			if (time < 0) {
-				return "0:00"
-			}
+	const pause = useCallback(async () => {
+		deviceRef.current.onError = () => {
+			// We are pausing the acquisition, if an error occurs we will handle
+			// it in the catch block below.
+		}
+		try {
+			await deviceRef.current?.stopAcquisition()
+			setStatus(STATUS.PAUSED)
+		} catch (e) {
+			setStatus(STATUS.CONNECTION_LOST)
+		}
+	}, [])
 
-			const seconds = Math.floor(time % 60)
-			const minutes = Math.floor(time / 60)
+	const resume = useCallback(async () => {
+		deviceRef.current.onError = e => {
+			console.error(e)
+			setStatus(STATUS.CONNECTION_LOST)
+		}
 
-			if (seconds < 10) {
-				return `${minutes}:0${seconds}`
-			}
-			return `${minutes}:${seconds}`
-		},
-		[activeSamplingRate]
-	)
+		try {
+			// We need to increment the segment number because we are starting
+			// a new acquisition. This way the data will be saved in a different
+			// localStorage entry.
+			//
+			// We do this before starting the acquisition to ensure that new
+			// data will not be saved in the previous segment.
+			segmentRef.current += 1
+
+			// Ensure we don't store frames from previous acquisitions
+			setStoreBuffer([])
+
+			await deviceRef.current?.startAcquisition()
+			setStatus(STATUS.ACQUIRING)
+
+			// Now that acquisition has started, we need to update the
+			// localStorage entry with the new segment number.
+			localStorage.setItem(
+				"aq_segments",
+				JSON.stringify(segmentRef.current)
+			)
+		} catch (e) {
+			setStatus(STATUS.CONNECTION_LOST)
+		}
+	}, [])
+
+	const xTickFormatter = useCallback((value: number) => {
+		const samplingRate = deviceRef.current?.getSamplingRate()
+		const time = samplingRate !== 0 ? value / samplingRate : value
+		if (time < 0) {
+			return "0:00"
+		}
+
+		const seconds = Math.floor(time % 60)
+		const minutes = Math.floor(time / 60)
+
+		if (seconds < 10) {
+			return `${minutes}:0${seconds}`
+		}
+		return `${minutes}:${seconds}`
+	}, [])
 
 	return (
 		<SenseLayout
@@ -448,27 +415,31 @@ const Page = () => {
 			shortTitle="Live"
 			returnHref="/"
 		>
-			{(connectionStatus === CONNECTION_STATUS.CONNECTED ||
-				connectionStatus === CONNECTION_STATUS.ACQUIRING ||
-				connectionStatus === CONNECTION_STATUS.PAUSED) && (
-				<span>{`Firmware version: ${firmwareVersion}`}</span>
+			{status === STATUS.CONNECTED && firmwareVersion !== null && (
+				<span>Firmware Version: {firmwareVersion}</span>
 			)}
 			<div className="flex flex-row gap-4">
-				{(connectionStatus === CONNECTION_STATUS.DISCONNECTED ||
-					connectionStatus === CONNECTION_STATUS.CONNECTING ||
-					connectionStatus === CONNECTION_STATUS.CONNECTION_FAILED ||
-					connectionStatus === CONNECTION_STATUS.CONNECTION_LOST) && (
+				{(status === STATUS.DISCONNECTED ||
+					status === STATUS.CONNECTING ||
+					status === STATUS.CONNECTION_FAILED ||
+					(status === STATUS.CONNECTION_LOST &&
+						!acquisitionStarted)) && (
 					<TextButton
 						size={"base"}
 						onClick={connect}
-						disabled={
-							connectionStatus === CONNECTION_STATUS.CONNECTING
-						}
+						disabled={status === STATUS.CONNECTING}
 					>
 						Connect
 					</TextButton>
 				)}
-				{connectionStatus === CONNECTION_STATUS.CONNECTED && (
+				{(status === STATUS.CONNECTION_LOST ||
+					status === STATUS.OUT_OF_STORAGE) &&
+					acquisitionStarted && (
+						<Link href="/summary">
+							<TextButton size={"base"}>Download</TextButton>
+						</Link>
+					)}
+				{status === STATUS.CONNECTED && (
 					<>
 						<TextButton size={"base"} onClick={start}>
 							Start
@@ -478,13 +449,13 @@ const Page = () => {
 						</TextButton>
 					</>
 				)}
-				{(connectionStatus === CONNECTION_STATUS.ACQUIRING ||
-					connectionStatus === CONNECTION_STATUS.PAUSED) && (
+				{(status === STATUS.ACQUIRING || status === STATUS.PAUSED) && (
 					<>
-						<TextButton size={"base"} onClick={pauseResume}>
-							{connectionStatus === CONNECTION_STATUS.PAUSED
-								? "Resume"
-								: "Pause"}
+						<TextButton
+							size={"base"}
+							onClick={status === STATUS.PAUSED ? resume : pause}
+						>
+							{status === STATUS.PAUSED ? "Resume" : "Pause"}
 						</TextButton>
 						<TextButton size={"base"} onClick={stop}>
 							Stop
@@ -492,40 +463,45 @@ const Page = () => {
 					</>
 				)}
 			</div>
-			{connectionStatus === CONNECTION_STATUS.CONNECTING && (
+			{status === STATUS.CONNECTING && (
 				<span>Attempting to connect...</span>
 			)}
-			{connectionStatus === CONNECTION_STATUS.CONNECTION_FAILED && (
+			{status === STATUS.CONNECTION_FAILED && (
 				<span>Connection failed!</span>
 			)}
-			{connectionStatus === CONNECTION_STATUS.CONNECTION_LOST && (
-				<span>Connection lost!</span>
+			{status === STATUS.CONNECTION_LOST && <span>Connection lost!</span>}
+			{status === STATUS.STOPPING && <span>Stopping acquisition...</span>}
+			{(status === STATUS.STOPPED ||
+				status === STATUS.STOPPED_AND_SAVED) && (
+				<span>Redirecting to summary page...</span>
 			)}
-			{connectionStatus === CONNECTION_STATUS.CONNECTION_LOST && (
-				<span>Stopping acquisition...</span>
+			{status === STATUS.ACQUIRING && <span>Acquiring...</span>}
+			{status === STATUS.OUT_OF_STORAGE && (
+				<span>Ran out of local storage!</span>
 			)}
-			{connectionStatus === CONNECTION_STATUS.ACQUIRING && (
+			{status === STATUS.ACQUIRING && (
 				<Formik
 					initialValues={{
-						channelName: activeChannels.reduce((acc, channel) => {
-							acc[channel] = CHANNEL[channel]
-							return acc
-						}, {} as Record<number, string>)
+						channelName: channelsRef.current.reduce(
+							(acc, channel) => {
+								acc[channel] = channel
+								return acc
+							},
+							{} as Record<number, string>
+						)
 					}}
 					onSubmit={async values => {
 						const { channelName } = values
 
-						for (const channel of activeChannels) {
-							localStorage.setItem(
-								`aq_channelName${channel}`,
-								channelName[channel]
-							)
-						}
+						localStorage.setItem(
+							"aq_channelNames",
+							JSON.stringify(channelName)
+						)
 					}}
 				>
 					<Form className="flex w-full flex-col gap-4">
 						<FormikAutoSubmit delay={100} />
-						{activeChannels.map(channel => {
+						{channelsRef.current.map(channel => {
 							return (
 								<Fragment key={channel}>
 									<div className="flex w-full flex-row">
@@ -533,16 +509,18 @@ const Page = () => {
 											id={`channelName.${channel}`}
 											name={`channelName.${channel}`}
 											className="mb-0"
+											placeholder={channel}
 										/>
 									</div>
 									<div className="bg-background-accent flex w-full flex-col rounded-md">
 										<div className="w-full p-4">
 											<CanvasChart
-												data={
-													graphBufferRef.current[
-														channel
+												data={graphBufferRef.current.map(
+													x => [
+														x[0],
+														x[1].channels[channel]
 													]
-												}
+												)}
 												xMin={xDomain[0]}
 												xMax={xDomain[1]}
 												className="h-64 w-full"

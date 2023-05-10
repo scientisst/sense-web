@@ -1,22 +1,19 @@
-import { useCallback } from "react"
+import { useCallback, useEffect } from "react"
+
+import { useRouter } from "next/router"
 
 import { TextButton } from "@scientisst/react-ui/components/inputs"
-import {
-	CHANNEL,
-	CHANNEL_SIZE,
-	ScientISSTAdcCharacteristics,
-	utf16ToFrames
-} from "@scientisst/sense/future"
+import { MakerFrame, ScientISSTFrame } from "@scientisst/sense/future"
 import { Canvg } from "canvg"
 import * as d3 from "d3"
 import FileSaver from "file-saver"
-import jsPDF from "jspdf"
+import JsPDF from "jspdf"
 import JSZip from "jszip"
 
 import SenseLayout from "../components/layout/SenseLayout"
 
 const addSvgToPDF = async (
-	pdf: jsPDF,
+	pdf: JsPDF,
 	svg: SVGSVGElement | string,
 	x: number,
 	y: number,
@@ -48,35 +45,44 @@ const addSvgToPDF = async (
 }
 
 const Page = () => {
-	const convertToCSV = useCallback(() => {
-		const adcChars = ScientISSTAdcCharacteristics.fromJSON(
-			localStorage.getItem("aq_adcChars")
-		)
+	const router = useRouter()
+	useEffect(() => {
+		if (!("aq_seg1" in localStorage)) {
+			router.push("/").finally(() => {
+				// Ignore
+			})
+		}
+	}, [router])
 
-		const channels: CHANNEL[] = JSON.parse(
+	const convertToCSV = useCallback(() => {
+		const channels: string[] = JSON.parse(
 			localStorage.getItem("aq_channels")
 		)
-
-		const channelNames: string[] = channels.map(
-			channel =>
-				localStorage.getItem(`aq_channelName${channel}`) ??
-				CHANNEL[channel]
+		const segments: number = JSON.parse(localStorage.getItem("aq_segments"))
+		const deviceType = localStorage.getItem("aq_deviceType")
+		const storedChannelNames: string[] = JSON.parse(
+			localStorage.getItem("aq_channelNames") ?? "{}"
 		)
 
-		const segments: number = JSON.parse(localStorage.getItem("aq_segments"))
+		if (deviceType !== "sense" && deviceType !== "maker") {
+			throw new Error("Device type not supported yet.")
+		}
 
 		const zip = new JSZip()
-
 		let firstTimestamp = 0
 
 		for (let i = 1; i <= segments; i++) {
 			const fileContent = []
-			const frames = utf16ToFrames(
-				localStorage.getItem(`aq_seg${i}`),
-				channels,
-				adcChars,
-				Number(localStorage.getItem(`aq_seqRes`) ?? "4")
-			)
+			const frames =
+				deviceType === "sense"
+					? ScientISSTFrame.deserializeAll(
+							localStorage.getItem(`aq_seg${i}`),
+							new Set(channels)
+					  )
+					: MakerFrame.deserializeAll(
+							localStorage.getItem(`aq_seg${i}`),
+							new Set(channels)
+					  )
 
 			if (frames.length === 0) {
 				continue
@@ -84,53 +90,53 @@ const Page = () => {
 
 			const resolutionBits = []
 			for (let j = 0; j < channels.length; j++) {
-				resolutionBits.push(CHANNEL_SIZE[channels[j]])
+				resolutionBits.push(ScientISSTFrame.CHANNEL_SIZES[channels[j]])
 			}
 
 			const timestamp = new Date(
 				JSON.parse(localStorage.getItem(`aq_seg${i}time`) ?? "0")
 			)
 
+			// This is used to name the zip file
 			if (firstTimestamp === 0) {
 				firstTimestamp = timestamp.getTime()
 			}
 
 			const metadata = {
-				Device: "ScientISST Sense",
-				Channels: channelNames,
+				Device:
+					deviceType === "sense"
+						? "ScientISST Sense"
+						: "ScientISST Maker",
+				Channels: channels,
 				"Sampling rate (Hz)": JSON.parse(
 					localStorage.getItem("aq_sampleRate")
 				),
 				"ISO 8601": timestamp.toISOString(),
 				Timestamp: timestamp.getTime(),
-				"Resolution (bits)": resolutionBits
+				"Resolution (bits)":
+					deviceType === "sense" ? resolutionBits : undefined
 			}
 
 			fileContent.push("#" + JSON.stringify(metadata, null, null))
 
 			// append header
-			fileContent.push("#NSeq\t" + channelNames.join("\t"))
+			fileContent.push(
+				"#NSeq," +
+					channels
+						.map(channel => storedChannelNames[channel] ?? channel)
+						.join(",")
+			)
 
 			// append data
 			for (let j = 0; j < frames.length; j++) {
 				const frameContent = []
 				frameContent.push(frames[j].sequence)
 
-				let ignore = false
 				for (let k = 0; k < channels.length; k++) {
-					if (frames[j].analog[channels[k]] === null) {
-						ignore = true
-						break
-					}
-
-					frameContent.push(frames[j].analog[channels[k]])
+					frameContent.push(frames[j].channels[channels[k]])
 				}
 
-				if (ignore) {
-					continue
-				}
-
-				fileContent.push(frameContent.join("\t"))
+				fileContent.push(frameContent.join(","))
 			}
 
 			zip.file(`segment_${i}.csv`, fileContent.join("\n"))
@@ -148,7 +154,7 @@ const Page = () => {
 	}, [])
 
 	const convertToPDF = useCallback(async () => {
-		const pdf = new jsPDF({
+		const pdf = new JsPDF({
 			orientation: "landscape",
 			unit: "mm",
 			format: "a4",
@@ -204,34 +210,38 @@ const Page = () => {
 		pdf.addFont("Lexend-Light.ttf", "Lexend", "light")
 
 		// Extract acquisition data from local storage
-		const adcChars = ScientISSTAdcCharacteristics.fromJSON(
-			localStorage.getItem("aq_adcChars")
-		)
-		const channels: CHANNEL[] = JSON.parse(
+		const channels: string[] = JSON.parse(
 			localStorage.getItem("aq_channels")
-		)
-		const channelNames: string[] = channels.map(
-			channel =>
-				localStorage.getItem(`aq_channelName${channel}`) ??
-				CHANNEL[channel]
 		)
 		const segmentCount: number = JSON.parse(
 			localStorage.getItem("aq_segments")
 		)
-		const selectedSegment = segmentCount
-		const frames = utf16ToFrames(
-			localStorage.getItem(`aq_seg${selectedSegment}`),
-			channels,
-			adcChars,
-			Number(localStorage.getItem(`aq_seqRes`) ?? "4")
+		const deviceType = localStorage.getItem("aq_deviceType")
+		const storedChannelNames: string[] = JSON.parse(
+			localStorage.getItem("aq_channelNames") ?? "{}"
 		)
+
+		if (deviceType !== "sense" && deviceType !== "maker") {
+			throw new Error("Device type not supported yet.")
+		}
+		const selectedSegment = segmentCount
+		const frames =
+			deviceType === "sense"
+				? ScientISSTFrame.deserializeAll(
+						localStorage.getItem(`aq_seg${selectedSegment}`) ?? "",
+						new Set(channels)
+				  )
+				: MakerFrame.deserializeAll(
+						localStorage.getItem(`aq_seg${selectedSegment}`) ?? "",
+						new Set(channels)
+				  )
+
 		const timestamp = new Date(
 			JSON.parse(localStorage.getItem(`aq_seg${selectedSegment}time`))
 		)
 		const samplingRate = JSON.parse(localStorage.getItem("aq_sampleRate"))
 
 		if (frames.length === 0) {
-			// TODO: improve behavior
 			throw new Error("No frames found")
 		}
 
@@ -358,7 +368,7 @@ const Page = () => {
 				baseline: "top"
 			})
 			pdf.text(
-				`${samplingRate} Hz`,
+				`${Math.round(samplingRate)} Hz`,
 				DOCUMENT_MARGIN + 35,
 				DOCUMENT_MARGIN + 18,
 				{
@@ -420,7 +430,7 @@ const Page = () => {
 				pdf.setFontSize(6)
 				pdf.setTextColor(...TEXT_SECONDARY)
 				pdf.text(
-					channelNames[channel],
+					storedChannelNames[channels[channel]] ?? channels[channel],
 					DOCUMENT_MARGIN,
 					DOCUMENT_MARGIN + offset,
 					{
@@ -478,7 +488,7 @@ const Page = () => {
 					.slice(-svgWidth)
 					.map((frame, i) => [
 						i,
-						frame.analog[channels[channel]]
+						frame.channels[channels[channel]]
 					]) as [number, number][]
 
 				svg.append("path")

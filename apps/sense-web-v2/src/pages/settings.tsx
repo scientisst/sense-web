@@ -11,7 +11,7 @@ import {
 	NumberField
 } from "@scientisst/react-ui/components/inputs"
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
-import { CHANNEL, COMMUNICATION_MODE } from "@scientisst/sense/future"
+import { SCIENTISST_COMUNICATION_MODE } from "@scientisst/sense/future"
 import clsx from "clsx"
 import { Form, Formik } from "formik"
 import * as Yup from "yup"
@@ -23,12 +23,15 @@ import SenseLayout from "../components/layout/SenseLayout"
 const schema = Yup.object().shape({
 	deviceType: Yup.string().oneOf(["sense", "maker"]).required(),
 	communication: Yup.number()
-		.oneOf([COMMUNICATION_MODE.WEB_SOCKET, COMMUNICATION_MODE.BLUETOOTH])
+		.oneOf([
+			SCIENTISST_COMUNICATION_MODE.WEBSOCKET,
+			SCIENTISST_COMUNICATION_MODE.WEBSERIAL
+		])
 		.test(
 			"bluetooth",
 			"Bluetooth is not supported on your current browser.",
 			value =>
-				value !== COMMUNICATION_MODE.BLUETOOTH ||
+				value !== SCIENTISST_COMUNICATION_MODE.WEBSERIAL ||
 				typeof navigator.serial !== "undefined"
 		)
 		.required(),
@@ -52,17 +55,10 @@ const Page = () => {
 	const [loaded, setLoaded] = useState(false)
 	const [defaultValues, setDefaultValues] = useState({
 		deviceType: "sense",
-		communication: COMMUNICATION_MODE.BLUETOOTH,
-		baudRate: 115200,
+		communication: SCIENTISST_COMUNICATION_MODE.WEBSERIAL,
+		baudRate: 9600,
 		samplingRate: 1000,
-		channels: [
-			CHANNEL.AI1,
-			CHANNEL.AI2,
-			CHANNEL.AI3,
-			CHANNEL.AI4,
-			CHANNEL.AI5,
-			CHANNEL.AI6
-		]
+		channels: ["AI1", "AI2", "AI3", "AI4", "AI5", "AI6"]
 	})
 
 	useEffect(() => {
@@ -73,8 +69,8 @@ const Page = () => {
 				...defaultValues,
 				communication:
 					typeof navigator.serial !== "undefined"
-						? COMMUNICATION_MODE.BLUETOOTH
-						: COMMUNICATION_MODE.WEB_SOCKET,
+						? SCIENTISST_COMUNICATION_MODE.WEBSERIAL
+						: SCIENTISST_COMUNICATION_MODE.WEBSOCKET,
 				...(JSON.parse(localStorage.getItem("settings") ?? "{}") || {})
 			})
 		}
@@ -140,11 +136,11 @@ const Page = () => {
 										options={[
 											{
 												name: "Bluetooth",
-												value: COMMUNICATION_MODE.BLUETOOTH
+												value: SCIENTISST_COMUNICATION_MODE.WEBSERIAL
 											},
 											{
 												name: "WiFi",
-												value: COMMUNICATION_MODE.WEB_SOCKET
+												value: SCIENTISST_COMUNICATION_MODE.WEBSOCKET
 											}
 										]}
 										className="w-full max-w-[29.25rem]"
@@ -166,35 +162,35 @@ const Page = () => {
 										options={[
 											{
 												name: "AI1",
-												value: CHANNEL.AI1
+												value: "AI1"
 											},
 											{
 												name: "AI2",
-												value: CHANNEL.AI2
+												value: "AI2"
 											},
 											{
 												name: "AI3",
-												value: CHANNEL.AI3
+												value: "AI3"
 											},
 											{
 												name: "AI4",
-												value: CHANNEL.AI4
+												value: "AI4"
 											},
 											{
 												name: "AI5",
-												value: CHANNEL.AI5
+												value: "AI5"
 											},
 											{
 												name: "AI6",
-												value: CHANNEL.AI6
+												value: "AI6"
 											},
 											{
 												name: "AX1",
-												value: CHANNEL.AX1
+												value: "AX1"
 											},
 											{
 												name: "AX2",
-												value: CHANNEL.AX2
+												value: "AX2"
 											}
 										]}
 										image={hovered => (
@@ -206,7 +202,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	CHANNEL.AI1
+																	"AI1"
 															}
 														)}
 														style={{
@@ -222,7 +218,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	CHANNEL.AI2
+																	"AI2"
 															}
 														)}
 														style={{
@@ -238,7 +234,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	CHANNEL.AI3
+																	"AI3"
 															}
 														)}
 														style={{
@@ -254,7 +250,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	CHANNEL.AX1
+																	"AX1"
 															}
 														)}
 														style={{
@@ -284,7 +280,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	CHANNEL.AI4
+																	"AI4"
 															}
 														)}
 														style={{
@@ -300,7 +296,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	CHANNEL.AI5
+																	"AI5"
 															}
 														)}
 														style={{
@@ -316,7 +312,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	CHANNEL.AI6
+																	"AI6"
 															}
 														)}
 														style={{
@@ -332,7 +328,7 @@ const Page = () => {
 															{
 																hidden:
 																	hovered !==
-																	CHANNEL.AX2
+																	"AX2"
 															}
 														)}
 														style={{

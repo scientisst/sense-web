@@ -35,7 +35,7 @@ const Page = () => {
 				.then(buffer => {
 					// Convert the buffer to a binary string
 					let binaryString = ""
-					let bytes = new Uint8Array(buffer)
+					const bytes = new Uint8Array(buffer)
 					for (let i = 0; i < bytes.length; i++) {
 						binaryString += String.fromCharCode(bytes[i])
 					}
@@ -48,7 +48,7 @@ const Page = () => {
 				.then(buffer => {
 					// Convert the buffer to a binary string
 					let binaryString = ""
-					let bytes = new Uint8Array(buffer)
+					const bytes = new Uint8Array(buffer)
 					for (let i = 0; i < bytes.length; i++) {
 						binaryString += String.fromCharCode(bytes[i])
 					}
@@ -59,7 +59,7 @@ const Page = () => {
 				.then(buffer => {
 					// Convert the buffer to a binary string
 					let binaryString = ""
-					let bytes = new Uint8Array(buffer)
+					const bytes = new Uint8Array(buffer)
 					for (let i = 0; i < bytes.length; i++) {
 						binaryString += String.fromCharCode(bytes[i])
 					}
@@ -72,7 +72,7 @@ const Page = () => {
 				.then(buffer => {
 					// Convert the buffer to a binary string
 					let binaryString = ""
-					let bytes = new Uint8Array(buffer)
+					const bytes = new Uint8Array(buffer)
 					for (let i = 0; i < bytes.length; i++) {
 						binaryString += String.fromCharCode(bytes[i])
 					}
