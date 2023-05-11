@@ -24,11 +24,11 @@ const imagine = localFont({
 
 export default function MyApp({ Component, pageProps }: AppProps) {
 	useEffect(() => {
-		const version = localStorage.get("version")
+		const version = localStorage.getItem("version")
 
 		if (version !== "2.7.0") {
 			localStorage.clear()
-			localStorage.set("version", "2.7.0")
+			localStorage.setItem("version", "2.7.0")
 		}
 	}, [])
 
