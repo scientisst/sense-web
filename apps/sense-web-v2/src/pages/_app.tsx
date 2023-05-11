@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 
 import type { AppProps } from "next/app"
 
@@ -23,6 +23,15 @@ const imagine = localFont({
 })
 
 export default function MyApp({ Component, pageProps }: AppProps) {
+	useEffect(() => {
+		const version = localStorage.get("version")
+
+		if (version !== "2.7.0") {
+			localStorage.clear()
+			localStorage.set("version", "2.7.0")
+		}
+	}, [])
+
 	return (
 		<NoSSR>
 			<ChakraProvider theme={defaultScientISSTTheme}>
