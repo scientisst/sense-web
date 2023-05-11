@@ -178,7 +178,7 @@ const Page = () => {
 			localStorage.getItem("settings") || "{}"
 		) as Record<string, unknown>
 
-		switch (settings.deviceType) {
+		switch (settings.deviceType ?? "sense") {
 			case "maker":
 				const baudRate = (settings.baudRate ?? 9600) as number
 				deviceRef.current = new Maker(baudRate)
