@@ -378,6 +378,11 @@ const Page = () => {
 			// Ensure we don't store frames from previous acquisitions
 			setStoreBuffer([])
 
+			// Reset charts
+			graphBufferRef.current = []
+			setXDomain([0, 0])
+			frameSequenceRef.current = 0
+
 			await deviceRef.current?.startAcquisition()
 			setStatus(STATUS.ACQUIRING)
 
