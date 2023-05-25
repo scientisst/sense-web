@@ -26,7 +26,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 	useEffect(() => {
 		const version = localStorage.getItem("version")
 
-		if (version !== "2.7.0") {
+		if (version !== "2.8.0") {
 			localStorage.clear()
 			localStorage.setItem("version", "2.7.0")
 		}

@@ -59,7 +59,8 @@ const Page = () => {
 	const segmentRef = useRef(1)
 	// Store buffer contains the frames that are queued to be saved to
 	// localStorage
-	const [storeBuffer, setStoreBuffer] = useState<Frame[]>([])
+	const storeBufferRef = useRef<Frame[]>([])
+	const [storeBufferLength, setStoreBufferLength] = useState(0)
 	const storeBufferThreshold = useRef(1000)
 	const [firmwareVersion, setFirmwareVersion] = useState<string | null>(null)
 
@@ -118,12 +119,14 @@ const Page = () => {
 				(localStorage.getItem(dataKey) ?? "") + serialized
 			)
 
-			setStoreBuffer([])
+			storeBufferRef.current = []
+			setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
 		} catch (e) {
 			if (e instanceof DOMException && e.name === "QuotaExceededError") {
 				// We are out of localStorage, show the user the error
 				setStatus(STATUS.OUT_OF_STORAGE)
-				setStoreBuffer([]) // Prevent state loops
+				storeBufferRef.current = []
+				setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
 
 				// Disconnect from the device, we can't continue the acquisition
 				deviceRef.current.onError = () => {
@@ -143,9 +146,9 @@ const Page = () => {
 
 	// Save data to local storage
 	useEffect(() => {
-		if (storeBuffer.length >= storeBufferThreshold.current) {
+		if (storeBufferLength >= storeBufferThreshold.current) {
 			const start = Date.now()
-			saveData(storeBuffer)
+			saveData(storeBufferRef.current)
 			const saveTime = Date.now() - start
 
 			console.log("Saved data in " + saveTime + "ms")
@@ -153,21 +156,24 @@ const Page = () => {
 			const sampleRate = deviceRef.current?.getSamplingRate()
 			storeBufferThreshold.current = Math.max(
 				sampleRate * 5,
-				sampleRate * (saveTime / 1000 / 0.005)
+				Math.min(
+					sampleRate * (saveTime / 1000 / 0.005),
+					sampleRate * 10
+				)
 			)
 
 			console.log("Save threshold: " + storeBufferThreshold.current)
 		} else if (status === STATUS.PAUSED) {
-			saveData(storeBuffer)
+			saveData(storeBufferRef.current)
 		} else if (status === STATUS.STOPPED) {
-			saveData(storeBuffer)
+			saveData(storeBufferRef.current)
 
 			setStatus(STATUS.STOPPED_AND_SAVED)
 			router.push("/summary", {}).then(() => {
 				// Ignore
 			})
 		}
-	}, [router, saveData, status, storeBuffer])
+	}, [router, saveData, status, storeBufferLength])
 
 	const connect = useCallback(async () => {
 		setStatus(STATUS.CONNECTING)
@@ -273,10 +279,16 @@ const Page = () => {
 			deviceRef.current.onFrames = data => {
 				if (data === null) return
 
-				setStoreBuffer(prev => [
-					...prev,
+				storeBufferRef.current = [
+					...storeBufferRef.current,
 					...data.filter(d => d !== null)
-				])
+				]
+				if (
+					storeBufferRef.current.length >=
+					storeBufferThreshold.current
+				) {
+					setStoreBufferLength(storeBufferRef.current.length)
+				}
 
 				if (channelsRef.current.length === 0) {
 					channelsRef.current = Object.keys(data[0].channels).sort()
@@ -318,7 +330,8 @@ const Page = () => {
 			}
 
 			// Ensure we don't store frames from previous acquisitions
-			setStoreBuffer([])
+			storeBufferRef.current = []
+			setStoreBufferLength(storeBufferRef.current.length)
 
 			// Reset the list of channels being acquired so it can be filled
 			// again with the channels from the new acquisition.
@@ -376,7 +389,8 @@ const Page = () => {
 			segmentRef.current += 1
 
 			// Ensure we don't store frames from previous acquisitions
-			setStoreBuffer([])
+			storeBufferRef.current = []
+			setStoreBufferLength(storeBufferRef.current.length)
 
 			// Reset charts
 			graphBufferRef.current = []
