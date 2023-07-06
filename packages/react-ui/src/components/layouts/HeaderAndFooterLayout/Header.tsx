@@ -3,7 +3,8 @@ import { ReactNode } from "react"
 import { faLightbulb as faLightbulbRegular } from "@fortawesome/free-regular-svg-icons"
 import {
 	faChevronLeft,
-	faLightbulb as faLightbulbSolid
+	faLightbulb as faLightbulbSolid,
+	faScrewdriverWrench
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
@@ -28,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
 	return (
 		<nav className="bg-primary text-over-primary-highest flex h-16 items-center justify-center drop-shadow-lg">
-			<div className="container grid h-full select-none grid-cols-[4rem_auto_4rem] items-stretch justify-items-stretch sm:grid-cols-[8rem_auto_8rem] sm:px-4">
+			<div className="container grid h-full select-none grid-cols-[4rem_auto_4rem] items-stretch justify-items-stretch sm:grid-cols-[12rem_auto_12rem] sm:px-4">
 				<div className="flex items-center justify-start">
 					{!!returnHref && (
 						<ImageAnchor
@@ -55,6 +56,15 @@ const Header: React.FC<HeaderProps> = ({
 					)}
 				</div>
 				<div className="flex items-center justify-end">
+					<ImageAnchor
+						href="/flash"
+						className="mr-4 hidden sm:flex"
+					>
+						<FontAwesomeIcon
+							icon={faScrewdriverWrench}
+							className="inline h-6 w-6 p-3"
+						/>
+					</ImageAnchor>
 					<ImageButton
 						onClick={toggleDarkTheme}
 						className="mr-4 hidden sm:flex"
