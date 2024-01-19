@@ -1,0 +1,118 @@
+{
+  "name": "@scientisst/sense-web-v2",
+  "private": true,
+  "version": "2.9.0",
+  "type": "module",
+  "scripts": {
+    "chakra:generate": "npx @chakra-ui/cli tokens src/theme/index.ts",
+    "postinstall": "pnpm run chakra:generate",
+    "dev": "vite",
+    "prebuild": "pnpm run lint",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "pnpm run lint -- --fix",
+    "preview": "npx serve ./dist/client/"
+  },
+  "dependencies": {
+    "@chakra-ui/cli": "2.4.1",
+    "@chakra-ui/react": "2.8.2",
+    "@emotion/react": "11.11.3",
+    "@emotion/styled": "11.11.0",
+    "@fontsource-variable/lexend": "5.0.18",
+    "@fontsource-variable/source-code-pro": "5.0.17",
+    "@hookform/resolvers": "3.3.4",
+    "@mdx-js/rollup": "3.0.0",
+    "@swc/cli": "0.1.63",
+    "@swc/core": "1.3.102",
+    "@trivago/prettier-plugin-sort-imports": "4.3.0",
+    "@types/node": "20.11.0",
+    "@types/react": "18.2.47",
+    "@types/react-dom": "18.2.18",
+    "@typescript-eslint/eslint-plugin": "6.18.1",
+    "@typescript-eslint/parser": "6.18.1",
+    "@vitejs/plugin-react-swc": "3.5.0",
+    "eslint": "8.56.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-jsx-a11y": "6.8.0",
+    "eslint-plugin-prettier": "5.1.3",
+    "eslint-plugin-react": "7.33.2",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "framer-motion": "10.18.0",
+    "prettier": "3.2.2",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-hook-form": "7.49.3",
+    "remark-gfm": "4.0.0",
+    "sass": "1.69.7",
+    "sharp": "0.33.2",
+    "svgo": "3.2.0",
+    "typescript": "5.3.3",
+    "vike": "0.4.156",
+    "vike-react": "0.3.8",
+    "vite": "5.0.11",
+    "vite-plugin-image-optimizer": "1.1.7",
+    "vite-plugin-svgr": "4.2.0",
+    "zod": "3.22.4"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2020": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:react/recommended",
+      "plugin:react/jsx-runtime",
+      "plugin:react-hooks/recommended",
+      "plugin:jsx-a11y/strict",
+      "prettier"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "settings": {
+      "react": {
+        "version": "detect"
+      }
+    },
+    "plugins": [
+      "@typescript-eslint",
+      "react",
+      "react-hooks",
+      "jsx-a11y",
+      "prettier"
+    ],
+    "root": true,
+    "rules": {
+      "prettier/prettier": "error",
+      "react/prop-types": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_",
+          "caughtErrorsIgnorePattern": "^_"
+        }
+      ],
+      "@typescript-eslint/no-namespace": "off"
+    }
+  },
+  "prettier": {
+    "plugins": [
+      "@trivago/prettier-plugin-sort-imports"
+    ],
+    "importOrder": [
+      "(^react-dom$|^react-dom/(.*)$|^react$|^react/(.*)$)",
+      "(^vite$|^vite/(.*)$|^@vitejs$|^@vitejs/(.*)$|^vike$|^vike/(.*)$)",
+      "<THIRD_PARTY_MODULES>",
+      "^@/(.*)$",
+      "^~/(.*)$",
+      "^[./]"
+    ],
+    "importOrderSeparation": true,
+    "importOrderSortSpecifiers": true
+  }
+}

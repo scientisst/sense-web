@@ -1,0 +1,63 @@
+{
+  "name": "@scientisst/sense-web-v1",
+  "version": "1.5.4",
+  "private": true,
+  "scripts": {
+    "dev": "vue-cli-service serve --port 3001",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "6.5.1",
+    "@fortawesome/free-brands-svg-icons": "6.5.1",
+    "@fortawesome/free-regular-svg-icons": "6.5.1",
+    "@fortawesome/free-solid-svg-icons": "6.5.1",
+    "@fortawesome/vue-fontawesome": "3.0.5",
+    "@scientisst/sense": "2.0.2",
+    "chart.js": "4.4.1",
+    "chartjs-adapter-moment": "1.0.1",
+    "chartjs-plugin-zoom": "2.0.1",
+    "core-js": "3.35.0",
+    "downsample": "1.4.0",
+    "lodash.uniqueid": "4.0.1",
+    "moment": "2.30.1",
+    "mosha-vue-toastify": "1.0.23",
+    "register-service-worker": "1.7.2",
+    "vue": "3.4.13",
+    "vue-gtag": "2.0.1",
+    "vue-router": "4.2.5",
+    "vue-segmented-control": "1.0.0",
+    "vue-universal-modal": "1.1.4"
+  },
+  "devDependencies": {
+    "@babel/core": "7.23.7",
+    "@babel/eslint-parser": "7.23.3",
+    "@vue/cli-plugin-babel": "5.0.8",
+    "@vue/cli-plugin-eslint": "5.0.8",
+    "@vue/cli-plugin-pwa": "5.0.8",
+    "@vue/cli-plugin-router": "5.0.8",
+    "@vue/cli-service": "5.0.8",
+    "eslint": "8.56.0",
+    "eslint-plugin-vue": "9.20.1",
+    "gh-pages": "6.1.1"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "@babel/eslint-parser"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}
