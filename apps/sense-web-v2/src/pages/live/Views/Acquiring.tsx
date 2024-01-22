@@ -1,17 +1,17 @@
 import { Fragment, useEffect, useState, useRef } from "react"
 
 import { TextButton, TextField } from "@scientisst/react-ui/components/inputs"
-import EventsLabel from "../../components/ShowEvents"
+import EventsLabel from "../../../components/ShowEvents"
 import { Formik, Form } from "formik"
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
-import CanvasChart from "../../components/charts/CanvasChart"
-import { annotationProps, loadSettings } from "../../constants"
+import CanvasChart from "../../../components/charts/CanvasChart"
+import { annotationProps, loadSettings } from "../../../constants"
 
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme"
 
 import resolveConfig from "tailwindcss/resolveConfig"
 
-import tailwindConfig from "../../../tailwind.config"
+import tailwindConfig from "../../../../tailwind.config"
 
 
 const fullConfig = resolveConfig(tailwindConfig)

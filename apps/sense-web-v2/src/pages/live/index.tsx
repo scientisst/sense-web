@@ -5,7 +5,6 @@ import React, {
 	useState
 } from "react"
 
-import Link from "next/link"
 import { useRouter } from "next/router"
 
 import { TextButton } from "@scientisst/react-ui/components/inputs"
@@ -20,9 +19,19 @@ import {
 } from "@scientisst/sense/future"
 
 import SenseLayout from "../../components/layout/SenseLayout"
-import Acquiring from "./Acquiring"
+import Acquiring from "./Views/Acquiring"
+import Editing from "./Views/Editing"
+import Paused from "./Views/Paused"
+import OutOfStorage from "./Views/OutOfStorage"
+import ConnectionLost from "./Views/ConnectionLost"
+import Connected from "./Views/Connected"
+import Stopped from "./Views/Stopped"
+import Stopping from "./Views/Stopping"
+import ConnectionFailed from "./Views/ConnectionFailed"
+import Connecting from "./Views/Connecting"
+import Disconnect from "./Views/Disconnect"
 
-enum STATUS {
+export enum STATUS {
 	DISCONNECTED,
 	CONNECTION_LOST,
 	CONNECTION_FAILED,
@@ -33,7 +42,8 @@ enum STATUS {
 	STOPPING,
 	STOPPED,
 	STOPPED_AND_SAVED,
-	OUT_OF_STORAGE
+	OUT_OF_STORAGE,
+	EDITING
 }
 
 const Page = () => {
@@ -153,6 +163,8 @@ const Page = () => {
 			saveData(storeBufferRef.current)
 		} else if (status === STATUS.STOPPED) {
 			saveData(storeBufferRef.current)
+		// } else if (status === STATUS.EDITING) {
+		// 	saveData(storeBufferRef.current)
 
 			setStatus(STATUS.STOPPED_AND_SAVED)
 			router.push("/summary", {}).then(() => {
@@ -419,72 +431,20 @@ const Page = () => {
 			shortTitle="Live"
 			returnHref="/"
 		>
-			{status === STATUS.CONNECTED && firmwareVersion !== null && (
-				<span>Firmware Version: {firmwareVersion}</span>
-			)}
-			<div className="flex flex-row gap-4">
-				{(status === STATUS.DISCONNECTED ||
-					status === STATUS.CONNECTING ||
-					status === STATUS.CONNECTION_FAILED ||
-					(status === STATUS.CONNECTION_LOST &&
-						!acquisitionStarted)) && (
-					<TextButton
-						size={"base"}
-						onClick={connect}
-						disabled={status === STATUS.CONNECTING}
-					>
-						Connect
-					</TextButton>
-				)}
-				{(status === STATUS.CONNECTION_LOST ||
-					status === STATUS.OUT_OF_STORAGE) &&
-					acquisitionStarted && (
-						<Link href="/summary">
-							<TextButton size={"base"}>Download</TextButton>
-						</Link>
-					)}
-				{status === STATUS.CONNECTED && (
-					<>
-						<TextButton size={"base"} onClick={start}>
-							Start
-						</TextButton>
-						<TextButton size={"base"} onClick={disconnect}>
-							Disconnect
-						</TextButton>
-					</>
-				)}
-				{status === STATUS.PAUSED && (
-					<>
-						<TextButton
-							size={"base"}
-							onClick={status === STATUS.PAUSED ? resume : pause}
-						>
-							{status === STATUS.PAUSED ? "Resume" : "Pause"}
-						</TextButton>
-						<TextButton size={"base"} onClick={stop}>
-							Stop
-						</TextButton>
-					</>
-				)}
-			</div>
-			{status === STATUS.CONNECTING && (
-				<span>Attempting to connect...</span>
-			)}
-			{status === STATUS.CONNECTION_FAILED && (
-				<span>Connection failed!</span>
-			)}
-			{status === STATUS.CONNECTION_LOST && <span>Connection lost!</span>}
-			{status === STATUS.STOPPING && <span>Stopping acquisition...</span>}
-			{(status === STATUS.STOPPED ||
-				status === STATUS.STOPPED_AND_SAVED) && (
-				<span>Redirecting to summary page...</span>
-			)}
 			
-			{status === STATUS.OUT_OF_STORAGE && (
-				<span>Ran out of local storage!</span>
-			)}
-
+			{status === STATUS.DISCONNECTED && <Disconnect status={status} connect={connect}/>}
+			{status === STATUS.CONNECTING && <Connecting status={status} connect={connect}/>}
+			{status === STATUS.CONNECTION_FAILED && <ConnectionFailed status={status} connect={connect}/>}
+			{status === STATUS.STOPPING && <Stopping />}
+			{status === STATUS.STOPPED && <Stopped />}
+			{status === STATUS.STOPPED_AND_SAVED && <Stopped />}
+			{status === STATUS.CONNECTED && <Connected start={start} disconnect={disconnect} firmwareVersion={firmwareVersion}/>}
+			{status === STATUS.CONNECTION_LOST && acquisitionStarted && <ConnectionLost status={status} connect={connect}/>}
+			{status === STATUS.OUT_OF_STORAGE && acquisitionStarted && <OutOfStorage />}
+			{status === STATUS.PAUSED && <Paused resume={resume} stop={stop} />}
 			{status === STATUS.ACQUIRING && <Acquiring channelsRef={channelsRef} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain} /> }
+			{status === STATUS.EDITING && <Editing />}
+
 		</SenseLayout>
 	)
 }
