@@ -1,5 +1,4 @@
 import React, {
-	Fragment,
 	useCallback,
 	useEffect,
 	useRef,
@@ -9,9 +8,7 @@ import React, {
 import Link from "next/link"
 import { useRouter } from "next/router"
 
-import { TextButton, TextField } from "@scientisst/react-ui/components/inputs"
-import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
-import { useDarkTheme } from "@scientisst/react-ui/dark-theme"
+import { TextButton } from "@scientisst/react-ui/components/inputs"
 import {
 	CancelledByUserException,
 	Device,
@@ -21,12 +18,9 @@ import {
 	SCIENTISST_COMUNICATION_MODE,
 	ScientISST
 } from "@scientisst/sense/future"
-import { Form, Formik } from "formik"
-import resolveConfig from "tailwindcss/resolveConfig"
 
-import tailwindConfig from "../../tailwind.config"
-import CanvasChart from "../components/charts/CanvasChart"
-import SenseLayout from "../components/layout/SenseLayout"
+import SenseLayout from "../../components/layout/SenseLayout"
+import Acquiring from "./Acquiring"
 
 enum STATUS {
 	DISCONNECTED,
@@ -41,13 +35,6 @@ enum STATUS {
 	STOPPED_AND_SAVED,
 	OUT_OF_STORAGE
 }
-
-const fullConfig = resolveConfig(tailwindConfig)
-const lineColorLight = fullConfig.theme.colors["primary-light"]
-const lineColorDark = fullConfig.theme.colors["primary-dark"]
-const outlineColorLight =
-	fullConfig.theme.colors["over-background-highest-light"]
-const outlineColorDark = fullConfig.theme.colors["over-background-highest-dark"]
 
 const Page = () => {
 	const router = useRouter()
@@ -65,7 +52,6 @@ const Page = () => {
 	const [firmwareVersion, setFirmwareVersion] = useState<string | null>(null)
 
 	const channelsRef = useRef<string[]>([])
-	const isDark = useDarkTheme()
 	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
 	const graphBufferRef = useRef<[number, Frame][]>([])
 	const frameSequenceRef = useRef(0)
@@ -174,12 +160,11 @@ const Page = () => {
 			})
 		}
 	}, [router, saveData, status, storeBufferLength])
-
+	
 	const connect = useCallback(async () => {
 		setStatus(STATUS.CONNECTING)
 		setAcquisitionStarted(false)
 
-		// Read settings from local storage
 		const settings = JSON.parse(
 			localStorage.getItem("settings") || "{}"
 		) as Record<string, unknown>
@@ -417,10 +402,10 @@ const Page = () => {
 		if (time < 0) {
 			return "0:00"
 		}
-
+	
 		const seconds = Math.floor(time % 60)
 		const minutes = Math.floor(time / 60)
-
+	
 		if (seconds < 10) {
 			return `${minutes}:0${seconds}`
 		}
@@ -468,7 +453,7 @@ const Page = () => {
 						</TextButton>
 					</>
 				)}
-				{(status === STATUS.ACQUIRING || status === STATUS.PAUSED) && (
+				{status === STATUS.PAUSED && (
 					<>
 						<TextButton
 							size={"base"}
@@ -494,78 +479,12 @@ const Page = () => {
 				status === STATUS.STOPPED_AND_SAVED) && (
 				<span>Redirecting to summary page...</span>
 			)}
-			{status === STATUS.ACQUIRING && <span>Acquiring...</span>}
+			
 			{status === STATUS.OUT_OF_STORAGE && (
 				<span>Ran out of local storage!</span>
 			)}
-			{status === STATUS.ACQUIRING && (
-				<Formik
-					initialValues={{
-						channelName: channelsRef.current.reduce(
-							(acc, channel) => {
-								acc[channel] = channel
-								return acc
-							},
-							{} as Record<number, string>
-						)
-					}}
-					onSubmit={async values => {
-						const { channelName } = values
 
-						localStorage.setItem(
-							"aq_channelNames",
-							JSON.stringify(channelName)
-						)
-					}}
-				>
-					<Form className="flex w-full flex-col gap-4">
-						<FormikAutoSubmit delay={100} />
-						{channelsRef.current.map(channel => {
-							return (
-								<Fragment key={channel}>
-									<div className="flex w-full flex-row">
-										<TextField
-											id={`channelName.${channel}`}
-											name={`channelName.${channel}`}
-											className="mb-0"
-											placeholder={channel}
-										/>
-									</div>
-									<div className="bg-background-accent flex w-full flex-col rounded-md">
-										<div className="w-full p-4">
-											<CanvasChart
-												data={graphBufferRef.current.map(
-													x => [
-														x[0],
-														x[1].channels[channel]
-													]
-												)}
-												xMin={xDomain[0]}
-												xMax={xDomain[1]}
-												className="h-64 w-full"
-												fontFamily="Lexend"
-												lineColor={
-													isDark
-														? lineColorDark
-														: lineColorLight
-												}
-												outlineColor={
-													isDark
-														? outlineColorDark
-														: outlineColorLight
-												}
-												yTicks={5}
-												xTicks={5}
-												xTickFormat={xTickFormatter}
-											/>
-										</div>
-									</div>
-								</Fragment>
-							)
-						})}
-					</Form>
-				</Formik>
-			)}
+			{status === STATUS.ACQUIRING && <Acquiring channelsRef={channelsRef} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain} /> }
 		</SenseLayout>
 	)
 }

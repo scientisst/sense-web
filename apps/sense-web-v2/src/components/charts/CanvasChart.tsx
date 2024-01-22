@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import clsx from "clsx"
 import * as d3 from "d3"
+import { annotationProps } from "../../constants"
 
 export interface CanvasChartProps {
 	className?: string
@@ -24,6 +25,9 @@ export interface CanvasChartProps {
 	fontWeight?: number
 	lineColor?: string
 	outlineColor?: string
+	annotations?: annotationProps[]
+	intervals?: {left: number, right: number}[]
+
 }
 
 const CanvasChart: React.FC<CanvasChartProps> = ({
@@ -46,13 +50,12 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 	fontFamily,
 	fontWeight,
 	lineColor,
-	outlineColor
+	outlineColor,
+	annotations,
+	intervals,
 }) => {
-	const [parentElement, setParentElement] = useState<HTMLDivElement | null>(
-		null
-	)
-	const [canvasElement, setCanvasElement] =
-		useState<HTMLCanvasElement | null>(null)
+	const [parentElement, setParentElement] = useState<HTMLDivElement | null>(null)
+	const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null)
 
 	const [width, setWidth] = useState(0)
 	const [height, setHeight] = useState(0)
@@ -136,17 +139,13 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 				8 * pixelRatio
 			const xAxisHeight = fontSizeScaled + 8 * pixelRatio
 
-			const scaledTopMargin =
-				(topMargin ?? fontSizeScaled / 2) * pixelRatio
-			const scaledRightMargin =
-				(rightMargin ?? fontSizeScaled / 2) * pixelRatio
-			const scaledBottomMargin =
-				(bottomMargin ?? 0) * pixelRatio + xAxisHeight
+			const scaledTopMargin = (topMargin ?? fontSizeScaled / 2) * pixelRatio
+			const scaledRightMargin = (rightMargin ?? fontSizeScaled / 2) * pixelRatio
+			const scaledBottomMargin = (bottomMargin ?? 0) * pixelRatio + xAxisHeight
 			const scaledLeftMargin = (leftMargin ?? 0) * pixelRatio + yAxisWidth
 
 			const plotWidth = scaledWidth - scaledLeftMargin - scaledRightMargin
-			const plotHeight =
-				scaledHeight - scaledTopMargin - scaledBottomMargin
+			const plotHeight = scaledHeight - scaledTopMargin - scaledBottomMargin
 
 			context.translate(scaledLeftMargin, scaledTopMargin)
 
@@ -233,6 +232,17 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 					plotHeight + lineWidth + 8 * pixelRatio
 				)
 			}
+
+			// Draw annotations
+			context.lineWidth = 2;
+			annotations.forEach(annotation => {
+				context.strokeStyle = annotation.color;
+				const xPosition = xScale(annotation.pos); // Adjust this based on how your annotations are defined
+				context.beginPath();
+				context.moveTo(xPosition, 0);
+				context.lineTo(xPosition, plotHeight);
+				context.stroke();
+			});
 		}
 	}, [
 		data,
@@ -256,7 +266,9 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 		fontWeight,
 		fontFamily,
 		lineColor,
-		outlineColor
+		outlineColor,
+		annotations,
+		intervals
 	])
 
 	return (

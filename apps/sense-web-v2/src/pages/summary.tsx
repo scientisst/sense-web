@@ -11,6 +11,8 @@ import JsPDF from "jspdf"
 import JSZip from "jszip"
 
 import SenseLayout from "../components/layout/SenseLayout"
+import { annotationProps } from "../constants"
+import EventsLabel from "../components/ShowEvents"
 
 const addSvgToPDF = async (
 	pdf: JsPDF,
@@ -210,16 +212,13 @@ const Page = () => {
 		pdf.addFont("Lexend-Light.ttf", "Lexend", "light")
 
 		// Extract acquisition data from local storage
-		const channels: string[] = JSON.parse(
-			localStorage.getItem("aq_channels")
-		)
-		const segmentCount: number = JSON.parse(
-			localStorage.getItem("aq_segments")
-		)
+		const channels: string[] = JSON.parse(localStorage.getItem("aq_channels"))
+		const segmentCount: number = JSON.parse(localStorage.getItem("aq_segments"))
 		const deviceType = localStorage.getItem("aq_deviceType")
-		const storedChannelNames: string[] = JSON.parse(
-			localStorage.getItem("aq_channelNames") ?? "{}"
-		)
+		const storedChannelNames: string[] = JSON.parse(localStorage.getItem("aq_channelNames") ?? "{}")
+		
+		const annotations: annotationProps[] = JSON.parse(localStorage.getItem("aq_annotations") ?? "{}")
+		console.log("annotations:", annotations);
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
 			throw new Error("Device type not supported yet.")
@@ -504,6 +503,20 @@ const Page = () => {
 							.y(d => yScale(d[1]))
 					)
 
+				// Draw annotations
+				svg.selectAll('.annotations')
+					.data(annotations)
+					.enter()
+					.append('line')
+						.attr('class', 'vertical-line')
+						.attr('x1', d => d.pos)
+						.attr('y1', 0)
+						.attr('x2', d => d.pos)
+						.attr('y2', svgHeight)
+						.attr('stroke', d => d.color)
+						.attr('stroke-width', 2);
+				
+
 				await addSvgToPDF(
 					pdf,
 					svg.node(),
@@ -588,7 +601,9 @@ const Page = () => {
 			className="flex w-[480px] flex-col items-center justify-center gap-8 py-8 px-8 sm:w-[640px]"
 		>
 			<span>End of acquisition!</span>
+
 			<div className="justify-cenPDF flex flex-row gap-4">
+
 				<TextButton
 					size="base"
 					className="flex-grow"
@@ -596,6 +611,7 @@ const Page = () => {
 				>
 					Download as CSV
 				</TextButton>
+				
 				<TextButton
 					size="base"
 					className="flex-grow"
@@ -603,6 +619,7 @@ const Page = () => {
 				>
 					Download as PDF
 				</TextButton>
+
 			</div>
 		</SenseLayout>
 	)

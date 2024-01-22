@@ -10,6 +10,7 @@ import localFont from "@next/font/local"
 import { NoSSR, defaultScientISSTTheme } from "@scientisst/chakra-ui"
 
 import "../styles/global.css"
+import { loadSettings } from "../constants"
 
 config.autoAddCss = false
 
@@ -31,6 +32,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 			localStorage.setItem("version", "2.7.0")
 		}
 	}, [])
+
+	// Load settings
+	useEffect(() => {loadSettings()}, [])
 
 	return (
 		<NoSSR>
