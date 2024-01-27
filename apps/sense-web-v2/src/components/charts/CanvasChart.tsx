@@ -24,6 +24,20 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 	const [height, setHeight] = useState(0)
 	const [pixelRatio, setPixelRatio] = useState(1)
 
+	const [plotWidht, setPlotWidth] = useState(0)
+	const [scaledMarginLeft, setScaledMarginLeft] = useState(0)
+
+	const xScale = (x: number) => {
+		//invert scale
+		const scale = d3
+			.scaleLinear()
+			.domain([0, plotWidht])
+			.range([domain.left, domain.right])
+
+
+		return scale(x)
+	}
+
 	// Define the size of the canvas
 	useEffect(() => {
 		if (!parentElement) return;
@@ -62,44 +76,40 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 	// Remove annotations on click
 	useEffect(() => {
 		const handleCanvasClick = (event: MouseEvent) => {
-			const canvasRect = canvasElement?.getBoundingClientRect();
-			if (!canvasRect) return
-		
-
-			const x = (event.clientX - canvasRect.left) * pixelRatio;
-		
-			const xScale = d3
-				.scaleLinear()
-				.domain([domain.left, domain.right])
-				.range([0, plotWidth])
-
-			// Check if the click intersects with any annotations
-			const clickedAnnotation = data.annotations.find((annotation) => {
-
-				console.log("xScale", domain.left, domain.right, plotWidth)
-
-				return Math.abs(x - annotation.pos) < 500; // Adjust the tolerance as needed
-				//return false;
-			});
-		
-			// If there's a match, remove the corresponding annotation
-			if (clickedAnnotation) {
-				console.log("remove")
-			  	const updatedAnnotations = data.annotations.filter((annotation) => annotation !== clickedAnnotation);
-			  	setAnnotations(updatedAnnotations);
-			 
+		  const canvasRect = canvasElement?.getBoundingClientRect();
+		  if (!canvasRect) return;
+	  
+		  const mousePosition = xScale((event.clientX - canvasRect.left) * pixelRatio - scaledMarginLeft);
+	  
+		  // Find the annotation closest to the mouse position
+		  const closestAnnotation = data.annotations.reduce((closest, annotation) => {
+			const distance = Math.abs(mousePosition - annotation.pos);
+			return distance < Math.abs(mousePosition - closest.pos) ? annotation : closest;
+		  }, data.annotations[0]);
+	  
+		  // Check if the mouse is within a certain range of the closest annotation
+		  const isMouseOverAnnotation = Math.abs(mousePosition - closestAnnotation.pos) < 100;
+	  
+		  if (isMouseOverAnnotation) {
+			// Prompt the user for confirmation
+			const userConfirmed = window.confirm('Are you sure you want to delete this annotation?');
+	  
+			if (userConfirmed) {
+			  // Delete the annotation
+			  const updatedAnnotations = data.annotations.filter(annotation => annotation !== closestAnnotation);
+			  setAnnotations(updatedAnnotations);
 			}
+		  }
 		};
-	
+	  
 		// Add an event listener for the click event on the canvas
-		canvasElement?.addEventListener("click", handleCanvasClick);
-	
+		canvasElement?.addEventListener('click', handleCanvasClick);
+	  
 		// Cleanup event listener on component unmount
 		return () => {
-		  canvasElement?.removeEventListener("click", handleCanvasClick);
+		  canvasElement?.removeEventListener('click', handleCanvasClick);
 		};
-	
-	  }, [canvasElement]);	
+	}, [canvasElement, data.annotations, setAnnotations, xScale, pixelRatio, scaledMarginLeft]);	
 
 	// Draw the chart
 	useEffect(() => {
@@ -141,13 +151,11 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 		const scaledBottomMargin = (style.margin.bottom ?? 0) * pixelRatio + xAxisHeight
 		const scaledLeftMargin = (style.margin.left ?? 0) * pixelRatio + yAxisWidth
 
-		
-
 		const plotWidth = scaledWidth - scaledLeftMargin - scaledRightMargin
-		
-		
 		const plotHeight = scaledHeight - scaledTopMargin - scaledBottomMargin
 
+		setPlotWidth(plotWidth)
+		setScaledMarginLeft(scaledLeftMargin)
 
 		console.log("xScale", domain.left, domain.right, plotWidth)
 
