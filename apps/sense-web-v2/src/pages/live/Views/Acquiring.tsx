@@ -5,20 +5,9 @@ import EventsLabel from "../../../components/ShowEvents"
 import { Formik, Form } from "formik"
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
 import CanvasChart from "../../../components/charts/CanvasChart"
-import { annotationProps, loadSettings } from "../../../constants"
+import { annotationProps, chartStyle, loadSettings } from "../../../constants"
 
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme"
-
-import resolveConfig from "tailwindcss/resolveConfig"
-
-import tailwindConfig from "../../../../tailwind.config"
-
-
-const fullConfig = resolveConfig(tailwindConfig)
-const lineColorLight = fullConfig.theme.colors["primary-light"]
-const lineColorDark = fullConfig.theme.colors["primary-dark"]
-const outlineColorLight = fullConfig.theme.colors["over-background-highest-light"]
-const outlineColorDark = fullConfig.theme.colors["over-background-highest-dark"]
 
 const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain, stop, annotations, setAnnotations}) => {
 	const isDark = useDarkTheme()
@@ -103,30 +92,24 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 									<div className="bg-background-accent flex w-full flex-col rounded-md">
 										<div className="w-full p-4">
 											<CanvasChart
-												data={graphBufferRef.current.map(
-													x => [
-														x[0],
-														x[1].channels[channel]
-													]
-												)}
-												xMin={xDomain[0]}
-												xMax={xDomain[1]}
-												className="h-64 w-full"
-												fontFamily="Lexend"
-												lineColor={
-													isDark
-														? lineColorDark
-														: lineColorLight
-												}
-												outlineColor={
-													isDark
-														? outlineColorDark
-														: outlineColorLight
-												}
+												data={{
+													vector: graphBufferRef.current.map(
+														x => [
+															x[0],
+															x[1].channels[channel]
+														]
+													),
+													annotations: annotations,
+													intervals: []
+												}}
+
+												domain={{left: xDomain[0], right: xDomain[1], top: 0, bottom: 0}}
+
+												style={chartStyle(isDark)}
+
 												yTicks={5}
 												xTicks={5}
 												xTickFormat={xTickFormatter}
-                                                annotations={annotations}
 												setAnnotations = {setAnnotations}
 											/>
 										</div>

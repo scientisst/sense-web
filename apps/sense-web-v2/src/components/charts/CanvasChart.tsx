@@ -2,71 +2,27 @@ import { useEffect, useState } from "react"
 
 import clsx from "clsx"
 import * as d3 from "d3"
-import { annotationProps } from "../../constants"
+import { annotationProps, intervalsProps } from "../../constants"
 
 export interface CanvasChartProps {
-	className?: string
-	cssStyle?: React.CSSProperties
-	data: [number, number | null][]
-	xMin?: number | "auto"
-	xMax?: number | "auto"
-	yMin?: number | "auto"
-	yMax?: number | "auto"
+	data: {vector: [number, number][], annotations: annotationProps[], intervals: intervalsProps[]}
+	domain: {left: number, right: number, top: number, bottom: number}
+	style: {cssStyle?: React.CSSProperties, className?: string, fontSize?: number, fontFamily?: string, fontWeight?: number, lineColor?: string, outlineColor?: string, margin?: {top: number, right: number, bottom: number, left: number}}
 	xTicks?: number
 	yTicks?: number
 	xTickFormat?: (x: number) => string
 	yTickFormat?: (y: number) => string
-	topMargin?: number
-	rightMargin?: number
-	bottomMargin?: number
-	leftMargin?: number
-	fontSize?: number
-	fontFamily?: string
-	fontWeight?: number
-	lineColor?: string
-	outlineColor?: string
-	annotations?: annotationProps[]
 	setAnnotations?: React.Dispatch<React.SetStateAction<annotationProps[]>>
-	intervals?: {left: number, right: number}[]
 
 }
 
-const CanvasChart: React.FC<CanvasChartProps> = ({
-	className,
-	cssStyle,
-	data,
-	xMin,
-	xMax,
-	yMin,
-	yMax,
-	xTicks,
-	yTicks,
-	xTickFormat,
-	yTickFormat,
-	topMargin,
-	rightMargin,
-	bottomMargin,
-	leftMargin,
-	fontSize,
-	fontFamily,
-	fontWeight,
-	lineColor,
-	outlineColor,
-	annotations,
-	setAnnotations,
-	intervals,
-}) => {
+const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, yTicks, xTickFormat, yTickFormat, setAnnotations}) => {
 	const [parentElement, setParentElement] = useState<HTMLDivElement | null>(null)
 	const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null)
 
 	const [width, setWidth] = useState(0)
 	const [height, setHeight] = useState(0)
 	const [pixelRatio, setPixelRatio] = useState(1)
-
-	const [plotWidth, setPlotWidth] = useState(0)
-
-	const xMinValue = xMin === "auto" || xMin === undefined ? d3.min(data, d => d[0]) : xMin
-	const xMaxValue = xMax === "auto" || xMax === undefined ? d3.max(data, d => d[0]) : xMax
 
 	// Define the size of the canvas
 	useEffect(() => {
@@ -114,13 +70,13 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 		
 			const xScale = d3
 				.scaleLinear()
-				.domain([xMinValue, xMaxValue])
+				.domain([domain.left, domain.right])
 				.range([0, plotWidth])
 
 			// Check if the click intersects with any annotations
-			const clickedAnnotation = annotations.find((annotation) => {
+			const clickedAnnotation = data.annotations.find((annotation) => {
 
-				console.log("xScale", xMinValue, xMaxValue, plotWidth)
+				console.log("xScale", domain.left, domain.right, plotWidth)
 
 				return Math.abs(x - annotation.pos) < 500; // Adjust the tolerance as needed
 				//return false;
@@ -129,7 +85,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 			// If there's a match, remove the corresponding annotation
 			if (clickedAnnotation) {
 				console.log("remove")
-			  	const updatedAnnotations = annotations.filter((annotation) => annotation !== clickedAnnotation);
+			  	const updatedAnnotations = data.annotations.filter((annotation) => annotation !== clickedAnnotation);
 			  	setAnnotations(updatedAnnotations);
 			 
 			}
@@ -160,20 +116,14 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 
 		if (!context) { return }
 
-		const fontSizeScaled = (fontSize ?? 16) * pixelRatio
-		context.font = `${fontWeight ?? 400} ${fontSizeScaled}px ${fontFamily ?? "sans-serif"}`
+		const fontSizeScaled = (style.fontSize ?? 16) * pixelRatio
+		context.font = `${style.fontWeight ?? 400} ${fontSizeScaled}px ${style.fontFamily ?? "sans-serif"}`
 
-		const X = d3.map(data, d => d[0])
-		const Y = d3.map(data, d => d[1])
+		const X = d3.map(data.vector, d => d[0])
+		const Y = d3.map(data.vector, d => d[1])
 
-		const xMinValue = xMin === "auto" || xMin === undefined ? d3.min(X) : xMin
-		const xMaxValue = xMax === "auto" || xMax === undefined ? d3.max(X) : xMax
-		const yMinValue = yMin === "auto" || yMin === undefined ? d3.min(Y) : yMin
-		const yMaxValue = yMax === "auto" || yMax === undefined ? d3.max(Y) : yMax
-
-
-		const yTicksValues = d3.ticks(yMinValue, yMaxValue, yTicks ?? 10)
-		const xTicksValues = d3.ticks(xMinValue, xMaxValue, xTicks ?? 10)
+		const yTicksValues = d3.ticks(domain.bottom, domain.top, yTicks ?? 10)
+		const xTicksValues = d3.ticks(domain.left, domain.right, xTicks ?? 10)
 		const yAxisWidth =
 			d3.max(
 				yTicksValues.map(
@@ -186,30 +136,29 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 			8 * pixelRatio
 		const xAxisHeight = fontSizeScaled + 8 * pixelRatio
 
-		const scaledTopMargin = (topMargin ?? fontSizeScaled / 2) * pixelRatio
-		const scaledRightMargin = (rightMargin ?? fontSizeScaled / 2) * pixelRatio
-		const scaledBottomMargin = (bottomMargin ?? 0) * pixelRatio + xAxisHeight
-		const scaledLeftMargin = (leftMargin ?? 0) * pixelRatio + yAxisWidth
+		const scaledTopMargin = (style.margin.top ?? fontSizeScaled / 2) * pixelRatio
+		const scaledRightMargin = (style.margin.right ?? fontSizeScaled / 2) * pixelRatio
+		const scaledBottomMargin = (style.margin.bottom ?? 0) * pixelRatio + xAxisHeight
+		const scaledLeftMargin = (style.margin.left ?? 0) * pixelRatio + yAxisWidth
 
 		
 
 		const plotWidth = scaledWidth - scaledLeftMargin - scaledRightMargin
-		setPlotWidth(plotWidth)
 		
 		
 		const plotHeight = scaledHeight - scaledTopMargin - scaledBottomMargin
 
 
-		console.log("xScale", xMinValue, xMaxValue, plotWidth)
+		console.log("xScale", domain.left, domain.right, plotWidth)
 
 		const xScale = d3
 			.scaleLinear()
-			.domain([xMinValue, xMaxValue])
+			.domain([domain.left, domain.right])
 			.range([0, plotWidth])
 
 		const yScale = d3
 			.scaleLinear()
-			.domain([yMinValue, yMaxValue])
+			.domain([domain.bottom, domain.top])
 			.range([plotHeight, 0])
 
 
@@ -225,16 +174,14 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 			.x(d => xScale(d[0]))
 			.y(d => yScale(d[1]))
 			.context(context)
-			.defined(
-				d => d[1] !== null && d[0] >= xMinValue && d[0] <= xMaxValue
-			)
+			.defined(d => d[1] !== null && d[0] >= domain.left && d[0] <= domain.right)
 			.context(context)
 
-		line(data)
-		context.strokeStyle = lineColor ?? "red"
+		line(data.vector)
+		context.strokeStyle = style.lineColor ?? "red"
 		context.stroke()
 
-		context.strokeStyle = outlineColor ?? "black"
+		context.strokeStyle = style.outlineColor ?? "black"
 
 		// Draw y axis
 		context.beginPath()
@@ -244,7 +191,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 
 		context.textAlign = "right"
 		context.textBaseline = "middle"
-		context.fillStyle = outlineColor ?? "black"
+		context.fillStyle = style.outlineColor ?? "black"
 
 		for (const yTickValue of yTicksValues) {
 			const yTickPosition = yScale(yTickValue)
@@ -292,7 +239,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 
 		// Draw annotations
 		context.lineWidth = 2;
-		annotations.forEach(annotation => {
+		data.annotations.forEach(annotation => {
 			context.strokeStyle = annotation.color;
 			const xPosition = xScale(annotation.pos); // Adjust this based on how your annotations are defined
 			context.beginPath();
@@ -306,32 +253,18 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 		height,
 		pixelRatio,
 		canvasElement,
-		topMargin,
-		rightMargin,
-		bottomMargin,
-		leftMargin,
-		xMin,
-		xMax,
-		yMin,
-		yMax,
 		yTicks,
 		yTickFormat,
 		xTicks,
 		xTickFormat,
-		fontSize,
-		fontWeight,
-		fontFamily,
-		lineColor,
-		outlineColor,
-		annotations,
-		intervals
+		style,
 	])
 
 	return (
 		<div
 			ref={setParentElement}
-			className={clsx("relative", className)}
-			style={cssStyle}
+			className={clsx("relative", style.className)}
+			style={style.cssStyle}
 		>
 			<canvas ref={setCanvasElement} className="h-auto w-full" />
 		</div>
