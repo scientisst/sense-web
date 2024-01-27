@@ -57,103 +57,91 @@ const Page = () => {
 	}, [router])
 
 	const convertToCSV = useCallback(() => {
-		const channels: string[] = JSON.parse(
-			localStorage.getItem("aq_channels")
-		)
-		const segments: number = JSON.parse(localStorage.getItem("aq_segments"))
-		const deviceType = localStorage.getItem("aq_deviceType")
-		const storedChannelNames: string[] = JSON.parse(
-			localStorage.getItem("aq_channelNames") ?? "{}"
-		)
+		const channels = JSON.parse(localStorage.getItem("aq_channels"));
+		const segments = JSON.parse(localStorage.getItem("aq_segments"));
+		const deviceType = localStorage.getItem("aq_deviceType");
+		const storedChannelNames = JSON.parse(localStorage.getItem("aq_channelNames") ?? "{}");
+		const annotations = JSON.parse(localStorage.getItem("aq_annotations") ?? "[]");
+		const sampleRate = JSON.parse(localStorage.getItem("aq_sampleRate"));
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
-			throw new Error("Device type not supported yet.")
+		  throw new Error("Device type not supported yet.");
 		}
+	  
+		const zip = new JSZip();
+		let firstTimestamp = 0;
+	  
 
-		const zip = new JSZip()
-		let firstTimestamp = 0
+		console.log("deviceType:", deviceType)
+		console.log(deviceType === "sense")
 
 		for (let i = 1; i <= segments; i++) {
-			const fileContent = []
-			const frames =
-				deviceType === "sense"
-					? ScientISSTFrame.deserializeAll(
-							localStorage.getItem(`aq_seg${i}`),
-							new Set(channels)
-					  )
-					: MakerFrame.deserializeAll(
-							localStorage.getItem(`aq_seg${i}`),
-							new Set(channels)
-					  )
-
+			const frames = deviceType === "sense"
+				? ScientISSTFrame.deserializeAll(localStorage.getItem(`aq_seg${i}`), new Set(channels))
+				: MakerFrame.deserializeAll(localStorage.getItem(`aq_seg${i}`), new Set(channels));
+		
 			if (frames.length === 0) {
-				continue
+				continue;
 			}
-
-			const resolutionBits = []
+	  
+			const resolutionBits = [];
 			for (let j = 0; j < channels.length; j++) {
-				resolutionBits.push(ScientISSTFrame.CHANNEL_SIZES[channels[j]])
+				resolutionBits.push(ScientISSTFrame.CHANNEL_SIZES[channels[j]]);
 			}
-
-			const timestamp = new Date(
-				JSON.parse(localStorage.getItem(`aq_seg${i}time`) ?? "0")
-			)
-
-			// This is used to name the zip file
+	  
+			const timestamp = new Date(JSON.parse(localStorage.getItem(`aq_seg${i}time`) ?? "0"));
+		
 			if (firstTimestamp === 0) {
-				firstTimestamp = timestamp.getTime()
+				firstTimestamp = timestamp.getTime();
 			}
 
-			const metadata = {
-				Device:
-					deviceType === "sense"
-						? "ScientISST Sense"
-						: "ScientISST Maker",
-				Channels: channels,
-				"Sampling rate (Hz)": JSON.parse(
-					localStorage.getItem("aq_sampleRate")
-				),
-				"ISO 8601": timestamp.toISOString(),
-				Timestamp: timestamp.getTime(),
-				"Resolution (bits)":
-					deviceType === "sense" ? resolutionBits : undefined
-			}
+			console.log(deviceType === "sense")
+			
+	  
+			//Show Details
+			const auxDeviceType = deviceType === "sense" ? "ScientISST Sense" : "ScientISST Maker"
+			const auxResolutionBits = deviceType === "sense" ? resolutionBits : undefined;
 
-			fileContent.push("#" + JSON.stringify(metadata, null, null))
+			const detailsTable = [
+				"Device," + auxDeviceType,
+				"Sampling rate (Hz)," + sampleRate,
+				"ISO 8601," + timestamp.toISOString(),
+				"Timestamp," + timestamp.getTime(),
+				"Channels," + channels,
+				"Resolution (bits)," + auxResolutionBits,
+			];
 
-			// append header
-			fileContent.push(
-				"#NSeq," +
-					channels
-						.map(channel => storedChannelNames[channel] ?? channel)
-						.join(",")
-			)
+			//Show annotations tables
+			const annotationTable = [
+				"Annotations, Label, Color, Instant",
+				...annotations.map((annotation, index) => `${index}, ${annotation.name}, ${annotation.color}, ${JSON.stringify(annotation.pos)}`),
+			];
 
-			// append data
-			for (let j = 0; j < frames.length; j++) {
-				const frameContent = []
-				frameContent.push(frames[j].sequence)
-
-				for (let k = 0; k < channels.length; k++) {
-					frameContent.push(frames[j].channels[channels[k]])
-				}
-
-				fileContent.push(frameContent.join(","))
-			}
-
-			zip.file(`segment_${i}.csv`, fileContent.join("\n"))
+			// Show data table
+			const dataTable = [
+				"#NSeq," + channels.map(channel => storedChannelNames[channel] ?? channel).join(","),
+				...frames.map(frame => [frame.sequence, ...channels.map(channel => frame.channels[channel])].join(",")),
+			];
+	  
+	  
+		  	const fileContent = [...detailsTable, '', ...annotationTable, '', ...dataTable];
+	  
+		  	zip.file(`segment_${i}.csv`, fileContent.join("\n"));
 		}
-
+	  
 		if (firstTimestamp === 0) {
-			firstTimestamp = new Date().getTime()
+		  firstTimestamp = new Date().getTime();
 		}
-
-		const timestampISO = new Date(firstTimestamp).toISOString()
-
+	  
+		const timestampISO = new Date(firstTimestamp).toISOString();
+	  
 		zip.generateAsync({ type: "blob" }).then(content => {
-			FileSaver.saveAs(content, `${timestampISO}.zip`)
-		})
-	}, [])
+		  FileSaver.saveAs(content, `${timestampISO}.zip`);
+		});
+	  }, []);
+	  
+	  
+		
 
 	const convertToPDF = useCallback(async () => {
 		const pdf = new JsPDF({

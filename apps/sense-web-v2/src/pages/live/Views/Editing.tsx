@@ -1,7 +1,7 @@
 import { TextButton, TextField } from "@scientisst/react-ui/components/inputs";
 import { chartStyle, loadSettings } from "../../../constants";
 import ShowEvents from "../../../components/ShowEvents";
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 import { Form, Formik } from "formik";
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils";
 import CanvasChart from "../../../components/charts/CanvasChart";
@@ -10,6 +10,12 @@ import { useDarkTheme } from "@scientisst/react-ui/dark-theme";
 const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain, annotations, setAnnotations}) => {
     const isDark = useDarkTheme()
 	const eventsLabel = loadSettings().eventsLabel 
+
+	useEffect(() => {
+		return () => {
+			localStorage.setItem("aq_annotations", JSON.stringify(annotations))
+		}
+	}, [annotations, xDomain])
 
     // const annotations = JSON.parse(localStorage.getItem("aq_annotations") || "[]")
     console.log(annotations)

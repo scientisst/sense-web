@@ -119,7 +119,9 @@ const Page = () => {
 			)
 
 			storeBufferRef.current = []
-			setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
+			// setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
+			setStoreBufferLength(0) // Prevent state loops
+			
 		} catch (e) {
 			if (e instanceof DOMException && e.name === "QuotaExceededError") {
 				// We are out of localStorage, show the user the error
@@ -428,6 +430,7 @@ const Page = () => {
 	}, [])
 
 	const submit = () => {
+		console.log("submit:", annotations)
 		setStatus(STATUS.STOPPED)
 	}
 

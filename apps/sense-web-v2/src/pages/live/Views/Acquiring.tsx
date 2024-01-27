@@ -34,8 +34,8 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 
         // Remove event listener on component unmount
 		return () => {
-			document.removeEventListener("keydown", handleKeyPress);
 			localStorage.setItem("aq_annotations", JSON.stringify(annotations))
+			document.removeEventListener("keydown", handleKeyPress);
 		};
     }, [annotations, xDomain]);
 
