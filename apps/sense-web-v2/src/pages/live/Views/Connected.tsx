@@ -5,12 +5,15 @@ const Connected = ({firmwareVersion, start, disconnect}) => {
         <>
             {firmwareVersion !== null && (<span>Firmware Version: {firmwareVersion}</span>)}
 
-            <TextButton size={"base"} onClick={start}>
-                Start
-            </TextButton>
-            <TextButton size={"base"} onClick={disconnect}>
-                Disconnect
-            </TextButton>
+            <div className="flex flex-row gap-4">
+                <TextButton size={"base"} onClick={start}>
+                    Start
+                </TextButton>
+                
+                <TextButton size={"base"} onClick={disconnect}>
+                    Disconnect
+                </TextButton>
+            </div>
         </>
     )
 }

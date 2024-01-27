@@ -6,7 +6,7 @@ import { annotationProps } from "../../constants"
 
 export interface CanvasChartProps {
 	className?: string
-	style?: React.CSSProperties
+	cssStyle?: React.CSSProperties
 	data: [number, number | null][]
 	xMin?: number | "auto"
 	xMax?: number | "auto"
@@ -26,13 +26,14 @@ export interface CanvasChartProps {
 	lineColor?: string
 	outlineColor?: string
 	annotations?: annotationProps[]
+	setAnnotations?: React.Dispatch<React.SetStateAction<annotationProps[]>>
 	intervals?: {left: number, right: number}[]
 
 }
 
 const CanvasChart: React.FC<CanvasChartProps> = ({
 	className,
-	style,
+	cssStyle,
 	data,
 	xMin,
 	xMax,
@@ -52,6 +53,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 	lineColor,
 	outlineColor,
 	annotations,
+	setAnnotations,
 	intervals,
 }) => {
 	const [parentElement, setParentElement] = useState<HTMLDivElement | null>(null)
@@ -61,24 +63,32 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 	const [height, setHeight] = useState(0)
 	const [pixelRatio, setPixelRatio] = useState(1)
 
+	const [plotWidth, setPlotWidth] = useState(0)
+
+	const xMinValue = xMin === "auto" || xMin === undefined ? d3.min(data, d => d[0]) : xMin
+	const xMaxValue = xMax === "auto" || xMax === undefined ? d3.max(data, d => d[0]) : xMax
+
+	// Define the size of the canvas
 	useEffect(() => {
-		if (parentElement) {
+		if (!parentElement) return;
+
+		setWidth(parentElement.clientWidth)
+		setHeight(parentElement.clientHeight)
+
+		const resizeObserver = new ResizeObserver(() => {
 			setWidth(parentElement.clientWidth)
 			setHeight(parentElement.clientHeight)
+		})
 
-			const resizeObserver = new ResizeObserver(() => {
-				setWidth(parentElement.clientWidth)
-				setHeight(parentElement.clientHeight)
-			})
+		resizeObserver.observe(parentElement)
 
-			resizeObserver.observe(parentElement)
-
-			return () => {
-				resizeObserver.disconnect()
-			}
+		return () => {
+			resizeObserver.disconnect()
 		}
 	}, [parentElement])
 
+
+	// Define the pixel ratio
 	useEffect(() => {
 		setPixelRatio(window.devicePixelRatio)
 
@@ -93,157 +103,203 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 		}
 	}, [])
 
+	// Remove annotations on click
 	useEffect(() => {
-		if (canvasElement) {
-			const scaledWidth = width * pixelRatio
-			const scaledHeight = height * pixelRatio
+		const handleCanvasClick = (event: MouseEvent) => {
+			const canvasRect = canvasElement?.getBoundingClientRect();
+			if (!canvasRect) return
+		
 
-			d3.select(canvasElement)
-				.attr("width", scaledWidth)
-				.attr("height", scaledHeight)
-
-			const context = canvasElement.getContext("2d")
-
-			if (!context) {
-				return
-			}
-
-			const fontSizeScaled = (fontSize ?? 16) * pixelRatio
-			context.font = `${fontWeight ?? 400} ${fontSizeScaled}px ${
-				fontFamily ?? "sans-serif"
-			}`
-
-			const X = d3.map(data, d => d[0])
-			const Y = d3.map(data, d => d[1])
-
-			const xMinValue =
-				xMin === "auto" || xMin === undefined ? d3.min(X) : xMin
-			const xMaxValue =
-				xMax === "auto" || xMax === undefined ? d3.max(X) : xMax
-			const yMinValue =
-				yMin === "auto" || yMin === undefined ? d3.min(Y) : yMin
-			const yMaxValue =
-				yMax === "auto" || yMax === undefined ? d3.max(Y) : yMax
-
-			const yTicksValues = d3.ticks(yMinValue, yMaxValue, yTicks ?? 10)
-			const xTicksValues = d3.ticks(xMinValue, xMaxValue, xTicks ?? 10)
-			const yAxisWidth =
-				d3.max(
-					yTicksValues.map(
-						y =>
-							context.measureText(
-								String(yTickFormat ? yTickFormat(y) : y)
-							).width
-					)
-				) +
-				8 * pixelRatio
-			const xAxisHeight = fontSizeScaled + 8 * pixelRatio
-
-			const scaledTopMargin = (topMargin ?? fontSizeScaled / 2) * pixelRatio
-			const scaledRightMargin = (rightMargin ?? fontSizeScaled / 2) * pixelRatio
-			const scaledBottomMargin = (bottomMargin ?? 0) * pixelRatio + xAxisHeight
-			const scaledLeftMargin = (leftMargin ?? 0) * pixelRatio + yAxisWidth
-
-			const plotWidth = scaledWidth - scaledLeftMargin - scaledRightMargin
-			const plotHeight = scaledHeight - scaledTopMargin - scaledBottomMargin
-
-			context.translate(scaledLeftMargin, scaledTopMargin)
-
+			const x = (event.clientX - canvasRect.left) * pixelRatio;
+		
 			const xScale = d3
 				.scaleLinear()
 				.domain([xMinValue, xMaxValue])
 				.range([0, plotWidth])
 
-			const yScale = d3
-				.scaleLinear()
-				.domain([yMinValue, yMaxValue])
-				.range([plotHeight, 0])
+			// Check if the click intersects with any annotations
+			const clickedAnnotation = annotations.find((annotation) => {
 
-			const lineWidth = 2 * pixelRatio
-			const halfLineWidth = lineWidth / 2
-			context.lineWidth = lineWidth
+				console.log("xScale", xMinValue, xMaxValue, plotWidth)
 
-			const line = d3
-				.line()
-				.x(d => xScale(d[0]))
-				.y(d => yScale(d[1]))
-				.context(context)
-				.defined(
-					d => d[1] !== null && d[0] >= xMinValue && d[0] <= xMaxValue
-				)
-				.context(context)
-
-			line(data)
-			context.strokeStyle = lineColor ?? "red"
-			context.stroke()
-
-			context.strokeStyle = outlineColor ?? "black"
-
-			// Draw y axis
-			context.beginPath()
-			context.moveTo(0, -halfLineWidth)
-			context.lineTo(0, plotHeight + halfLineWidth)
-			context.stroke()
-
-			context.textAlign = "right"
-			context.textBaseline = "middle"
-			context.fillStyle = outlineColor ?? "black"
-
-			for (const yTickValue of yTicksValues) {
-				const yTickPosition = yScale(yTickValue)
-				context.beginPath()
-				context.moveTo(-6 * pixelRatio - halfLineWidth, yTickPosition)
-				context.lineTo(-halfLineWidth, yTickPosition)
-				context.stroke()
-
-				context.fillText(
-					yTickFormat
-						? yTickFormat(yTickValue)
-						: yTickValue.toString(),
-					-halfLineWidth - 8 * pixelRatio,
-					yTickPosition
-				)
-			}
-
-			// Draw x axis
-			context.beginPath()
-			context.moveTo(-halfLineWidth, plotHeight)
-			context.lineTo(plotWidth + halfLineWidth, plotHeight)
-			context.stroke()
-
-			context.textAlign = "center"
-			context.textBaseline = "top"
-
-			for (const xTickValue of xTicksValues) {
-				const xTickPosition = xScale(xTickValue)
-				context.beginPath()
-				context.moveTo(xTickPosition, plotHeight + halfLineWidth)
-				context.lineTo(
-					xTickPosition,
-					plotHeight + halfLineWidth + 6 * pixelRatio
-				)
-				context.stroke()
-
-				context.fillText(
-					xTickFormat
-						? xTickFormat(xTickValue)
-						: xTickValue.toString(),
-					xTickPosition,
-					plotHeight + lineWidth + 8 * pixelRatio
-				)
-			}
-
-			// Draw annotations
-			context.lineWidth = 2;
-			annotations.forEach(annotation => {
-				context.strokeStyle = annotation.color;
-				const xPosition = xScale(annotation.pos); // Adjust this based on how your annotations are defined
-				context.beginPath();
-				context.moveTo(xPosition, 0);
-				context.lineTo(xPosition, plotHeight);
-				context.stroke();
+				return Math.abs(x - annotation.pos) < 500; // Adjust the tolerance as needed
+				//return false;
 			});
+		
+			// If there's a match, remove the corresponding annotation
+			if (clickedAnnotation) {
+				console.log("remove")
+			  	const updatedAnnotations = annotations.filter((annotation) => annotation !== clickedAnnotation);
+			  	setAnnotations(updatedAnnotations);
+			 
+			}
+		};
+	
+		// Add an event listener for the click event on the canvas
+		canvasElement?.addEventListener("click", handleCanvasClick);
+	
+		// Cleanup event listener on component unmount
+		return () => {
+		  canvasElement?.removeEventListener("click", handleCanvasClick);
+		};
+	
+	  }, [canvasElement]);	
+
+	// Draw the chart
+	useEffect(() => {
+		if (!canvasElement) return;
+			
+		const scaledWidth = width * pixelRatio
+		const scaledHeight = height * pixelRatio
+
+		d3.select(canvasElement)
+			.attr("width", scaledWidth)
+			.attr("height", scaledHeight)
+
+		const context = canvasElement.getContext("2d")
+
+		if (!context) { return }
+
+		const fontSizeScaled = (fontSize ?? 16) * pixelRatio
+		context.font = `${fontWeight ?? 400} ${fontSizeScaled}px ${fontFamily ?? "sans-serif"}`
+
+		const X = d3.map(data, d => d[0])
+		const Y = d3.map(data, d => d[1])
+
+		const xMinValue = xMin === "auto" || xMin === undefined ? d3.min(X) : xMin
+		const xMaxValue = xMax === "auto" || xMax === undefined ? d3.max(X) : xMax
+		const yMinValue = yMin === "auto" || yMin === undefined ? d3.min(Y) : yMin
+		const yMaxValue = yMax === "auto" || yMax === undefined ? d3.max(Y) : yMax
+
+
+		const yTicksValues = d3.ticks(yMinValue, yMaxValue, yTicks ?? 10)
+		const xTicksValues = d3.ticks(xMinValue, xMaxValue, xTicks ?? 10)
+		const yAxisWidth =
+			d3.max(
+				yTicksValues.map(
+					y =>
+						context.measureText(
+							String(yTickFormat ? yTickFormat(y) : y)
+						).width
+				)
+			) +
+			8 * pixelRatio
+		const xAxisHeight = fontSizeScaled + 8 * pixelRatio
+
+		const scaledTopMargin = (topMargin ?? fontSizeScaled / 2) * pixelRatio
+		const scaledRightMargin = (rightMargin ?? fontSizeScaled / 2) * pixelRatio
+		const scaledBottomMargin = (bottomMargin ?? 0) * pixelRatio + xAxisHeight
+		const scaledLeftMargin = (leftMargin ?? 0) * pixelRatio + yAxisWidth
+
+		
+
+		const plotWidth = scaledWidth - scaledLeftMargin - scaledRightMargin
+		setPlotWidth(plotWidth)
+		
+		
+		const plotHeight = scaledHeight - scaledTopMargin - scaledBottomMargin
+
+
+		console.log("xScale", xMinValue, xMaxValue, plotWidth)
+
+		const xScale = d3
+			.scaleLinear()
+			.domain([xMinValue, xMaxValue])
+			.range([0, plotWidth])
+
+		const yScale = d3
+			.scaleLinear()
+			.domain([yMinValue, yMaxValue])
+			.range([plotHeight, 0])
+
+
+		context.translate(scaledLeftMargin, scaledTopMargin)
+
+		const lineWidth = 2 * pixelRatio
+		const halfLineWidth = lineWidth / 2
+		context.lineWidth = lineWidth
+
+		// Draw the chart/line
+		const line = d3
+			.line()
+			.x(d => xScale(d[0]))
+			.y(d => yScale(d[1]))
+			.context(context)
+			.defined(
+				d => d[1] !== null && d[0] >= xMinValue && d[0] <= xMaxValue
+			)
+			.context(context)
+
+		line(data)
+		context.strokeStyle = lineColor ?? "red"
+		context.stroke()
+
+		context.strokeStyle = outlineColor ?? "black"
+
+		// Draw y axis
+		context.beginPath()
+		context.moveTo(0, -halfLineWidth)
+		context.lineTo(0, plotHeight + halfLineWidth)
+		context.stroke()
+
+		context.textAlign = "right"
+		context.textBaseline = "middle"
+		context.fillStyle = outlineColor ?? "black"
+
+		for (const yTickValue of yTicksValues) {
+			const yTickPosition = yScale(yTickValue)
+			context.beginPath()
+			context.moveTo(-6 * pixelRatio - halfLineWidth, yTickPosition)
+			context.lineTo(-halfLineWidth, yTickPosition)
+			context.stroke()
+
+			context.fillText(
+				yTickFormat
+					? yTickFormat(yTickValue)
+					: yTickValue.toString(),
+				-halfLineWidth - 8 * pixelRatio,
+				yTickPosition
+			)
 		}
+
+		// Draw x axis
+		context.beginPath()
+		context.moveTo(-halfLineWidth, plotHeight)
+		context.lineTo(plotWidth + halfLineWidth, plotHeight)
+		context.stroke()
+
+		context.textAlign = "center"
+		context.textBaseline = "top"
+
+		for (const xTickValue of xTicksValues) {
+			const xTickPosition = xScale(xTickValue)
+			context.beginPath()
+			context.moveTo(xTickPosition, plotHeight + halfLineWidth)
+			context.lineTo(
+				xTickPosition,
+				plotHeight + halfLineWidth + 6 * pixelRatio
+			)
+			context.stroke()
+
+			context.fillText(
+				xTickFormat
+					? xTickFormat(xTickValue)
+					: xTickValue.toString(),
+				xTickPosition,
+				plotHeight + lineWidth + 8 * pixelRatio
+			)
+		}
+
+		// Draw annotations
+		context.lineWidth = 2;
+		annotations.forEach(annotation => {
+			context.strokeStyle = annotation.color;
+			const xPosition = xScale(annotation.pos); // Adjust this based on how your annotations are defined
+			context.beginPath();
+			context.moveTo(xPosition, 0);
+			context.lineTo(xPosition, plotHeight);
+			context.stroke();
+		});
 	}, [
 		data,
 		width,
@@ -275,7 +331,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 		<div
 			ref={setParentElement}
 			className={clsx("relative", className)}
-			style={style}
+			style={cssStyle}
 		>
 			<canvas ref={setCanvasElement} className="h-auto w-full" />
 		</div>

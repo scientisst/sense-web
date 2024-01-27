@@ -20,11 +20,11 @@ const lineColorDark = fullConfig.theme.colors["primary-dark"]
 const outlineColorLight = fullConfig.theme.colors["over-background-highest-light"]
 const outlineColorDark = fullConfig.theme.colors["over-background-highest-dark"]
 
-const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain, stop}) => {
+const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain, stop, annotations, setAnnotations}) => {
 	const isDark = useDarkTheme()
     const eventsLabel = loadSettings().eventsLabel
 
-    const [annotations, setAnnotations] = useState<annotationProps[]>([]);
+    // const [annotations, setAnnotations] = useState<annotationProps[]>([]);
 
     useEffect(() => {
         const handleKeyPress = (event) => {
@@ -127,6 +127,7 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 												xTicks={5}
 												xTickFormat={xTickFormatter}
                                                 annotations={annotations}
+												setAnnotations = {setAnnotations}
 											/>
 										</div>
 									</div>

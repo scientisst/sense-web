@@ -216,9 +216,7 @@ const Page = () => {
 		const segmentCount: number = JSON.parse(localStorage.getItem("aq_segments"))
 		const deviceType = localStorage.getItem("aq_deviceType")
 		const storedChannelNames: string[] = JSON.parse(localStorage.getItem("aq_channelNames") ?? "{}")
-		
 		const annotations: annotationProps[] = JSON.parse(localStorage.getItem("aq_annotations") ?? "{}")
-		console.log("annotations:", annotations);
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
 			throw new Error("Device type not supported yet.")
@@ -250,12 +248,9 @@ const Page = () => {
 				pdf.addPage()
 			}
 
-			const channelsOnPage =
-				page < pages - 1 ? 3 : channels.length - 3 * page
-			const svgAspectRatio =
-				channelsOnPage <= 2 ? 1282 / 180.5 : 1282 / 114.5
-			const backgroundAspectRatio =
-				channelsOnPage <= 2 ? 1282 / 212 : 1282 / 147
+			const channelsOnPage = page < pages - 1 ? 3 : channels.length - 3 * page
+			const svgAspectRatio = channelsOnPage <= 2 ? 1282 / 180.5 : 1282 / 114.5
+			const backgroundAspectRatio = channelsOnPage <= 2 ? 1282 / 212 : 1282 / 147
 			const smallChart = channelsOnPage > 2
 
 			const svgWidth = samplingRate * 10
