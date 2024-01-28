@@ -11,8 +11,9 @@ import JsPDF from "jspdf"
 import JSZip from "jszip"
 
 import SenseLayout from "../components/layout/SenseLayout"
-import { annotationProps } from "../constants"
+import { annotationProps, intervalsProps } from "../constants"
 import EventsLabel from "../components/ShowEvents"
+import { Inter } from "@next/font/google"
 
 const addSvgToPDF = async (
 	pdf: JsPDF,
@@ -62,6 +63,7 @@ const Page = () => {
 		const deviceType = localStorage.getItem("aq_deviceType");
 		const storedChannelNames = JSON.parse(localStorage.getItem("aq_channelNames") ?? "{}");
 		const annotations = JSON.parse(localStorage.getItem("aq_annotations") ?? "[]");
+		const intervals = JSON.parse(localStorage.getItem("aq_intervals") ?? "[]");
 		const sampleRate = JSON.parse(localStorage.getItem("aq_sampleRate"));
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
@@ -113,8 +115,20 @@ const Page = () => {
 
 			//Show annotations tables
 			const annotationTable = [
-				"Annotations, Label, Color, Instant",
-				...annotations.map((annotation, index) => `${index}, ${annotation.name}, ${annotation.color}, ${JSON.stringify(annotation.pos)}`),
+				// "Annotations, Label, Color, Instant",
+				"Annotations, Label, Instant",
+				// ...annotations.map((annotation, index) => `${index}, ${annotation.name}, ${annotation.color}, ${JSON.stringify(annotation.pos)}`),
+				...annotations.map((annotation, index) => `${index}, ${annotation.name}, ${JSON.stringify(annotation.pos)}`),
+
+				
+			];
+
+			const intervalsTable = [
+				// "Intervals, Label, Color, Start, End",
+				"Intervals, Label, Start, End",	
+				...intervals
+					.sort((a, b) => a.start - b.start) // Use subtraction for numerical comparison
+					.map((annotation, index) => `${index}, ${annotation.name}, ${JSON.stringify(annotation.start)}, ${JSON.stringify(annotation.end)}`),
 			];
 
 			// Show data table
@@ -124,7 +138,7 @@ const Page = () => {
 			];
 	  
 	  
-		  	const fileContent = [...detailsTable, '', ...annotationTable, '', ...dataTable];
+		  	const fileContent = [...detailsTable, '', ...annotationTable, '', ...intervalsTable, '', ...dataTable];
 	  
 		  	zip.file(`segment_${i}.csv`, fileContent.join("\n"));
 		}
@@ -138,10 +152,7 @@ const Page = () => {
 		zip.generateAsync({ type: "blob" }).then(content => {
 		  FileSaver.saveAs(content, `${timestampISO}.zip`);
 		});
-	  }, []);
-	  
-	  
-		
+	}, []);
 
 	const convertToPDF = useCallback(async () => {
 		const pdf = new JsPDF({
@@ -205,6 +216,7 @@ const Page = () => {
 		const deviceType = localStorage.getItem("aq_deviceType")
 		const storedChannelNames: string[] = JSON.parse(localStorage.getItem("aq_channelNames") ?? "{}")
 		const annotations: annotationProps[] = JSON.parse(localStorage.getItem("aq_annotations") ?? "{}")
+		const intervals: intervalsProps[] = JSON.parse(localStorage.getItem("aq_intervals") ?? "{}")
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
 			throw new Error("Device type not supported yet.")
@@ -498,7 +510,47 @@ const Page = () => {
 						.attr('y2', svgHeight)
 						.attr('stroke', d => d.color)
 						.attr('stroke-width', 2);
-				
+
+				// Draw intervals
+				const rgbToRgba = (rgb: string) => {
+					const color = rgb.replace("rgb", "rgba");
+					return color.replace(")", ", 0.1)");
+				}
+
+				svg.selectAll('.intervals')
+					.data(intervals)
+					.enter()
+					.append('line')
+						.attr('class', 'vertical-line')
+						.attr('x1', d => d.start)
+						.attr('y1', 0)
+						.attr('x2', d => d.start)
+						.attr('y2', svgHeight)
+						.attr('stroke', d => d.color)
+						.attr('stroke-width', 2)
+
+				svg.selectAll('.intervals')
+					.data(intervals)
+					.enter()
+					.append('line')
+						.attr('class', 'vertical-line')
+						.attr('x1', d => d.end)
+						.attr('y1', 0)
+						.attr('x2', d => d.end)
+						.attr('y2', svgHeight)
+						.attr('stroke', d => d.color)
+						.attr('stroke-width', 2)
+
+				svg.selectAll('.intervals')
+					.data(intervals)
+					.enter()
+					.append('rect')
+						.attr('x', d => d.start)
+						.attr('y', 0)
+						.attr('width', d => d.end - d.start)
+						.attr('height', svgHeight)
+						.attr('fill', d => d.color) //falta meter a cor transparente
+						.attr('opacity', 0.1);
 
 				await addSvgToPDF(
 					pdf,

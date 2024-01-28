@@ -7,18 +7,23 @@ import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils";
 import CanvasChart from "../../../components/charts/CanvasChart";
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme";
 
-const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain, annotations, setAnnotations}) => {
+const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain, annotations, setAnnotations, intervals, setIntervals}) => {
     const isDark = useDarkTheme()
 	const eventsLabel = loadSettings().eventsLabel 
 
 	useEffect(() => {
 		return () => {
 			localStorage.setItem("aq_annotations", JSON.stringify(annotations))
+			localStorage.setItem("aq_intervals", JSON.stringify(intervals))
 		}
-	}, [annotations, xDomain])
+	}, [annotations, intervals,xDomain])
 
-    // const annotations = JSON.parse(localStorage.getItem("aq_annotations") || "[]")
-    console.log(annotations)
+
+	useEffect(() => {
+		console.log("Editing.tsx: annotations and intervals changed")
+		console.log(annotations)
+		console.log(intervals)
+	}, [annotations, intervals])
 
     return (
         <>
@@ -72,7 +77,7 @@ const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain, 
 															x[0],
 															x[1].channels[channel]
 														]
-													), annotations: annotations, intervals: []
+													), annotations: annotations, intervals: intervals
 												
 												}}
 
@@ -84,6 +89,7 @@ const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain, 
 												xTicks={5}
 												xTickFormat={xTickFormatter}
                                                 setAnnotations = {setAnnotations}
+												setIntervals = {setIntervals}
 											/>
 										</div>
 									</div>

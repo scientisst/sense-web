@@ -45,13 +45,13 @@ const settingsDefaultValues: settingsProps = {
 	eventsLabel: [
 		{
 			name: "Red",
-			color: "red",
+			color: "rgb(255, 0, 0)",
 			key: "r",
 			toogle: false
 		},
 		{
 			name: "Blue",
-			color: "blue",
+			color: "rgb(0, 0, 255)",
 			key: "b",
 			toogle: false
 		}

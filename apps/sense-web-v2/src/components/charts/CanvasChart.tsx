@@ -13,10 +13,11 @@ export interface CanvasChartProps {
 	xTickFormat?: (x: number) => string
 	yTickFormat?: (y: number) => string
 	setAnnotations?: React.Dispatch<React.SetStateAction<annotationProps[]>>
+	setIntervals?: React.Dispatch<React.SetStateAction<intervalsProps[]>>
 
 }
 
-const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, yTicks, xTickFormat, yTickFormat, setAnnotations}) => {
+const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, yTicks, xTickFormat, yTickFormat, setAnnotations, setIntervals}) => {
 	const [parentElement, setParentElement] = useState<HTMLDivElement | null>(null)
 	const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null)
 
@@ -76,36 +77,66 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 	// Remove annotations on click
 	useEffect(() => {
 		const handleCanvasClick = (event: MouseEvent) => {
-
-			if (event.button !== 2) return;
-
+			
+			if (event.button !== 2) return;				// Check if is a right click
+			if (data.annotations.length === 0 && data.intervals.length === 0) return; // Check if there is any annotation or interval
+		  
 			const canvasRect = canvasElement?.getBoundingClientRect();
 			if (!canvasRect) return;
-		
+		  
 			const mousePosition = xScale((event.clientX - canvasRect.left) * pixelRatio - scaledMarginLeft);
-		
-			// Find the annotation closest to the mouse position
-			const closestAnnotation = data.annotations.reduce((closest, annotation) => {
-				const distance = Math.abs(mousePosition - annotation.pos);
-				return distance < Math.abs(mousePosition - closest.pos) ? annotation : closest;
-			}, data.annotations[0]);
-		
-			if (!closestAnnotation) return;
+		  
+			// Find the closest event to the mouse position
+			let closest	= null;
+			let closestType = null;
+			let closestDistance = Infinity;
 
-			// Check if the mouse is within a certain range of the closest annotation
-			const isMouseOverAnnotation = Math.abs(mousePosition - closestAnnotation.pos) < 100;
-		
-			if (isMouseOverAnnotation) {
-				// Prompt the user for confirmation
-				const userConfirmed = window.confirm('Are you sure you want to delete this annotation?');
-		
-				if (userConfirmed) {
-				// Delete the annotation
-				const updatedAnnotations = data.annotations.filter(annotation => annotation !== closestAnnotation);
-			  	setAnnotations(updatedAnnotations);
+			// Find the closest annotation to the mouse position
+			for (const annotation of data.annotations) {
+				const auxDistance = Math.abs(mousePosition - annotation.pos);
+				if (auxDistance < closestDistance) {
+					closest = annotation;
+					closestDistance = auxDistance;
+				}
 			}
-		  }
+
+			// Find the closest interval to the mouse position (check if any inverval is closer than a annotation)
+			for (const interval of data.intervals) {
+				const startDistance = Math.abs(mousePosition - interval.start);
+				if (startDistance < closestDistance) {
+					closest = interval;
+					closestType = "interval"
+					closestDistance = startDistance;
+				}
+
+				const endDistance = Math.abs(mousePosition - interval.end);
+				if (endDistance < closestDistance) {
+					closest = interval;
+					closestType = "interval"
+					closestDistance = endDistance;
+				}
+			}
+
+			console.log(closestDistance)
+
+			if (closestDistance > 100) return;
+
+
+			// Prompt the user for confirmation
+			const userConfirmed = window.confirm('Are you sure you want to delete this item?');
+			if (userConfirmed) {
+
+				if (closestType === "interval") {	// Remove the closest interval
+					const updatedIntervals = data.intervals.filter(interval => interval !== closest);
+					setIntervals(updatedIntervals);
+				} else {							// Remove the closest annotation
+					const updatedAnnotations = data.annotations.filter(annotation => annotation !== closest);
+					setAnnotations(updatedAnnotations);
+				}
+
+			}
 		};
+		  
 	  
 		// Add an event listener for the click event on the canvas
 		canvasElement?.addEventListener('mousedown', handleCanvasClick);
@@ -251,7 +282,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 		}
 
 		// Draw annotations
-		context.lineWidth = 2;
+		context.lineWidth = 3;
 		data.annotations.forEach(annotation => {
 			context.strokeStyle = annotation.color;
 			const xPosition = xScale(annotation.pos); // Adjust this based on how your annotations are defined
@@ -259,6 +290,33 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 			context.moveTo(xPosition, 0);
 			context.lineTo(xPosition, plotHeight);
 			context.stroke();
+		});
+
+		// Draw intervals
+		context.lineWidth = 3;
+		data.intervals.forEach(interval => {
+			context.strokeStyle = interval.color;
+			
+			const start = xScale(interval.start); // Adjust this based on how your intervals are defined
+			context.beginPath();
+			context.moveTo(start, 0);
+			context.lineTo(start, plotHeight);
+			context.stroke();
+			
+			const end = xScale(interval.end); // Adjust this based on how your intervals are defined
+			context.beginPath();
+			context.moveTo(end, 0);
+			context.lineTo(end, plotHeight);
+			context.stroke();
+
+			// Use RGBA notation for color with alpha channel
+			const rgbToRgba = (rgb: string) => {
+				const color = rgb.replace("rgb", "rgba");
+				return color.replace(")", ", 0.1)");
+			}
+
+			context.fillStyle = rgbToRgba(interval.color) // For example,
+			context.fillRect(start+lineWidth/2, 0, end - start - lineWidth, plotHeight);
 		});
 	}, [
 		data,

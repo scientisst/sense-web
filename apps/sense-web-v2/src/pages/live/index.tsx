@@ -7,7 +7,6 @@ import React, {
 
 import { useRouter } from "next/router"
 
-import { TextButton } from "@scientisst/react-ui/components/inputs"
 import {
 	CancelledByUserException,
 	Device,
@@ -30,7 +29,7 @@ import Stopping from "./Views/Stopping"
 import ConnectionFailed from "./Views/ConnectionFailed"
 import Connecting from "./Views/Connecting"
 import Disconnect from "./Views/Disconnect"
-import { annotationProps } from "../../constants"
+import { annotationProps, intervalsProps } from "../../constants"
 
 export enum STATUS {
 	DISCONNECTED,
@@ -68,6 +67,7 @@ const Page = () => {
 	const frameSequenceRef = useRef(0)
 
 	const [annotations, setAnnotations] = useState<annotationProps[]>([])
+	const [intervals, setIntervals] = useState<intervalsProps[]>([])
 
 	// The following useEffect ensures that the device is disconnected when the
 	// user leaves the page
@@ -107,16 +107,10 @@ const Page = () => {
 
 			const sampleRate = deviceRef.current?.getSamplingRate()
 			if (sampleRate) {
-				localStorage.setItem(
-					"aq_sampleRate",
-					JSON.stringify(sampleRate)
-				)
+				localStorage.setItem("aq_sampleRate", JSON.stringify(sampleRate))
 			}
 
-			localStorage.setItem(
-				dataKey,
-				(localStorage.getItem(dataKey) ?? "") + serialized
-			)
+			localStorage.setItem(dataKey,(localStorage.getItem(dataKey) ?? "") + serialized)
 
 			storeBufferRef.current = []
 			// setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
@@ -152,7 +146,7 @@ const Page = () => {
 			saveData(storeBufferRef.current)
 			const saveTime = Date.now() - start
 
-			console.log("Saved data in " + saveTime + "ms")
+			// console.log("Saved data in " + saveTime + "ms")
 
 			const sampleRate = deviceRef.current?.getSamplingRate()
 			storeBufferThreshold.current = Math.max(
@@ -163,7 +157,8 @@ const Page = () => {
 				)
 			)
 
-			console.log("Save threshold: " + storeBufferThreshold.current)
+			// console.log("Save threshold: " + storeBufferThreshold.current)
+
 		} else if (status === STATUS.PAUSED) {
 			saveData(storeBufferRef.current)
 		} else if (status === STATUS.EDITING) {
@@ -430,7 +425,6 @@ const Page = () => {
 	}, [])
 
 	const submit = () => {
-		console.log("submit:", annotations)
 		setStatus(STATUS.STOPPED)
 	}
 
@@ -452,8 +446,8 @@ const Page = () => {
 			{status === STATUS.CONNECTION_LOST && acquisitionStarted && <ConnectionLost status={status} connect={connect}/>}
 			{status === STATUS.OUT_OF_STORAGE && acquisitionStarted && <OutOfStorage />}
 			{status === STATUS.PAUSED && <Paused resume={resume} stop={stop} />}
-			{status === STATUS.ACQUIRING && <Acquiring channelsRef={channelsRef} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain}  annotations={annotations} setAnnotations={setAnnotations} /> }
-			{status === STATUS.EDITING && <Editing submit={submit} xTickFormatter={xTickFormatter} channelsRef={channelsRef} graphBufferRef={graphBufferRef} xDomain={xDomain} annotations={annotations} setAnnotations={setAnnotations} />}
+			{status === STATUS.ACQUIRING && <Acquiring channelsRef={channelsRef} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain}  annotations={annotations} setAnnotations={setAnnotations} intervals={intervals} setIntervals={setIntervals}/> }
+			{status === STATUS.EDITING && <Editing submit={submit} xTickFormatter={xTickFormatter} channelsRef={channelsRef} graphBufferRef={graphBufferRef} xDomain={xDomain} annotations={annotations} setAnnotations={setAnnotations} intervals={intervals} setIntervals={setIntervals} />}
 
 		</SenseLayout>
 	)
