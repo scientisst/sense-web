@@ -8,12 +8,12 @@ import CanvasChart from "../../../components/charts/CanvasChart"
 import { annotationProps, chartStyle, intervalsProps as intervalProps, loadSettings } from "../../../constants"
 
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme"
-import { lab } from "d3"
-import { time } from "console"
 
-const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain, stop, annotations, setAnnotations, intervals, setIntervals}) => {
-	const isDark = useDarkTheme()
+const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain, stop}) => {
     const eventsLabel = loadSettings().eventsLabel
+	const channels = channelsRef.current
+	const isDark = useDarkTheme()
+
 
 	// Keep track of the pressed key and interval ID
 	const [timeArray, setTimeArray] = useState(() => {
@@ -40,7 +40,9 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 				pos: time
 			};
 	
-			setAnnotations([...annotations, newAnnotation]);
+			// channels = channels.AddAnnotation(newAnnotation)
+			channels.createAnnotationAllChannels(newAnnotation)
+			// setAnnotations([...annotations, newAnnotation]);
 			setTimeArray({...timeArray, [pressedKey]: time});
 		};
 
@@ -51,7 +53,8 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 			const endTime = xDomain[1];
 			const duration = endTime - startTime;
 			
-			const oldAnnotation: annotationProps = annotations.find(annotation => annotation.pos === startTime)
+			// const oldAnnotation: annotationProps = annotations.find(annotation => annotation.pos === startTime)
+			const oldAnnotation: annotationProps = channels.getAnnotation(startTime)
 
 			if (duration < 0) {				// Error (it should not happen)
 				setTimeArray(prev => ({...prev, [pressedKey]: null}));
@@ -72,8 +75,11 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 				color: oldAnnotation.color
 			}
 
-			setIntervals([...intervals, newInterval])
-			setAnnotations(annotations.filter(annotation => annotation.pos !== startTime))
+			// channels = channels.RemoveAnnotation(oldAnnotation)
+			channels.removeAnnotationAllChannels(oldAnnotation)
+			// channels = channels.AddInterval(newInterval)
+			channels.createIntervalAllChannels(newInterval)
+
 			setTimeArray(prev => ({...prev, [pressedKey]: null}));
 		};
 
@@ -83,12 +89,12 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 
         // Remove event listener on component unmount
 		return () => {
-			localStorage.setItem("aq_annotations", JSON.stringify(annotations))
-			localStorage.setItem("aq_intervals", JSON.stringify(intervals))
+			// localStorage.setItem("aq_annotations", JSON.stringify(annotations))
+			// localStorage.setItem("aq_intervals", JSON.stringify(intervals))
 			document.removeEventListener("keydown", handleKeyPress);
 			document.removeEventListener("keyup", handleKeyRelease);
 		};
-    }, [annotations, intervals, xDomain]);
+    }, [channels, xDomain]);
 
     return (
         <>
@@ -108,7 +114,9 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 
             <Formik
 					initialValues={{
-						channelName: channelsRef.current.reduce(
+						
+						channelName: channels.names.reduce(							
+
 							(acc, channel) => {
 								acc[channel] = channel
 								return acc
@@ -127,17 +135,17 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 				>
 					<Form className="flex w-full flex-col gap-4">
 						<FormikAutoSubmit delay={100} />
-						{channelsRef.current.map(channel => {
+						{channels.getAllChannels().map(channel => {
 
 							return (
 
-								<Fragment key={channel}>
+								<Fragment key={channel.name}>
 									<div className="flex w-full flex-row">
 										<TextField
-											id={`channelName.${channel}`}
-											name={`channelName.${channel}`}
+											id={`channelName.${channel.name}`}
+											name={`channelName.${channel.name}`}
 											className="mb-0"
-											placeholder={channel}
+											placeholder={channel.name}
 										/>
 									</div>
 									<div className="bg-background-accent flex w-full flex-col rounded-md">
@@ -150,19 +158,14 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 															x[1].channels[channel]
 														]
 													),
-													annotations: annotations,
-													intervals: intervals,
 												}}
-
+												channel={channel}
+												channels={channelsRef.current}
 												domain={{left: xDomain[0], right: xDomain[1], top: 0, bottom: 0}}
-
 												style={chartStyle(isDark)}
-
 												yTicks={5}
 												xTicks={5}
 												xTickFormat={xTickFormatter}
-												setAnnotations = {setAnnotations}
-												setIntervals = {setIntervals}
 											/>
 										</div>
 									</div>

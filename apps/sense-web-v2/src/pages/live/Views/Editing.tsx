@@ -1,29 +1,26 @@
 import { TextButton, TextField } from "@scientisst/react-ui/components/inputs";
 import { chartStyle, loadSettings } from "../../../constants";
 import ShowEvents from "../../../components/ShowEvents";
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Form, Formik } from "formik";
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils";
 import CanvasChart from "../../../components/charts/CanvasChart";
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme";
 
-const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain, annotations, setAnnotations, intervals, setIntervals}) => {
-    const isDark = useDarkTheme()
+const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain}) => {
 	const eventsLabel = loadSettings().eventsLabel 
+	const channels = channelsRef.current
+	const isDark = useDarkTheme()
 
-	useEffect(() => {
-		return () => {
-			localStorage.setItem("aq_annotations", JSON.stringify(annotations))
-			localStorage.setItem("aq_intervals", JSON.stringify(intervals))
-		}
-	}, [annotations, intervals,xDomain])
+	const [updateCharts, setUpdateCharts] = useState(0)
+	const chartUpdated = () => setUpdateCharts(updateCharts + 1)
 
-
-	useEffect(() => {
-		console.log("Editing.tsx: annotations and intervals changed")
-		console.log(annotations)
-		console.log(intervals)
-	}, [annotations, intervals])
+	// useEffect(() => {
+	// 	return () => {
+	// 		localStorage.setItem("aq_annotations", JSON.stringify(annotations))
+	// 		localStorage.setItem("aq_intervals", JSON.stringify(intervals))
+	// 	}
+	// }, [annotations, intervals,xDomain])
 
     return (
         <>
@@ -35,7 +32,7 @@ const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain, 
 
             <Formik
 					initialValues={{
-						channelName: channelsRef.current.reduce(
+						channelName: channels.names.reduce(
 							(acc, channel) => {
 								acc[channel] = channel
 								return acc
@@ -54,17 +51,17 @@ const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain, 
 				>
 					<Form className="flex w-full flex-col gap-4">
 						<FormikAutoSubmit delay={100} />
-						{channelsRef.current.map(channel => {
+						{channels.getAllChannels().map(channel => {
 
 							return (
 
-								<Fragment key={channel}>
+								<Fragment key={channel.name}>
 									<div className="flex w-full flex-row">
 										<TextField
-											id={`channelName.${channel}`}
-											name={`channelName.${channel}`}
+											id={`channelName.${channel.name}`}
+											name={`channelName.${channel.name}`}
 											className="mb-0"
-											placeholder={channel}
+											placeholder={channel.name}
 										/>
 									</div>
 									<div className="bg-background-accent flex w-full flex-col rounded-md">
@@ -77,19 +74,17 @@ const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain, 
 															x[0],
 															x[1].channels[channel]
 														]
-													), annotations: annotations, intervals: intervals
-												
+													)
 												}}
 
+												channel={channel}
+												channels={channelsRef.current}
 												domain={{left: xDomain[0], right: xDomain[1], top: 0, bottom: 0}}
-
 												style={chartStyle(isDark)}
-
 												yTicks={5}
 												xTicks={5}
 												xTickFormat={xTickFormatter}
-                                                setAnnotations = {setAnnotations}
-												setIntervals = {setIntervals}
+												chartUpdated={chartUpdated}
 											/>
 										</div>
 									</div>

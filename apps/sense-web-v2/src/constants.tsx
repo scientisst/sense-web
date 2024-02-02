@@ -61,7 +61,7 @@ const settingsDefaultValues: settingsProps = {
 export const loadSettings = (): settingsProps => {
     const settings = localStorage.getItem("settings");
 
-    if (!settings) {
+    if (settings === null) {
         console.log("Initialize settings with default values");
         const newSettings = settingsDefaultValues;
         localStorage.setItem("settings", JSON.stringify(newSettings)); // stringify the object

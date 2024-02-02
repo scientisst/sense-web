@@ -14,6 +14,8 @@ import SenseLayout from "../components/layout/SenseLayout"
 import { annotationProps, intervalsProps } from "../constants"
 import EventsLabel from "../components/ShowEvents"
 import { Inter } from "@next/font/google"
+import { ChannelList } from "../ChannelList"
+import { Channel } from "../Channel"
 
 const addSvgToPDF = async (
 	pdf: JsPDF,
@@ -58,97 +60,109 @@ const Page = () => {
 	}, [router])
 
 	const convertToCSV = useCallback(() => {
-		const channels = JSON.parse(localStorage.getItem("aq_channels"));
+		const eventsLabel = JSON.parse(localStorage.getItem("settings")).eventsLabel;
+
 		const segments = JSON.parse(localStorage.getItem("aq_segments"));
 		const deviceType = localStorage.getItem("aq_deviceType");
-		const storedChannelNames = JSON.parse(localStorage.getItem("aq_channelNames") ?? "{}");
-		const annotations = JSON.parse(localStorage.getItem("aq_annotations") ?? "[]");
-		const intervals = JSON.parse(localStorage.getItem("aq_intervals") ?? "[]");
 		const sampleRate = JSON.parse(localStorage.getItem("aq_sampleRate"));
+
+		const channelsListData: any = JSON.parse(localStorage.getItem("aq_channels"));
+		const channelsList = ChannelList.parseInstance(channelsListData);
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
 		  throw new Error("Device type not supported yet.");
 		}
-	  
+
 		const zip = new JSZip();
 		let firstTimestamp = 0;
-	  
 
-		console.log("deviceType:", deviceType)
-		console.log(deviceType === "sense")
-
-		for (let i = 1; i <= segments; i++) {
+		for (let segment = 1; segment <= segments; segment++) {
 			const frames = deviceType === "sense"
-				? ScientISSTFrame.deserializeAll(localStorage.getItem(`aq_seg${i}`), new Set(channels))
-				: MakerFrame.deserializeAll(localStorage.getItem(`aq_seg${i}`), new Set(channels));
-		
+				? ScientISSTFrame.deserializeAll(localStorage.getItem(`aq_seg${segment}`), new Set(channelsList.names))
+				: MakerFrame.deserializeAll(localStorage.getItem(`aq_seg${segment}`), new Set(channelsList.names))
+
 			if (frames.length === 0) {
 				continue;
 			}
-	  
+
 			const resolutionBits = [];
-			for (let j = 0; j < channels.length; j++) {
-				resolutionBits.push(ScientISSTFrame.CHANNEL_SIZES[channels[j]]);
-			}
-	  
-			const timestamp = new Date(JSON.parse(localStorage.getItem(`aq_seg${i}time`) ?? "0"));
-		
+			channelsList.names.forEach(name => {
+				resolutionBits.push(ScientISSTFrame.CHANNEL_SIZES[name]);
+			});
+
+			const timestamp = new Date(JSON.parse(localStorage.getItem(`aq_seg${segment}time`) ?? "0"));
+
 			if (firstTimestamp === 0) {
 				firstTimestamp = timestamp.getTime();
 			}
 
-			console.log(deviceType === "sense")
-			
-	  
 			//Show Details
 			const auxDeviceType = deviceType === "sense" ? "ScientISST Sense" : "ScientISST Maker"
 			const auxResolutionBits = deviceType === "sense" ? resolutionBits : undefined;
 
 			const detailsTable = [
-				"Device," + auxDeviceType,
-				"Sampling rate (Hz)," + sampleRate,
-				"ISO 8601," + timestamp.toISOString(),
-				"Timestamp," + timestamp.getTime(),
-				"Channels," + channels,
-				"Resolution (bits)," + auxResolutionBits,
-			];
-
-			//Show annotations tables
-			const annotationTable = [
-				// "Annotations, Label, Color, Instant",
-				"Annotations, Label, Instant",
-				// ...annotations.map((annotation, index) => `${index}, ${annotation.name}, ${annotation.color}, ${JSON.stringify(annotation.pos)}`),
-				...annotations.map((annotation, index) => `${index}, ${annotation.name}, ${JSON.stringify(annotation.pos)}`),
-
-				
-			];
-
-			const intervalsTable = [
-				// "Intervals, Label, Color, Start, End",
-				"Intervals, Label, Start, End",	
-				...intervals
-					.sort((a, b) => a.start - b.start) // Use subtraction for numerical comparison
-					.map((annotation, index) => `${index}, ${annotation.name}, ${JSON.stringify(annotation.start)}, ${JSON.stringify(annotation.end)}`),
+				"# Device: " + auxDeviceType,
+				"# Sampling rate (Hz): " + sampleRate,
+				"# ISO 8601: " + timestamp.toISOString(),
+				"# Timestamp: " + timestamp.getTime(),
 			];
 
 			// Show data table
 			const dataTable = [
-				"#NSeq," + channels.map(channel => storedChannelNames[channel] ?? channel).join(","),
-				...frames.map(frame => [frame.sequence, ...channels.map(channel => frame.channels[channel])].join(",")),
+				"# Channel, " + channelsList.names.join(", "),
+				"# Resolution (bits), " + auxResolutionBits,
+				...frames.map(frame => [frame.sequence, ...channelsList.names.map(channel => frame.channels[channel])].join(", ")),
 			];
-	  
-	  
-		  	const fileContent = [...detailsTable, '', ...annotationTable, '', ...intervalsTable, '', ...dataTable];
-	  
-		  	zip.file(`segment_${i}.csv`, fileContent.join("\n"));
+
+			const translate = (events: string[]) => {
+				const translation: string[] = [];
+			
+				for (const [index, label] of eventsLabel.entries()) {
+					translation.push(`# ${index} -> ${label.name}`);
+			
+					for (let i = 0; i < events.length; i++) {
+						const event = events[i];
+			
+						if (event.includes(label.name)) {
+							console.log("evento: ", event, "label: ", label.name);
+			
+							// Replace label.name and assign the result back to events[i]
+							events[i] = event.replace(label.name, index.toString());
+						}
+					}
+				}
+			
+				// Now, translation array contains the desired strings.
+				return translation.concat(events);
+			}
+
+			//Show annotations tables
+			const annotationTable = [
+				"# Channel, Annotations, Label, Instant",
+				...translate(channelsList.showAnnotations()),
+			];
+
+			//Show intervals tables
+			const intervalsTable = [
+				"# Channel, Intervals, Label, Start, End",
+				...translate(channelsList.showIntervals()),
+			];
+
+		  	const data_content = [...detailsTable, '#', ...dataTable];
+			const annotation_content = [...detailsTable, '#', ...annotationTable];
+			const intervals_content = [...detailsTable, '#', ...intervalsTable];
+
+		  	zip.file(`segment_${segment}.csv`, data_content.join("\n"));
+			zip.file(`segment_${segment}_annotations.csv`, annotation_content.join("\n"));
+			zip.file(`segment_${segment}_intervals.csv`, intervals_content.join("\n"));
 		}
-	  
+
 		if (firstTimestamp === 0) {
 		  firstTimestamp = new Date().getTime();
 		}
-	  
+
 		const timestampISO = new Date(firstTimestamp).toISOString();
-	  
+
 		zip.generateAsync({ type: "blob" }).then(content => {
 		  FileSaver.saveAs(content, `${timestampISO}.zip`);
 		});
@@ -211,10 +225,12 @@ const Page = () => {
 		pdf.addFont("Lexend-Light.ttf", "Lexend", "light")
 
 		// Extract acquisition data from local storage
-		const channels: string[] = JSON.parse(localStorage.getItem("aq_channels"))
+		const channels: ChannelList = JSON.parse(localStorage.getItem("aq_channels"))
+
 		const segmentCount: number = JSON.parse(localStorage.getItem("aq_segments"))
 		const deviceType = localStorage.getItem("aq_deviceType")
 		const storedChannelNames: string[] = JSON.parse(localStorage.getItem("aq_channelNames") ?? "{}")
+
 		const annotations: annotationProps[] = JSON.parse(localStorage.getItem("aq_annotations") ?? "{}")
 		const intervals: intervalsProps[] = JSON.parse(localStorage.getItem("aq_intervals") ?? "{}")
 
@@ -242,13 +258,13 @@ const Page = () => {
 			throw new Error("No frames found")
 		}
 
-		const pages = Math.ceil(channels.length / 3)
+		const pages = Math.ceil(channels.size / 3)
 		for (let page = 0; page < pages; page++) {
 			if (page > 0) {
 				pdf.addPage()
 			}
 
-			const channelsOnPage = page < pages - 1 ? 3 : channels.length - 3 * page
+			const channelsOnPage = page < pages - 1 ? 3 : channels.size - 3 * page
 			const svgAspectRatio = channelsOnPage <= 2 ? 1282 / 180.5 : 1282 / 114.5
 			const backgroundAspectRatio = channelsOnPage <= 2 ? 1282 / 212 : 1282 / 147
 			const smallChart = channelsOnPage > 2
@@ -511,12 +527,6 @@ const Page = () => {
 						.attr('stroke', d => d.color)
 						.attr('stroke-width', 2);
 
-				// Draw intervals
-				const rgbToRgba = (rgb: string) => {
-					const color = rgb.replace("rgb", "rgba");
-					return color.replace(")", ", 0.1)");
-				}
-
 				svg.selectAll('.intervals')
 					.data(intervals)
 					.enter()
@@ -646,7 +656,7 @@ const Page = () => {
 				>
 					Download as CSV
 				</TextButton>
-				
+
 				<TextButton
 					size="base"
 					className="flex-grow"

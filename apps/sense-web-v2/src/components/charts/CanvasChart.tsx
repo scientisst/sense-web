@@ -3,21 +3,22 @@ import { useEffect, useState } from "react"
 import clsx from "clsx"
 import * as d3 from "d3"
 import { annotationProps, intervalsProps } from "../../constants"
+import { Channel, ChannelList } from "../../Channel"
 
 export interface CanvasChartProps {
-	data: {vector: [number, number][], annotations: annotationProps[], intervals: intervalsProps[]}
+	data: {vector: [number, number][]}
+	channel: Channel
+	channels: ChannelList,
 	domain: {left: number, right: number, top: number, bottom: number}
 	style: {cssStyle?: React.CSSProperties, className?: string, fontSize?: number, fontFamily?: string, fontWeight?: number, lineColor?: string, outlineColor?: string, margin?: {top: number, right: number, bottom: number, left: number}}
 	xTicks?: number
 	yTicks?: number
 	xTickFormat?: (x: number) => string
 	yTickFormat?: (y: number) => string
-	setAnnotations?: React.Dispatch<React.SetStateAction<annotationProps[]>>
-	setIntervals?: React.Dispatch<React.SetStateAction<intervalsProps[]>>
-
+	chartUpdated?: () => void
 }
 
-const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, yTicks, xTickFormat, yTickFormat, setAnnotations, setIntervals}) => {
+const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domain, style, xTicks, yTicks, xTickFormat, yTickFormat, chartUpdated}) => {
 	const [parentElement, setParentElement] = useState<HTMLDivElement | null>(null)
 	const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null)
 
@@ -27,6 +28,8 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 
 	const [plotWidht, setPlotWidth] = useState(0)
 	const [scaledMarginLeft, setScaledMarginLeft] = useState(0)
+
+	
 
 	const xScale = (x: number) => {
 		//invert scale
@@ -38,6 +41,11 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 
 		return scale(x)
 	}
+
+	useEffect(() => {
+		channel.annotations;
+		channel.intervals;
+	}, [channel])
 
 	// Define the size of the canvas
 	useEffect(() => {
@@ -76,68 +84,54 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 
 	// Remove annotations on click
 	useEffect(() => {
+		
 		const handleCanvasClick = (event: MouseEvent) => {
 			
-			if (event.button !== 2) return;				// Check if is a right click
-			if (data.annotations.length === 0 && data.intervals.length === 0) return; // Check if there is any annotation or interval
-		  
+			if (event.button !== 2) return;												// Check if is a right click
+			
 			const canvasRect = canvasElement?.getBoundingClientRect();
 			if (!canvasRect) return;
-		  
+
+
 			const mousePosition = xScale((event.clientX - canvasRect.left) * pixelRatio - scaledMarginLeft);
-		  
-			// Find the closest event to the mouse position
-			let closest	= null;
-			let closestType = null;
-			let closestDistance = Infinity;
+			const [closest, distance, type] = channel.getClosestEvent(mousePosition)
+			
 
-			// Find the closest annotation to the mouse position
-			for (const annotation of data.annotations) {
-				const auxDistance = Math.abs(mousePosition - annotation.pos);
-				if (auxDistance < closestDistance) {
-					closest = annotation;
-					closestDistance = auxDistance;
-				}
-			}
+			console.log("closest", closest, "distance", distance, "type", type);
 
-			// Find the closest interval to the mouse position (check if any inverval is closer than a annotation)
-			for (const interval of data.intervals) {
-				const startDistance = Math.abs(mousePosition - interval.start);
-				if (startDistance < closestDistance) {
-					closest = interval;
-					closestType = "interval"
-					closestDistance = startDistance;
-				}
-
-				const endDistance = Math.abs(mousePosition - interval.end);
-				if (endDistance < closestDistance) {
-					closest = interval;
-					closestType = "interval"
-					closestDistance = endDistance;
-				}
-			}
-
-			console.log(closestDistance)
-
-			if (closestDistance > 100) return;
+			if (closest === undefined) return;											// Check if there is any annotation or interval close to the mouse position
+			if (distance > 100) return;													// Check if the distance is less than 10 pixels (to avoid missclicks
 
 
 			// Prompt the user for confirmation
 			const userConfirmed = window.confirm('Are you sure you want to delete this item?');
-			if (userConfirmed) {
+			if (!userConfirmed) return;
 
-				if (closestType === "interval") {	// Remove the closest interval
-					const updatedIntervals = data.intervals.filter(interval => interval !== closest);
-					setIntervals(updatedIntervals);
-				} else {							// Remove the closest annotation
-					const updatedAnnotations = data.annotations.filter(annotation => annotation !== closest);
-					setAnnotations(updatedAnnotations);
+			const deleteAll = window.confirm('Do you want to delete all equals events in the others channels?');
+			
+			chartUpdated();
+			if (deleteAll) {
+				if (type === 'annotation') {
+					console.log("delete annotations")
+					channels.removeAnnotationAllChannels(closest as annotationProps);
 				}
-
+				if (type === 'interval') {
+					console.log("delete intervals")
+					channels.removeIntervalAllChannels(closest as intervalsProps);
+				}
+			} else {
+				if (type === 'annotation') {
+					console.log("delete annotation")
+					channel.deleteAnnotation(closest as annotationProps);
+				}
+				if (type === 'interval') {
+					console.log("delete interval")
+					channel.deleteInterval(closest as intervalsProps);
+				}
 			}
-		};
+		}
 		  
-	  
+		
 		// Add an event listener for the click event on the canvas
 		canvasElement?.addEventListener('mousedown', handleCanvasClick);
 		canvasElement?.addEventListener('contextmenu', (event) => event.preventDefault());
@@ -146,8 +140,9 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 		return () => {
 		  canvasElement?.removeEventListener('mousedown', handleCanvasClick);
 		  canvasElement?.removeEventListener('contextmenu', (event) => event.preventDefault());
-		};
-	}, [canvasElement, data.annotations, setAnnotations, xScale, pixelRatio, scaledMarginLeft]);	
+		};		
+		
+	}, [canvasElement, channel, channels, xScale, pixelRatio, scaledMarginLeft]);	
 
 	// Draw the chart
 	useEffect(() => {
@@ -283,7 +278,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 
 		// Draw annotations
 		context.lineWidth = 3;
-		data.annotations.forEach(annotation => {
+		channel.annotations.forEach(annotation => {
 			context.strokeStyle = annotation.color;
 			const xPosition = xScale(annotation.pos); // Adjust this based on how your annotations are defined
 			context.beginPath();
@@ -294,7 +289,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 
 		// Draw intervals
 		context.lineWidth = 3;
-		data.intervals.forEach(interval => {
+		channel.intervals.forEach(interval => {
 			context.strokeStyle = interval.color;
 			
 			const start = xScale(interval.start); // Adjust this based on how your intervals are defined
@@ -320,6 +315,8 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, domain, style, xTicks, y
 		});
 	}, [
 		data,
+		channel,
+		channels,
 		width,
 		height,
 		pixelRatio,

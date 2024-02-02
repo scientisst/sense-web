@@ -31,6 +31,8 @@ import Connecting from "./Views/Connecting"
 import Disconnect from "./Views/Disconnect"
 import { annotationProps, intervalsProps } from "../../constants"
 
+import { ChannelList } from "../../ChannelList"
+
 export enum STATUS {
 	DISCONNECTED,
 	CONNECTION_LOST,
@@ -61,13 +63,13 @@ const Page = () => {
 	const storeBufferThreshold = useRef(1000)
 	const [firmwareVersion, setFirmwareVersion] = useState<string | null>(null)
 
-	const channelsRef = useRef<string[]>([])
+	const channelsRef = useRef<ChannelList>(new ChannelList([]))
 	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
 	const graphBufferRef = useRef<[number, Frame][]>([])
 	const frameSequenceRef = useRef(0)
 
-	const [annotations, setAnnotations] = useState<annotationProps[]>([])
-	const [intervals, setIntervals] = useState<intervalsProps[]>([])
+	// const [annotations, setAnnotations] = useState<annotationProps[]>([])
+	// const [intervals, setIntervals] = useState<intervalsProps[]>([])
 
 	// The following useEffect ensures that the device is disconnected when the
 	// user leaves the page
@@ -96,11 +98,13 @@ const Page = () => {
 					JSON.stringify(Date.now())
 				)
 
-				const channels = deviceRef.current?.getChannels()
-				if (channels) {
+				// const channels = deviceRef.current?.getChannels()
+
+
+				if (channelsRef.current) {
 					localStorage.setItem(
 						"aq_channels",
-						JSON.stringify(channels)
+						JSON.stringify(channelsRef.current)
 					)
 				}
 			}
@@ -287,8 +291,9 @@ const Page = () => {
 					setStoreBufferLength(storeBufferRef.current.length)
 				}
 
-				if (channelsRef.current.length === 0) {
-					channelsRef.current = Object.keys(data[0].channels).sort()
+				if (channelsRef.current.isEmpty()) {
+					const channelsNames = Object.keys(data[0].channels).sort()
+					channelsNames.forEach(name => channelsRef.current?.addChannel(name))
 				}
 
 				const graphBufferLimit = Math.ceil(
@@ -332,7 +337,7 @@ const Page = () => {
 
 			// Reset the list of channels being acquired so it can be filled
 			// again with the channels from the new acquisition.
-			channelsRef.current = []
+			channelsRef.current.clear()
 
 			await deviceRef.current?.startAcquisition()
 			setStatus(STATUS.ACQUIRING)
@@ -424,9 +429,15 @@ const Page = () => {
 		return `${minutes}:${seconds}`
 	}, [])
 
-	const submit = () => {
+
+	const submit = useCallback(() => {
+		deviceRef.current.onError = () => {
+			// We are already stopping and disconnecting the device, we don't
+			// really care about errors from this point onwards.
+		}
+		
 		setStatus(STATUS.STOPPED)
-	}
+	}, [])
 
 	return (
 		<SenseLayout
@@ -446,8 +457,8 @@ const Page = () => {
 			{status === STATUS.CONNECTION_LOST && acquisitionStarted && <ConnectionLost status={status} connect={connect}/>}
 			{status === STATUS.OUT_OF_STORAGE && acquisitionStarted && <OutOfStorage />}
 			{status === STATUS.PAUSED && <Paused resume={resume} stop={stop} />}
-			{status === STATUS.ACQUIRING && <Acquiring channelsRef={channelsRef} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain}  annotations={annotations} setAnnotations={setAnnotations} intervals={intervals} setIntervals={setIntervals}/> }
-			{status === STATUS.EDITING && <Editing submit={submit} xTickFormatter={xTickFormatter} channelsRef={channelsRef} graphBufferRef={graphBufferRef} xDomain={xDomain} annotations={annotations} setAnnotations={setAnnotations} intervals={intervals} setIntervals={setIntervals} />}
+			{status === STATUS.ACQUIRING && <Acquiring channelsRef={channelsRef} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain} /> }
+			{status === STATUS.EDITING && <Editing submit={submit} xTickFormatter={xTickFormatter} channelsRef={channelsRef} graphBufferRef={graphBufferRef} xDomain={xDomain} />}
 
 		</SenseLayout>
 	)
