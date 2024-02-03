@@ -3,7 +3,8 @@ import { useEffect, useState } from "react"
 import clsx from "clsx"
 import * as d3 from "d3"
 import { annotationProps, intervalsProps } from "../../constants"
-import { Channel, ChannelList } from "../../Channel"
+import { Channel } from "../../Channel"
+import { ChannelList } from "../../ChannelList"
 
 export interface CanvasChartProps {
 	data: {vector: [number, number][]}
@@ -84,7 +85,8 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 
 	// Remove annotations on click
 	useEffect(() => {
-		
+		if (chartUpdated === undefined) return;
+
 		const handleCanvasClick = (event: MouseEvent) => {
 			
 			if (event.button !== 2) return;												// Check if is a right click

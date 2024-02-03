@@ -47,7 +47,7 @@ const settingsDefaultValues: settingsProps = {
 			name: "Red",
 			color: "rgb(255, 0, 0)",
 			key: "r",
-			toogle: false
+			toogle: true
 		},
 		{
 			name: "Blue",

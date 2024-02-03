@@ -14,24 +14,11 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 	const channels = channelsRef.current
 	const isDark = useDarkTheme()
 
-
-	// Keep track of the pressed key and interval ID
-	const [timeArray, setTimeArray] = useState(() => {
-		return eventsLabel.reduce((obj, label) => {
-		  obj[label.key] = null;			// Add a key for each event label initialized to null
-		  return obj;
-		}, {});
-	});
-	
+	const [timeArray, setTimeArray] = useState({})
+	const [pressedKeys, setPressedKeys] = useState([])
 
     useEffect(() => {
-        const handleKeyPress = (event) => {
-			const pressedKey = event.key;
-			const label = eventsLabel.find(label => pressedKey === label.key);
-
-			if (timeArray[pressedKey] !== null) return;		// The pressed key is already pressed
-			if (!label) return;								// The pressed key does not correspond to an event
-		
+		const createAnnotation = (pressedKey, label) => {
 			const time = xDomain[1];
 	
 			const newAnnotation = {
@@ -40,25 +27,21 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 				pos: time
 			};
 	
-			// channels = channels.AddAnnotation(newAnnotation)
 			channels.createAnnotationAllChannels(newAnnotation)
-			// setAnnotations([...annotations, newAnnotation]);
 			setTimeArray({...timeArray, [pressedKey]: time});
-		};
+		}
 
-		const handleKeyRelease = (event) => {
-			const pressedKey = event.key;
-		
+		const createInterval = (pressedKey) => {
 			const startTime = timeArray[pressedKey];
 			const endTime = xDomain[1];
 			const duration = endTime - startTime;
-			
-			// const oldAnnotation: annotationProps = annotations.find(annotation => annotation.pos === startTime)
+		
 			const oldAnnotation: annotationProps = channels.getAnnotation(startTime)
+			if (oldAnnotation === undefined) return;	// Should not happen
 
 			if (duration < 0) {				// Error (it should not happen)
-				setTimeArray(prev => ({...prev, [pressedKey]: null}));
 				console.log("Acquiring.tsx: duration < 0")
+				setTimeArray(prev => ({...prev, [pressedKey]: null}));
 				return;
 			}
 
@@ -75,12 +58,41 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 				color: oldAnnotation.color
 			}
 
-			// channels = channels.RemoveAnnotation(oldAnnotation)
 			channels.removeAnnotationAllChannels(oldAnnotation)
-			// channels = channels.AddInterval(newInterval)
 			channels.createIntervalAllChannels(newInterval)
-
 			setTimeArray(prev => ({...prev, [pressedKey]: null}));
+		}
+
+        const handleKeyPress = (event) => {
+			const pressedKey = event.key;
+
+			if (pressedKeys[pressedKey] === true) {									// Returns if the key is hold	
+				return;
+			} else {
+				console.log("pressedKey", pressedKey)
+				setPressedKeys({...pressedKeys, [pressedKey]: true})
+			}
+
+			const label = eventsLabel.find(label => pressedKey === label.key);
+			if (!label) return;														// The pressed key does not correspond to an event
+
+			if (!timeArray[pressedKey]) {											// If it's not a toogle event or it's the first part of an toggle event
+				createAnnotation(pressedKey, label)									
+			}	
+
+			if (timeArray[pressedKey] && label.toogle) {		// If it's a toogle event and it's the second part of it
+				createInterval(pressedKey)
+			}
+		};
+
+		const handleKeyRelease = (event) => {
+			const pressedKey = event.key;
+			setPressedKeys({...pressedKeys, [pressedKey]: false})
+
+			const eventLabel = eventsLabel.find(label => pressedKey === label.key);
+			if (!eventLabel || eventLabel.toogle) return;	// If it's an toogle event, don't do anything
+
+			createInterval(pressedKey)
 		};
 
 		// Add event listener on component mount
@@ -89,8 +101,6 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 
         // Remove event listener on component unmount
 		return () => {
-			// localStorage.setItem("aq_annotations", JSON.stringify(annotations))
-			// localStorage.setItem("aq_intervals", JSON.stringify(intervals))
 			document.removeEventListener("keydown", handleKeyPress);
 			document.removeEventListener("keyup", handleKeyRelease);
 		};
