@@ -29,7 +29,6 @@ import Stopping from "./Views/Stopping"
 import ConnectionFailed from "./Views/ConnectionFailed"
 import Connecting from "./Views/Connecting"
 import Disconnect from "./Views/Disconnect"
-import { annotationProps, intervalsProps } from "../../constants"
 
 import { ChannelList } from "../../ChannelList"
 
@@ -48,6 +47,16 @@ export enum STATUS {
 	EDITING
 }
 
+
+const addChannelList = (setChannelsLists, channelsNames) => {
+	if (channelsNames.length === 0) {
+		throw new Error("No channels selected")
+	}
+	
+	const channelList = ChannelList.createInstance(channelsNames)
+	setChannelsLists(prev => [...prev, channelList])
+}
+
 const Page = () => {
 	const router = useRouter()
 	const deviceRef = useRef<Device | null>(null)
@@ -55,7 +64,10 @@ const Page = () => {
 	// Determines whether an acquisition has started or not. If an acquisiton
 	// has started, a download button will be shown if the acquistion fails.
 	const [acquisitionStarted, setAcquisitionStarted] = useState(false)
-	const segmentRef = useRef(1)
+
+	const [segmentCount, setSegmentCount] = useState(0)
+	const [numSegments, setNumSegments] = useState(0)
+	
 	// Store buffer contains the frames that are queued to be saved to
 	// localStorage
 	const storeBufferRef = useRef<Frame[]>([])
@@ -63,7 +75,9 @@ const Page = () => {
 	const storeBufferThreshold = useRef(1000)
 	const [firmwareVersion, setFirmwareVersion] = useState<string | null>(null)
 
-	const channelsRef = useRef<ChannelList>(new ChannelList([]))
+	const [channelLists, setChannelLists] = useState<ChannelList[]>([])
+
+	const channelsNamesRef = useRef<string[]>([])
 	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
 	const graphBufferRef = useRef<[number, Frame][]>([])
 	const frameSequenceRef = useRef(0)
@@ -88,24 +102,16 @@ const Page = () => {
 		if (buffer.length === 0) return
 
 		try {
-			const serialized = buffer.map(frame => frame?.serialize()).join("")
 
-			const dataKey = "aq_seg" + segmentRef.current
-
+			const dataKey = "aq_seg" + segmentCount
 			if (!(dataKey in localStorage)) {
 				localStorage.setItem(
 					dataKey + "time",
 					JSON.stringify(Date.now())
 				)
-
-				// const channels = deviceRef.current?.getChannels()
-
-
-				if (channelsRef.current) {
-					localStorage.setItem(
-						"aq_channels",
-						JSON.stringify(channelsRef.current)
-					)
+			
+				if (channelLists) {
+					localStorage.setItem("aq_channels", JSON.stringify(channelLists))
 				}
 			}
 
@@ -114,6 +120,7 @@ const Page = () => {
 				localStorage.setItem("aq_sampleRate", JSON.stringify(sampleRate))
 			}
 
+			const serialized = buffer.map(frame => frame?.serialize()).join("")
 			localStorage.setItem(dataKey,(localStorage.getItem(dataKey) ?? "") + serialized)
 
 			storeBufferRef.current = []
@@ -141,7 +148,7 @@ const Page = () => {
 			console.error(e)
 			throw e
 		}
-	}, [])
+	}, [channelLists])
 
 	// Save data to local storage
 	useEffect(() => {
@@ -185,6 +192,8 @@ const Page = () => {
 			localStorage.getItem("settings") || "{}"
 		) as Record<string, unknown>
 
+		channelsNamesRef.current = settings["channels"] as string[]
+
 		switch (settings.deviceType ?? "sense") {
 			case "maker":
 				const baudRate = (settings.baudRate ?? 9600) as number
@@ -224,7 +233,8 @@ const Page = () => {
 
 		try {
 			await deviceRef.current.connect()
-			segmentRef.current = 1
+			setSegmentCount(0)
+			setNumSegments(0)
 			setFirmwareVersion(
 				deviceRef.current.getFirmwareVersion()
 					? deviceRef.current.getFirmwareVersion().version
@@ -256,15 +266,11 @@ const Page = () => {
 				}
 			}
 
-			// Save device type and ADC characteristics to localStorage
-			localStorage.setItem(
-				"aq_deviceType",
-				deviceRef.current instanceof Maker ? "maker" : "sense"
-			)
-
-			const adcCharacteristics =
-				deviceRef.current?.getAdcCharacteristics()
-
+			// Save device type to localStorage
+			localStorage.setItem("aq_deviceType", deviceRef.current instanceof Maker ? "maker" : "sense")
+			
+			// Save the device's ADC characteristics to localStorage
+			const adcCharacteristics = deviceRef.current?.getAdcCharacteristics()
 			if (adcCharacteristics !== null) {
 				localStorage.setItem("aq_adcChars", adcCharacteristics.toJSON())
 			}
@@ -272,10 +278,9 @@ const Page = () => {
 			// Save the total number of segments to localStorage.
 			// This is going to start at zero because we are starting the
 			// first acquisition.
-			localStorage.setItem(
-				"aq_segments",
-				JSON.stringify(segmentRef.current)
-			)
+			localStorage.setItem("aq_segments", JSON.stringify(numSegments + 1))
+
+			addChannelList(setChannelLists, channelsNamesRef.current)
 
 			deviceRef.current.onFrames = data => {
 				if (data === null) return
@@ -284,16 +289,8 @@ const Page = () => {
 					...storeBufferRef.current,
 					...data.filter(d => d !== null)
 				]
-				if (
-					storeBufferRef.current.length >=
-					storeBufferThreshold.current
-				) {
+				if (storeBufferRef.current.length >= storeBufferThreshold.current) {
 					setStoreBufferLength(storeBufferRef.current.length)
-				}
-
-				if (channelsRef.current.isEmpty()) {
-					const channelsNames = Object.keys(data[0].channels).sort()
-					channelsNames.forEach(name => channelsRef.current?.addChannel(name))
 				}
 
 				const graphBufferLimit = Math.ceil(
@@ -337,7 +334,10 @@ const Page = () => {
 
 			// Reset the list of channels being acquired so it can be filled
 			// again with the channels from the new acquisition.
-			channelsRef.current.clear()
+			for (const channelList of channelLists) {
+				channelList.clear()
+			}
+			channelLists.length = 0
 
 			await deviceRef.current?.startAcquisition()
 			setStatus(STATUS.ACQUIRING)
@@ -388,7 +388,11 @@ const Page = () => {
 			//
 			// We do this before starting the acquisition to ensure that new
 			// data will not be saved in the previous segment.
-			segmentRef.current += 1
+
+			addChannelList(setChannelLists, channelsNamesRef.current)
+
+			setSegmentCount(prev => prev + 1)
+			setNumSegments(prev => prev + 1)
 
 			// Ensure we don't store frames from previous acquisitions
 			storeBufferRef.current = []
@@ -404,14 +408,11 @@ const Page = () => {
 
 			// Now that acquisition has started, we need to update the
 			// localStorage entry with the new segment number.
-			localStorage.setItem(
-				"aq_segments",
-				JSON.stringify(segmentRef.current)
-			)
+			localStorage.setItem("aq_segments", JSON.stringify(segmentCount + 2))
 		} catch (e) {
 			setStatus(STATUS.CONNECTION_LOST)
 		}
-	}, [])
+	}, [segmentCount])
 
 	const xTickFormatter = useCallback((value: number) => {
 		const samplingRate = deviceRef.current?.getSamplingRate()
@@ -435,9 +436,37 @@ const Page = () => {
 			// We are already stopping and disconnecting the device, we don't
 			// really care about errors from this point onwards.
 		}
+
+		try {
+			localStorage.setItem("aq_channels", JSON.stringify(channelLists))
+			setStatus(STATUS.STOPPED)
+		} catch(e) {
+			console.error(e)
+			setStatus(STATUS.CONNECTION_LOST)
+		}
 		
-		setStatus(STATUS.STOPPED)
-	}, [])
+	}, [channelLists])
+
+	const changeSegments = useCallback((direction: string) => {
+
+		if (
+			(segmentCount === 0 && direction === "previous") ||
+			(segmentCount === numSegments && direction === "next")
+		) {
+			throw new Error("Segment count out of bounds, should not happen")
+		}
+
+		if (direction === "next") {
+			setSegmentCount(prev => prev + 1)
+		} else if (direction === "previous") {
+			setSegmentCount(prev => prev - 1)
+		}
+
+	}, [segmentCount, numSegments])
+
+	useEffect(() => {
+		console.log(channelLists)
+	}, [channelLists])
 
 	return (
 		<SenseLayout
@@ -457,8 +486,8 @@ const Page = () => {
 			{status === STATUS.CONNECTION_LOST && acquisitionStarted && <ConnectionLost status={status} connect={connect}/>}
 			{status === STATUS.OUT_OF_STORAGE && acquisitionStarted && <OutOfStorage />}
 			{status === STATUS.PAUSED && <Paused resume={resume} stop={stop} />}
-			{status === STATUS.ACQUIRING && <Acquiring channelsRef={channelsRef} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain} /> }
-			{status === STATUS.EDITING && <Editing submit={submit} xTickFormatter={xTickFormatter} channelsRef={channelsRef} graphBufferRef={graphBufferRef} xDomain={xDomain} />}
+			{status === STATUS.ACQUIRING && <Acquiring channelList={channelLists[segmentCount]} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain} /> }
+			{status === STATUS.EDITING && <Editing channelList={channelLists[segmentCount]} submit={submit} xTickFormatter={xTickFormatter} graphBufferRef={graphBufferRef} xDomain={xDomain} segmentCount={segmentCount} changeSegments={changeSegments} maxNumSegments={numSegments} setChannelsList={setChannelLists}/>}
 
 		</SenseLayout>
 	)

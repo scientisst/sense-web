@@ -6,17 +6,23 @@ import { Formik, Form } from "formik"
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
 import CanvasChart from "../../../components/charts/CanvasChart"
 import { annotationProps, chartStyle, intervalsProps as intervalProps, loadSettings } from "../../../constants"
+import { DEBUG } from "../../../constants"
 
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme"
+import { Box, Flex } from "@chakra-ui/react"
+import ShowEvents from "../../../components/ShowEvents"
+import { ChannelList } from "../../../ChannelList"
 
-const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain, stop}) => {
-    const eventsLabel = loadSettings().eventsLabel
-	const channels = channelsRef.current
+const Acquiring = ({channelList, graphBufferRef, xTickFormatter, pause, xDomain, stop}) => {
+	
+	const eventsLabel = loadSettings().eventsLabel
+	const channels: ChannelList = channelList
 	const isDark = useDarkTheme()
 
 	const [timeArray, setTimeArray] = useState({})
 	const [pressedKeys, setPressedKeys] = useState([])
 
+	// Create Annotations and Intervals
     useEffect(() => {
 		const createAnnotation = (pressedKey, label) => {
 			const time = xDomain[1];
@@ -40,7 +46,7 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 			if (oldAnnotation === undefined) return;	// Should not happen
 
 			if (duration < 0) {				// Error (it should not happen)
-				console.log("Acquiring.tsx: duration < 0")
+				if (DEBUG) console.log("Acquiring.tsx: duration < 0")
 				setTimeArray(prev => ({...prev, [pressedKey]: null}));
 				return;
 			}
@@ -69,18 +75,17 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 			if (pressedKeys[pressedKey] === true) {									// Returns if the key is hold	
 				return;
 			} else {
-				console.log("pressedKey", pressedKey)
 				setPressedKeys({...pressedKeys, [pressedKey]: true})
 			}
 
 			const label = eventsLabel.find(label => pressedKey === label.key);
 			if (!label) return;														// The pressed key does not correspond to an event
 
-			if (!timeArray[pressedKey]) {											// If it's not a toogle event or it's the first part of an toggle event
+			if (!timeArray[pressedKey]) {											// If it's not a toggle event or it's the first part of an toggle event
 				createAnnotation(pressedKey, label)									
 			}	
 
-			if (timeArray[pressedKey] && label.toogle) {		// If it's a toogle event and it's the second part of it
+			if (timeArray[pressedKey] && label.toggle) {		// If it's a toggle event and it's the second part of it
 				createInterval(pressedKey)
 			}
 		};
@@ -90,7 +95,7 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 			setPressedKeys({...pressedKeys, [pressedKey]: false})
 
 			const eventLabel = eventsLabel.find(label => pressedKey === label.key);
-			if (!eventLabel || eventLabel.toogle) return;	// If it's an toogle event, don't do anything
+			if (!eventLabel || eventLabel.toggle) return;	// If it's an toggle event, don't do anything
 
 			createInterval(pressedKey)
 		};
@@ -119,9 +124,6 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 
             <span>Acquiring...</span>
 
-
-            <EventsLabel eventsLabel={eventsLabel}/>
-
             <Formik
 					initialValues={{
 						
@@ -134,19 +136,11 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 							{} as Record<number, string>
 						)
 					}}
-					onSubmit={async values => {
-						const { channelName } = values
-
-						localStorage.setItem(
-							"aq_channelNames",
-							JSON.stringify(channelName)
-						)
-					}}
+					onSubmit={async values => {}}
 				>
 					<Form className="flex w-full flex-col gap-4">
 						<FormikAutoSubmit delay={100} />
 						{channels.getAllChannels().map(channel => {
-
 							return (
 
 								<Fragment key={channel.name}>
@@ -161,17 +155,12 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 									<div className="bg-background-accent flex w-full flex-col rounded-md">
 										<div className="w-full p-4">
 											<CanvasChart
-												data={{
-													vector: graphBufferRef.current.map(
-														x => [
-															x[0],
-															x[1].channels[channel]
-														]
-													),
-												}}
+												data={graphBufferRef.current.map(
+													x => [ x[0], x[1].channels[channel.name]]
+												)}
 												channel={channel}
-												channels={channelsRef.current}
-												domain={{left: xDomain[0], right: xDomain[1], top: 0, bottom: 0}}
+												channels={channels}
+												domain={{left: xDomain[0], right: xDomain[1]}}
 												style={chartStyle(isDark)}
 												yTicks={5}
 												xTicks={5}
@@ -184,6 +173,10 @@ const Acquiring = ({channelsRef, graphBufferRef, xTickFormatter, pause, xDomain,
 						})}
 					</Form>
             </Formik>
+
+			<Box alignItems={"center"} my={5}>
+				<ShowEvents eventsLabel={eventsLabel} style={{}} />
+			</Box>
         </>
     )
 }

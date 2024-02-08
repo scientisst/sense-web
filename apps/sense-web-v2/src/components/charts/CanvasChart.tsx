@@ -7,10 +7,11 @@ import { Channel } from "../../Channel"
 import { ChannelList } from "../../ChannelList"
 
 export interface CanvasChartProps {
-	data: {vector: [number, number][]}
+	data: [number, number][]
 	channel: Channel
 	channels: ChannelList,
-	domain: {left: number, right: number, top: number, bottom: number}
+	// domain: {left: number, right: number, top: number, bottom: number}
+	domain: {left: number, right: number}
 	style: {cssStyle?: React.CSSProperties, className?: string, fontSize?: number, fontFamily?: string, fontWeight?: number, lineColor?: string, outlineColor?: string, margin?: {top: number, right: number, bottom: number, left: number}}
 	xTicks?: number
 	yTicks?: number
@@ -29,8 +30,6 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 
 	const [plotWidht, setPlotWidth] = useState(0)
 	const [scaledMarginLeft, setScaledMarginLeft] = useState(0)
-
-	
 
 	const xScale = (x: number) => {
 		//invert scale
@@ -83,7 +82,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 		}
 	}, [])
 
-	// Remove annotations on click
+	// Remove events on click
 	useEffect(() => {
 		if (chartUpdated === undefined) return;
 
@@ -97,13 +96,9 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 
 			const mousePosition = xScale((event.clientX - canvasRect.left) * pixelRatio - scaledMarginLeft);
 			const [closest, distance, type] = channel.getClosestEvent(mousePosition)
-			
-
-			console.log("closest", closest, "distance", distance, "type", type);
 
 			if (closest === undefined) return;											// Check if there is any annotation or interval close to the mouse position
 			if (distance > 100) return;													// Check if the distance is less than 10 pixels (to avoid missclicks
-
 
 			// Prompt the user for confirmation
 			const userConfirmed = window.confirm('Are you sure you want to delete this item?');
@@ -111,26 +106,23 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 
 			const deleteAll = window.confirm('Do you want to delete all equals events in the others channels?');
 			
-			chartUpdated();
 			if (deleteAll) {
 				if (type === 'annotation') {
-					console.log("delete annotations")
 					channels.removeAnnotationAllChannels(closest as annotationProps);
 				}
 				if (type === 'interval') {
-					console.log("delete intervals")
 					channels.removeIntervalAllChannels(closest as intervalsProps);
 				}
 			} else {
 				if (type === 'annotation') {
-					console.log("delete annotation")
 					channel.deleteAnnotation(closest as annotationProps);
 				}
 				if (type === 'interval') {
-					console.log("delete interval")
 					channel.deleteInterval(closest as intervalsProps);
 				}
 			}
+
+			chartUpdated();
 		}
 		  
 		
@@ -158,16 +150,20 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			.attr("height", scaledHeight)
 
 		const context = canvasElement.getContext("2d")
-
 		if (!context) { return }
 
 		const fontSizeScaled = (style.fontSize ?? 16) * pixelRatio
 		context.font = `${style.fontWeight ?? 400} ${fontSizeScaled}px ${style.fontFamily ?? "sans-serif"}`
 
-		const X = d3.map(data.vector, d => d[0])
-		const Y = d3.map(data.vector, d => d[1])
+		const X = d3.map(data, d => d[0])
+		const Y = d3.map(data, d => d[1])
 
-		const yTicksValues = d3.ticks(domain.bottom, domain.top, yTicks ?? 10)
+		// const xMinValue = (xMin === "auto" || xMin === undefined) ? d3.min(X) : xMin
+		// const xMaxValue = (xMax === "auto" || xMax === undefined) ? d3.max(X) : xMax
+		const yMinValue = 0
+		const yMaxValue = d3.max(Y)
+
+		const yTicksValues = d3.ticks(yMinValue, yMaxValue, yTicks ?? 10)
 		const xTicksValues = d3.ticks(domain.left, domain.right, xTicks ?? 10)
 		const yAxisWidth =
 			d3.max(
@@ -192,6 +188,8 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 		setPlotWidth(plotWidth)
 		setScaledMarginLeft(scaledLeftMargin)
 
+		context.translate(scaledLeftMargin, scaledTopMargin)
+
 		const xScale = d3
 			.scaleLinear()
 			.domain([domain.left, domain.right])
@@ -199,11 +197,9 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 
 		const yScale = d3
 			.scaleLinear()
-			.domain([domain.bottom, domain.top])
+			.domain([yMinValue, yMaxValue])
 			.range([plotHeight, 0])
 
-
-		context.translate(scaledLeftMargin, scaledTopMargin)
 
 		const lineWidth = 2 * pixelRatio
 		const halfLineWidth = lineWidth / 2
@@ -218,11 +214,17 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			.defined(d => d[1] !== null && d[0] >= domain.left && d[0] <= domain.right)
 			.context(context)
 
-		line(data.vector)
+
+		if (channel.name === "AI1") {
+			console.log(domain)
+			console.log("data", data[data.length-1]);
+		}
+		
+		line(data)
 		context.strokeStyle = style.lineColor ?? "red"
 		context.stroke()
-
 		context.strokeStyle = style.outlineColor ?? "black"
+
 
 		// Draw y axis
 		context.beginPath()

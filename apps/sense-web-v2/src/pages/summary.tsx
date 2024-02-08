@@ -26,6 +26,7 @@ const addSvgToPDF = async (
 	height: number,
 	dpi = 300
 ) => {
+
 	const canvas = document.createElement("canvas")
 	const ctx = canvas.getContext("2d")
 
@@ -52,12 +53,13 @@ const addSvgToPDF = async (
 const Page = () => {
 	const router = useRouter()
 	useEffect(() => {
-		if (!("aq_seg1" in localStorage)) {
+		if (!("aq_seg0" in localStorage)) {
 			router.push("/").finally(() => {
 				// Ignore
 			})
 		}
 	}, [router])
+
 
 	const convertToCSV = useCallback(() => {
 		const eventsLabel = JSON.parse(localStorage.getItem("settings")).eventsLabel;
@@ -67,7 +69,11 @@ const Page = () => {
 		const sampleRate = JSON.parse(localStorage.getItem("aq_sampleRate"));
 
 		const channelsListData: any = JSON.parse(localStorage.getItem("aq_channels"));
-		const channelsList = ChannelList.parseInstance(channelsListData);
+
+		let channelsList: ChannelList[] = []
+		for (let i = 0; i < segments; i++) {
+			channelsList.push(ChannelList.parseInstance(channelsListData[i]));
+		}
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
 		  throw new Error("Device type not supported yet.");
@@ -76,17 +82,17 @@ const Page = () => {
 		const zip = new JSZip();
 		let firstTimestamp = 0;
 
-		for (let segment = 1; segment <= segments; segment++) {
+		for (let segment = 0; segment < segments; segment++) {
 			const frames = deviceType === "sense"
-				? ScientISSTFrame.deserializeAll(localStorage.getItem(`aq_seg${segment}`), new Set(channelsList.names))
-				: MakerFrame.deserializeAll(localStorage.getItem(`aq_seg${segment}`), new Set(channelsList.names))
+				? ScientISSTFrame.deserializeAll(localStorage.getItem(`aq_seg${segment}`), new Set(channelsList[segment].names))
+				: MakerFrame.deserializeAll(localStorage.getItem(`aq_seg${segment}`), new Set(channelsList[segment].names))
 
 			if (frames.length === 0) {
 				continue;
 			}
 
 			const resolutionBits = [];
-			channelsList.names.forEach(name => {
+			channelsList[segment].names.forEach(name => {
 				resolutionBits.push(ScientISSTFrame.CHANNEL_SIZES[name]);
 			});
 
@@ -109,9 +115,9 @@ const Page = () => {
 
 			// Show data table
 			const dataTable = [
-				"# Channel, " + channelsList.names.join(", "),
+				"# Channel, " + channelsList[segment].names.join(", "),
 				"# Resolution (bits), " + auxResolutionBits,
-				...frames.map(frame => [frame.sequence, ...channelsList.names.map(channel => frame.channels[channel])].join(", ")),
+				...frames.map(frame => [frame.sequence, ...channelsList[segment].names.map(channel => frame.channels[channel])].join(", ")),
 			];
 
 			const translate = (events: string[]) => {
@@ -124,8 +130,6 @@ const Page = () => {
 						const event = events[i];
 			
 						if (event.includes(label.name)) {
-							console.log("evento: ", event, "label: ", label.name);
-			
 							// Replace label.name and assign the result back to events[i]
 							events[i] = event.replace(label.name, index.toString());
 						}
@@ -139,13 +143,13 @@ const Page = () => {
 			//Show annotations tables
 			const annotationTable = [
 				"# Channel, Annotations, Label, Instant",
-				...translate(channelsList.showAnnotations()),
+				...translate(channelsList[segment].showAnnotations()),
 			];
 
 			//Show intervals tables
 			const intervalsTable = [
 				"# Channel, Intervals, Label, Start, End",
-				...translate(channelsList.showIntervals()),
+				...translate(channelsList[segment].showIntervals()),
 			];
 
 		  	const data_content = [...detailsTable, '#', ...dataTable];

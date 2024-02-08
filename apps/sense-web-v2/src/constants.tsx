@@ -8,11 +8,13 @@ const lineColorLight = fullConfig.theme.colors["primary-light"]
 const lineColorDark = fullConfig.theme.colors["primary-dark"]
 const outlineColorLight = fullConfig.theme.colors["over-background-highest-light"]
 const outlineColorDark = fullConfig.theme.colors["over-background-highest-dark"]
+
+export const DEBUG = true;
 export interface eventProps {
 	name: string,
 	key: string,
 	color: string,
-	toogle: boolean
+	toggle: boolean
 }
 
 export interface settingsProps {
@@ -47,13 +49,13 @@ const settingsDefaultValues: settingsProps = {
 			name: "Red",
 			color: "rgb(255, 0, 0)",
 			key: "r",
-			toogle: true
+			toggle: true
 		},
 		{
 			name: "Blue",
 			color: "rgb(0, 0, 255)",
 			key: "b",
-			toogle: false
+			toggle: false
 		}
 	]
 }
@@ -62,7 +64,7 @@ export const loadSettings = (): settingsProps => {
     const settings = localStorage.getItem("settings");
 
     if (settings === null) {
-        console.log("Initialize settings with default values");
+        if (DEBUG) console.log("Initialize settings with default values", settingsDefaultValues);
         const newSettings = settingsDefaultValues;
         localStorage.setItem("settings", JSON.stringify(newSettings)); // stringify the object
 

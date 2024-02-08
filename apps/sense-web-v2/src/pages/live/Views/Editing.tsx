@@ -1,26 +1,39 @@
 import { TextButton, TextField } from "@scientisst/react-ui/components/inputs";
 import { chartStyle, loadSettings } from "../../../constants";
 import ShowEvents from "../../../components/ShowEvents";
-import { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Form, Formik } from "formik";
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils";
 import CanvasChart from "../../../components/charts/CanvasChart";
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme";
+import { Box, Button, Flex, IconButton } from "@chakra-ui/react";
 
-const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain}) => {
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlay} from "@fortawesome/free-solid-svg-icons";
+import { ChannelList } from "../../../ChannelList";
+
+const Editing = ({submit, xTickFormatter, channelList, graphBufferRef, xDomain, changeSegments, segmentCount, maxNumSegments, setChannelsList}) => {
 	const eventsLabel = loadSettings().eventsLabel 
-	const channels = channelsRef.current
+	const channels: ChannelList = channelList
 	const isDark = useDarkTheme()
 
 	const [updateCharts, setUpdateCharts] = useState(0)
-	const chartUpdated = () => setUpdateCharts(updateCharts + 1)
 
-	// useEffect(() => {
-	// 	return () => {
-	// 		localStorage.setItem("aq_annotations", JSON.stringify(annotations))
-	// 		localStorage.setItem("aq_intervals", JSON.stringify(intervals))
-	// 	}
-	// }, [annotations, intervals,xDomain])
+	const chartUpdated = () => {
+		setChannelsList(prev => {
+			const updatedList = [...prev];
+			// Check if the index is within bounds before updating
+			if (segmentCount >= 0 && segmentCount < updatedList.length) {
+				updatedList[segmentCount] = channels;
+			}
+
+			console.log("updatedList", updatedList);
+			return updatedList;
+		});
+		setUpdateCharts(updateCharts + 1);
+	};
+
+	
 
     return (
         <>
@@ -28,7 +41,7 @@ const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain})
                 Submit
             </TextButton>
 
-            <ShowEvents eventsLabel={eventsLabel} />
+			<span>Editing...</span>
 
             <Formik
 					initialValues={{
@@ -40,14 +53,7 @@ const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain})
 							{} as Record<number, string>
 						)
 					}}
-					onSubmit={async values => {
-						const { channelName } = values
-
-						localStorage.setItem(
-							"aq_channelNames",
-							JSON.stringify(channelName)
-						)
-					}}
+					onSubmit={async values => {}}
 				>
 					<Form className="flex w-full flex-col gap-4">
 						<FormikAutoSubmit delay={100} />
@@ -67,19 +73,12 @@ const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain})
 									<div className="bg-background-accent flex w-full flex-col rounded-md">
 										<div className="w-full p-4">
 											<CanvasChart
-												data={{
-													
-													vector: graphBufferRef.current.map(
-														x => [
-															x[0],
-															x[1].channels[channel]
-														]
-													)
-												}}
-
+												data={graphBufferRef.current.map(
+													x => [ x[0], x[1].channels[channel.name]]
+												)}
 												channel={channel}
-												channels={channelsRef.current}
-												domain={{left: xDomain[0], right: xDomain[1], top: 0, bottom: 0}}
+												channels={channels}
+												domain={{left: xDomain[0], right: xDomain[1]}}
 												style={chartStyle(isDark)}
 												yTicks={5}
 												xTicks={5}
@@ -93,6 +92,17 @@ const Editing = ({submit, xTickFormatter, channelsRef, graphBufferRef, xDomain})
 						})}
 					</Form>
             </Formik>
+
+			<Flex alignItems={"space-around"} my={5} width={"100vw"}>
+				<Box ml={"120px"} mt={3} width={"50px"} height={"100%"}>
+					{segmentCount > 0 && <FontAwesomeIcon onClick={() => changeSegments("previous")} icon={faPlay} size={"2x"} style={{ color: "#f05463", transform: "scaleX(-1)", cursor: "pointer"}} />}	
+				</Box>
+
+				<ShowEvents eventsLabel={eventsLabel} style={{ margin: "0 auto" }} />
+				<Box mr={"120px"} mt={3} width={"50px"} height={"100%"}>
+					{segmentCount < maxNumSegments &&  <FontAwesomeIcon onClick={() => changeSegments("next")} icon={faPlay} size={"2x"} style={{ color: "#f05463", cursor: "pointer"}} />}	
+				</Box>
+			</Flex>
         </>
         
     );

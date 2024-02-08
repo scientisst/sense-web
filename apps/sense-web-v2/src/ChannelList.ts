@@ -17,6 +17,13 @@ export class ChannelList {
         return channelList;
     }
     
+    static createInstance(names: string[]): ChannelList {
+        const channels: Channel[] = names.map(name => new Channel(name));
+        const channelList = new ChannelList(channels);
+
+        return channelList;
+    }
+
     isEmpty(): boolean {
         return this._channels.length === 0;
     }
@@ -25,10 +32,10 @@ export class ChannelList {
         this._channels = [];
     }
 
-    addChannel(name: string): void {
-        const channel = new Channel(name);
-        this._channels.push(channel);
-    }
+    // addChannel(name: string): void {
+    //     const channel = new Channel(name);
+    //     this._channels.push(channel);
+    // }
 
     // Getters
     get size(): number {
