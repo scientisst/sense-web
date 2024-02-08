@@ -369,7 +369,7 @@ const Page = () => {
 						<b>Event</b>: {event.name},
 						<b>Color</b>: {event.color},
 						<b>Key</b>: "{event.key}",
-						<b>Toggle</b>: {event.toogle.toString()} {/* Convert boolean to string for display */}
+						<b>Toggle</b>: {event.toggle.toString()} {/* Convert boolean to string for display */}
 					</div>
 				))}
 	
@@ -410,7 +410,7 @@ const Page = () => {
 			name: "New Event",
 			color: "#000000",
 			key: "c",
-			toogle: false
+			toggle: false
 		}
 
 		setSettings(prevState => ({

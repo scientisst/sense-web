@@ -69,7 +69,6 @@ const Page = () => {
 		const sampleRate = JSON.parse(localStorage.getItem("aq_sampleRate"));
 
 		const channelsListData: any = JSON.parse(localStorage.getItem("aq_channels"));
-
 		let channelsList: ChannelList[] = []
 		for (let i = 0; i < segments; i++) {
 			channelsList.push(ChannelList.parseInstance(channelsListData[i]));

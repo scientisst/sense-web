@@ -12,7 +12,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay} from "@fortawesome/free-solid-svg-icons";
 import { ChannelList } from "../../../ChannelList";
 
-const Editing = ({submit, xTickFormatter, channelList, graphBufferRef, xDomain, changeSegments, segmentCount, maxNumSegments, setChannelsList}) => {
+const Editing = ({submit, xTickFormatter, channelList, data, xDomain, changeSegments, segmentCount, maxNumSegments, setChannelsList}) => {
 	const eventsLabel = loadSettings().eventsLabel 
 	const channels: ChannelList = channelList
 	const isDark = useDarkTheme()
@@ -73,7 +73,7 @@ const Editing = ({submit, xTickFormatter, channelList, graphBufferRef, xDomain, 
 									<div className="bg-background-accent flex w-full flex-col rounded-md">
 										<div className="w-full p-4">
 											<CanvasChart
-												data={graphBufferRef.current.map(
+												data={data.map(
 													x => [ x[0], x[1].channels[channel.name]]
 												)}
 												channel={channel}

@@ -68,6 +68,8 @@ const Page = () => {
 	const [segmentCount, setSegmentCount] = useState(0)
 	const [numSegments, setNumSegments] = useState(0)
 	
+	const [data, setData] = useState([])
+
 	// Store buffer contains the frames that are queued to be saved to
 	// localStorage
 	const storeBufferRef = useRef<Frame[]>([])
@@ -356,6 +358,7 @@ const Page = () => {
 		try {
 			await deviceRef.current?.stopAcquisition()
 			await deviceRef.current?.disconnect()
+			setData(prev => [...prev, graphBufferRef.current])
 		} catch (e) {
 			// Ignore the errors. See the comment in the onError handler above.
 		}
@@ -369,6 +372,7 @@ const Page = () => {
 		}
 		try {
 			await deviceRef.current?.stopAcquisition()
+			setData(prev => [...prev, graphBufferRef.current])
 			setStatus(STATUS.PAUSED)
 		} catch (e) {
 			setStatus(STATUS.CONNECTION_LOST)
@@ -486,8 +490,10 @@ const Page = () => {
 			{status === STATUS.CONNECTION_LOST && acquisitionStarted && <ConnectionLost status={status} connect={connect}/>}
 			{status === STATUS.OUT_OF_STORAGE && acquisitionStarted && <OutOfStorage />}
 			{status === STATUS.PAUSED && <Paused resume={resume} stop={stop} />}
+			
 			{status === STATUS.ACQUIRING && <Acquiring channelList={channelLists[segmentCount]} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain} /> }
-			{status === STATUS.EDITING && <Editing channelList={channelLists[segmentCount]} submit={submit} xTickFormatter={xTickFormatter} graphBufferRef={graphBufferRef} xDomain={xDomain} segmentCount={segmentCount} changeSegments={changeSegments} maxNumSegments={numSegments} setChannelsList={setChannelLists}/>}
+			
+			{status === STATUS.EDITING && <Editing channelList={channelLists[segmentCount]} submit={submit} xTickFormatter={xTickFormatter} data={data[segmentCount]} xDomain={xDomain} segmentCount={segmentCount} changeSegments={changeSegments} maxNumSegments={numSegments} setChannelsList={setChannelLists}/>}
 
 		</SenseLayout>
 	)

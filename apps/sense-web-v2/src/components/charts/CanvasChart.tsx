@@ -215,10 +215,10 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			.context(context)
 
 
-		if (channel.name === "AI1") {
-			console.log(domain)
-			console.log("data", data[data.length-1]);
-		}
+		// if (channel.name === "AI1") {
+		// 	console.log(domain)
+		// 	console.log("data", data[data.length-1]);
+		// }
 		
 		line(data)
 		context.strokeStyle = style.lineColor ?? "red"
