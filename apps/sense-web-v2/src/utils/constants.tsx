@@ -1,6 +1,6 @@
 import { SCIENTISST_COMUNICATION_MODE } from "@scientisst/sense/future"
 import resolveConfig from "tailwindcss/resolveConfig"
-import tailwindConfig from "../tailwind.config"
+import tailwindConfig from "../../tailwind.config"
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme"
 
 const fullConfig = resolveConfig(tailwindConfig)

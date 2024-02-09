@@ -17,20 +17,20 @@ import {
 	ScientISST
 } from "@scientisst/sense/future"
 
-import SenseLayout from "../../components/layout/SenseLayout"
-import Acquiring from "./Views/Acquiring"
-import Editing from "./Views/Editing"
-import Paused from "./Views/Paused"
-import OutOfStorage from "./Views/OutOfStorage"
-import ConnectionLost from "./Views/ConnectionLost"
-import Connected from "./Views/Connected"
-import Stopped from "./Views/Stopped"
-import Stopping from "./Views/Stopping"
-import ConnectionFailed from "./Views/ConnectionFailed"
-import Connecting from "./Views/Connecting"
-import Disconnect from "./Views/Disconnect"
+import SenseLayout from "../components/layout/SenseLayout"
+import Acquiring from "../views/live/Acquiring"
+import Editing from "../views/live/Editing"
+import Paused from "../views/live/Paused"
+import OutOfStorage from "../views/live/OutOfStorage"
+import ConnectionLost from "../views/live/ConnectionLost"
+import Connected from "../views/live/Connected"
+import Stopped from "../views/live/Stopped"
+import Stopping from "../views/live/Stopping"
+import ConnectionFailed from "../views/live/ConnectionFailed"
+import Connecting from "../views/live/Connecting"
+import Disconnect from "../views/live/Disconnect"
 
-import { ChannelList } from "../../ChannelList"
+import { ChannelList } from "../utils/ChannelList"
 
 export enum STATUS {
 	DISCONNECTED,

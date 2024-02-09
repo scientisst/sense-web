@@ -1,17 +1,18 @@
 import { Fragment, useEffect, useState, useRef } from "react"
 
 import { TextButton, TextField } from "@scientisst/react-ui/components/inputs"
-import EventsLabel from "../../../components/ShowEvents"
+import EventsLabel from "../../components/ShowEvents"
 import { Formik, Form } from "formik"
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
-import CanvasChart from "../../../components/charts/CanvasChart"
-import { annotationProps, chartStyle, intervalsProps as intervalProps, loadSettings } from "../../../constants"
-import { DEBUG } from "../../../constants"
+
+import CanvasChart from "../../components/CanvasChart"
+import { annotationProps, chartStyle, intervalsProps as intervalProps, loadSettings } from "../../utils/constants"
+import { DEBUG } from "../../utils/constants"
 
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme"
 import { Box, Flex } from "@chakra-ui/react"
-import ShowEvents from "../../../components/ShowEvents"
-import { ChannelList } from "../../../ChannelList"
+import ShowEvents from "../../components/ShowEvents"
+import { ChannelList } from "../../utils/ChannelList"
 
 const Acquiring = ({channelList, graphBufferRef, xTickFormatter, pause, xDomain, stop}) => {
 	

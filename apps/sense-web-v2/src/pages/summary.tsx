@@ -11,11 +11,8 @@ import JsPDF from "jspdf"
 import JSZip from "jszip"
 
 import SenseLayout from "../components/layout/SenseLayout"
-import { annotationProps, intervalsProps } from "../constants"
-import EventsLabel from "../components/ShowEvents"
-import { Inter } from "@next/font/google"
-import { ChannelList } from "../ChannelList"
-import { Channel } from "../Channel"
+import { annotationProps, intervalsProps } from "../utils/constants"
+import { ChannelList } from "../utils/ChannelList"
 
 const addSvgToPDF = async (
 	pdf: JsPDF,

@@ -10,7 +10,7 @@ import localFont from "@next/font/local"
 import { NoSSR, defaultScientISSTTheme } from "@scientisst/chakra-ui"
 
 import "../styles/global.css"
-import { loadSettings } from "../constants"
+import { loadSettings } from "../utils/constants"
 
 config.autoAddCss = false
 

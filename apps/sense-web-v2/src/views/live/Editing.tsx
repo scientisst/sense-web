@@ -1,16 +1,16 @@
 import { TextButton, TextField } from "@scientisst/react-ui/components/inputs";
-import { chartStyle, loadSettings } from "../../../constants";
-import ShowEvents from "../../../components/ShowEvents";
+import { chartStyle, loadSettings } from "../../utils/constants";
+import ShowEvents from "../../components/ShowEvents";
 import React, { Fragment, useEffect, useState } from "react";
 import { Form, Formik } from "formik";
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils";
-import CanvasChart from "../../../components/charts/CanvasChart";
+import CanvasChart from "../../components/CanvasChart";
 import { useDarkTheme } from "@scientisst/react-ui/dark-theme";
 import { Box, Button, Flex, IconButton } from "@chakra-ui/react";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay} from "@fortawesome/free-solid-svg-icons";
-import { ChannelList } from "../../../ChannelList";
+import { ChannelList } from "../../utils/ChannelList";
 
 const Editing = ({submit, xTickFormatter, channelList, data, xDomain, changeSegments, segmentCount, maxNumSegments, setChannelsList}) => {
 	const eventsLabel = loadSettings().eventsLabel 

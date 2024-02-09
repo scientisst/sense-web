@@ -2,9 +2,9 @@ import { useEffect, useState } from "react"
 
 import clsx from "clsx"
 import * as d3 from "d3"
-import { annotationProps, intervalsProps } from "../../constants"
-import { Channel } from "../../Channel"
-import { ChannelList } from "../../ChannelList"
+import { annotationProps, intervalsProps } from "../utils/constants"
+import { Channel } from "../utils/Channel"
+import { ChannelList } from "../utils/ChannelList"
 
 export interface CanvasChartProps {
 	data: [number, number][]

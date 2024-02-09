@@ -1,5 +1,5 @@
 import { TextButton } from "@scientisst/react-ui/components/inputs"
-import { STATUS } from "../"
+import { STATUS } from "../../pages/live"
 
 const Connecting = ({ status, connect }) => {
     return (
