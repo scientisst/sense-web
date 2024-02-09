@@ -5,28 +5,38 @@ import { Table as ChakraTable, Thead, Tbody, Tr, Th, Td, Button } from "@chakra-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrash, faSquareCheck, faSquareXmark } from "@fortawesome/free-solid-svg-icons";
 
-export default function Table({ values, deleteRow, toggleToggle}) {
+export default function Table({ values, deleteRow, changeToggle, changeName, changeKey, changeColor}) {
     const data = useMemo(() => values, [values]);
     const columns = useMemo(
         () => [
         {
             Header: "Name",
             accessor: "name",
+            Cell: ({ value, row }) => (
+                <button onClick={() => changeName(row.index, values)}>{value}</button>
+            ),
         },
         {
             Header: "Key",
             accessor: "key",
+            Cell: ({ value, row }) => (
+                <button onClick={() => changeKey(row.index, values)}>{value.toUpperCase()}</button>
+            ),
         },
         {
             Header: "Color",
             accessor: "color",
+            Cell: ({ value, row }) => (
+                <input type="color" id="head" name="head" value={value} onChange={(e) => changeColor(row.index, values, e.target.value)}/>
+            )
         },
         {
             Header: "Toggle",
             accessor: "toggle",
             Cell: ({ value, row }) => (value 
-                ? <FontAwesomeIcon onClick={() => toggleToggle(row.index, values)} icon={faSquareCheck} />
-                : <FontAwesomeIcon onClick={() =>toggleToggle(row.index, values)} icon={faSquareXmark} />),
+                ? (<button><FontAwesomeIcon onClick={() => changeToggle(row.index, values)} icon={faSquareCheck} /></button>)
+                : (<button><FontAwesomeIcon onClick={() =>changeToggle(row.index, values)} icon={faSquareXmark} /></button>)
+            ),
 
         },
         {
@@ -39,7 +49,7 @@ export default function Table({ values, deleteRow, toggleToggle}) {
             ),
         },
         ],
-        [values, deleteRow, toggleToggle]
+        [values, deleteRow, changeToggle, changeName, changeKey, changeColor]
     );
 
     const { getTableProps, headerGroups, getTableBodyProps, rows, prepareRow } = useTable({ columns, data });

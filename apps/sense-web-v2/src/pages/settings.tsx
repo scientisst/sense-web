@@ -75,8 +75,17 @@ const Page = () => {
 		}
 	}, [settings, loaded])
 
+	// useEffect(() => {
+	// 	return (
+	// 		() => {
+	// 			localStorage.setItem("settings", JSON.stringify(settings))
+	// 		}
+		
+	// 	)
+	// }, [])
+
 	useEffect(() => {
-		console.log("settings", settings.eventsLabel)
+		console.log("settings", settings)
 	}, [settings])
 
 	return (
