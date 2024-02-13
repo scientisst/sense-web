@@ -19,7 +19,7 @@ import {
 
 import SenseLayout from "../components/layout/SenseLayout"
 import Acquiring from "../views/live/Acquiring"
-import Editing from "../views/live/Editing"
+// import Editing from "../views/live/Editing"
 import Paused from "../views/live/Paused"
 import OutOfStorage from "../views/live/OutOfStorage"
 import ConnectionLost from "../views/live/ConnectionLost"
@@ -44,7 +44,7 @@ export enum STATUS {
 	STOPPED,
 	STOPPED_AND_SAVED,
 	OUT_OF_STORAGE,
-	EDITING
+	// EDITING
 }
 
 
@@ -174,8 +174,8 @@ const Page = () => {
 
 		} else if (status === STATUS.PAUSED) {
 			saveData(storeBufferRef.current)
-		} else if (status === STATUS.EDITING) {
-			saveData(storeBufferRef.current)
+		// } else if (status === STATUS.EDITING) {
+			// saveData(storeBufferRef.current)
 		} else if (status === STATUS.STOPPED) {
 			saveData(storeBufferRef.current)
 
@@ -362,7 +362,7 @@ const Page = () => {
 		} catch (e) {
 			// Ignore the errors. See the comment in the onError handler above.
 		}
-		setStatus(STATUS.EDITING)
+		setStatus(STATUS.STOPPED)
 	}, [])
 
 	const pause = useCallback(async () => {
@@ -493,7 +493,7 @@ const Page = () => {
 			
 			{status === STATUS.ACQUIRING && <Acquiring channelList={channelLists[segmentCount]} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain} /> }
 			
-			{status === STATUS.EDITING && <Editing channelList={channelLists[segmentCount]} submit={submit} xTickFormatter={xTickFormatter} data={data[segmentCount]} xDomain={xDomain} segmentCount={segmentCount} changeSegments={changeSegments} maxNumSegments={numSegments} setChannelsList={setChannelLists}/>}
+			{ /* status === STATUS.EDITING && <Editing channelList={channelLists[segmentCount]} submit={submit} xTickFormatter={xTickFormatter} data={data[segmentCount]} xDomain={xDomain} segmentCount={segmentCount} changeSegments={changeSegments} maxNumSegments={numSegments} setChannelsList={setChannelLists}/> */}
 
 		</SenseLayout>
 	)
