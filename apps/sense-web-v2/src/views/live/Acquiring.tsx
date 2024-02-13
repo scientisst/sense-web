@@ -125,6 +125,10 @@ const Acquiring = ({channelList, graphBufferRef, xTickFormatter, pause, xDomain,
 
             <span>Acquiring...</span>
 
+			<Box alignItems={"center"} my={5}>
+				<ShowEvents eventsLabel={eventsLabel} style={{}} />
+			</Box>
+
             <Formik
 					initialValues={{
 						
@@ -175,9 +179,6 @@ const Acquiring = ({channelList, graphBufferRef, xTickFormatter, pause, xDomain,
 					</Form>
             </Formik>
 
-			<Box alignItems={"center"} my={5}>
-				<ShowEvents eventsLabel={eventsLabel} style={{}} />
-			</Box>
         </>
     )
 }

@@ -43,6 +43,17 @@ const Editing = ({submit, xTickFormatter, channelList, data, xDomain, changeSegm
 
 			<span>Editing...</span>
 
+			<Flex alignItems={"space-around"} my={5} width={"100vw"}>
+				<Box ml={"120px"} mt={3} width={"50px"} height={"100%"}>
+					{segmentCount > 0 && <FontAwesomeIcon onClick={() => changeSegments("previous")} icon={faPlay} size={"2x"} style={{ color: "#f05463", transform: "scaleX(-1)", cursor: "pointer"}} />}	
+				</Box>
+
+				<ShowEvents eventsLabel={eventsLabel} style={{ margin: "0 auto" }} />
+				<Box mr={"120px"} mt={3} width={"50px"} height={"100%"}>
+					{segmentCount < maxNumSegments &&  <FontAwesomeIcon onClick={() => changeSegments("next")} icon={faPlay} size={"2x"} style={{ color: "#f05463", cursor: "pointer"}} />}	
+				</Box>
+			</Flex>
+
             <Formik
 					initialValues={{
 						channelName: channels.names.reduce(
@@ -92,17 +103,6 @@ const Editing = ({submit, xTickFormatter, channelList, data, xDomain, changeSegm
 						})}
 					</Form>
             </Formik>
-
-			<Flex alignItems={"space-around"} my={5} width={"100vw"}>
-				<Box ml={"120px"} mt={3} width={"50px"} height={"100%"}>
-					{segmentCount > 0 && <FontAwesomeIcon onClick={() => changeSegments("previous")} icon={faPlay} size={"2x"} style={{ color: "#f05463", transform: "scaleX(-1)", cursor: "pointer"}} />}	
-				</Box>
-
-				<ShowEvents eventsLabel={eventsLabel} style={{ margin: "0 auto" }} />
-				<Box mr={"120px"} mt={3} width={"50px"} height={"100%"}>
-					{segmentCount < maxNumSegments &&  <FontAwesomeIcon onClick={() => changeSegments("next")} icon={faPlay} size={"2x"} style={{ color: "#f05463", cursor: "pointer"}} />}	
-				</Box>
-			</Flex>
         </>
         
     );

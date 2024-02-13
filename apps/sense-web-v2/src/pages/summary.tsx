@@ -14,6 +14,51 @@ import SenseLayout from "../components/layout/SenseLayout"
 import { annotationProps, intervalsProps } from "../utils/constants"
 import { ChannelList } from "../utils/ChannelList"
 
+type ImportResult = [number, string, number, string[], ChannelList[], (MakerFrame | ScientISSTFrame)[][]];
+
+const importFromLocalStorage = (): ImportResult => {
+	const numSegments = JSON.parse(localStorage.getItem("aq_segments"));
+	const deviceType = localStorage.getItem("aq_deviceType");
+	const sampleRate = JSON.parse(localStorage.getItem("aq_sampleRate"));
+	const channelsListData: any = JSON.parse(localStorage.getItem("aq_channels"));
+	
+	const channelsList: ChannelList[] = []
+	for (let i = 0; i < numSegments; i++) {
+		channelsList.push(ChannelList.parseInstance(channelsListData[i]));
+	}
+
+	const channelNames = channelsList[0].names
+
+	const frames = []
+	for (let i = 0; i < numSegments; i++) {
+		if (deviceType === "sense") {
+			frames.push(ScientISSTFrame.deserializeAll(localStorage.getItem(`aq_seg${i}`), new Set(channelNames)));
+		} else {	
+			frames.push(MakerFrame.deserializeAll(localStorage.getItem(`aq_seg${i}`), new Set(channelNames)));
+		}
+	}
+
+	return [numSegments, deviceType, sampleRate, channelNames, channelsList, frames];
+}
+
+const translate = (events, eventsLabel) => {
+	const translationTable = {};
+	const translatedEvents = events.map((event) => {
+		for (const [index, label] of eventsLabel.entries()) {
+			const labelName = label.name;
+			translationTable[labelName] = index;
+
+			if (event.includes(labelName)) {
+				// Replace labelName and assign the result back to event
+				event = event.replace(labelName, index.toString());
+			}
+		}
+		return event;
+	});
+
+	return [translationTable, translatedEvents];
+};
+
 const addSvgToPDF = async (
 	pdf: JsPDF,
 	svg: SVGSVGElement | string,
@@ -59,17 +104,9 @@ const Page = () => {
 
 
 	const convertToCSV = useCallback(() => {
+
+		const [numSegments, deviceType, sampleRate, channelNames, channelsList, framesList]: ImportResult = importFromLocalStorage();		
 		const eventsLabel = JSON.parse(localStorage.getItem("settings")).eventsLabel;
-
-		const segments = JSON.parse(localStorage.getItem("aq_segments"));
-		const deviceType = localStorage.getItem("aq_deviceType");
-		const sampleRate = JSON.parse(localStorage.getItem("aq_sampleRate"));
-
-		const channelsListData: any = JSON.parse(localStorage.getItem("aq_channels"));
-		let channelsList: ChannelList[] = []
-		for (let i = 0; i < segments; i++) {
-			channelsList.push(ChannelList.parseInstance(channelsListData[i]));
-		}
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
 		  throw new Error("Device type not supported yet.");
@@ -78,17 +115,17 @@ const Page = () => {
 		const zip = new JSZip();
 		let firstTimestamp = 0;
 
-		for (let segment = 0; segment < segments; segment++) {
-			const frames = deviceType === "sense"
-				? ScientISSTFrame.deserializeAll(localStorage.getItem(`aq_seg${segment}`), new Set(channelsList[segment].names))
-				: MakerFrame.deserializeAll(localStorage.getItem(`aq_seg${segment}`), new Set(channelsList[segment].names))
+		for (let segment = 0; segment < numSegments; segment++) {
+			
+			const frames: (MakerFrame | ScientISSTFrame)[] = framesList[segment];
+			const channels = channelsList[segment];
 
 			if (frames.length === 0) {
 				continue;
 			}
 
 			const resolutionBits = [];
-			channelsList[segment].names.forEach(name => {
+			channelNames.forEach(name => {
 				resolutionBits.push(ScientISSTFrame.CHANNEL_SIZES[name]);
 			});
 
@@ -98,7 +135,7 @@ const Page = () => {
 				firstTimestamp = timestamp.getTime();
 			}
 
-			//Show Details
+			//Show Header
 			const auxDeviceType = deviceType === "sense" ? "ScientISST Sense" : "ScientISST Maker"
 			const auxResolutionBits = deviceType === "sense" ? resolutionBits : undefined;
 
@@ -111,41 +148,27 @@ const Page = () => {
 
 			// Show data table
 			const dataTable = [
-				"# Channel, " + channelsList[segment].names.join(", "),
+				"# Channel, " + channelNames.join(", "),
 				"# Resolution (bits), " + auxResolutionBits,
-				...frames.map(frame => [frame.sequence, ...channelsList[segment].names.map(channel => frame.channels[channel])].join(", ")),
+				...frames.map(frame => [frame.sequence, ...channelNames.map(name => frame.channels[name])].join(", ")),
 			];
 
-			const translate = (events: string[]) => {
-				const translation: string[] = [];
-			
-				for (const [index, label] of eventsLabel.entries()) {
-					translation.push(`# ${index} -> ${label.name}`);
-			
-					for (let i = 0; i < events.length; i++) {
-						const event = events[i];
-			
-						if (event.includes(label.name)) {
-							// Replace label.name and assign the result back to events[i]
-							events[i] = event.replace(label.name, index.toString());
-						}
-					}
-				}
-			
-				// Now, translation array contains the desired strings.
-				return translation.concat(events);
-			}
-
 			//Show annotations tables
+			const [table_A, events_A] = translate(channels.showAnnotations(), eventsLabel)
+
 			const annotationTable = [
 				"# Channel, Annotations, Label, Instant",
-				...translate(channelsList[segment].showAnnotations()),
+				"# " + JSON.stringify(table_A),
+				...events_A
 			];
 
 			//Show intervals tables
+			const [table_B, events_B] = translate(channels.showIntervals(), eventsLabel)
+
 			const intervalsTable = [
 				"# Channel, Intervals, Label, Start, End",
-				...translate(channelsList[segment].showIntervals()),
+				"# " + JSON.stringify(table_B),
+				...events_B,
 			];
 
 		  	const data_content = [...detailsTable, '#', ...dataTable];
@@ -169,6 +192,9 @@ const Page = () => {
 	}, []);
 
 	const convertToPDF = useCallback(async () => {
+		
+		// ********** PDF STYLE **********
+
 		const pdf = new JsPDF({
 			orientation: "landscape",
 			unit: "mm",
@@ -224,40 +250,30 @@ const Page = () => {
 		pdf.addFileToVFS("Lexend-Light.ttf", lexendLightFontBase64)
 		pdf.addFont("Lexend-Light.ttf", "Lexend", "light")
 
+
+		// ********** ACQUIRING DATA **********
+		
+
 		// Extract acquisition data from local storage
-		const channels: ChannelList = JSON.parse(localStorage.getItem("aq_channels"))
+		const [numSegments, deviceType, sampleRate, channelNames, channelsList, framesList]: ImportResult = importFromLocalStorage();		
 
-		const segmentCount: number = JSON.parse(localStorage.getItem("aq_segments"))
-		const deviceType = localStorage.getItem("aq_deviceType")
-		const storedChannelNames: string[] = JSON.parse(localStorage.getItem("aq_channelNames") ?? "{}")
-
-		const annotations: annotationProps[] = JSON.parse(localStorage.getItem("aq_annotations") ?? "{}")
-		const intervals: intervalsProps[] = JSON.parse(localStorage.getItem("aq_intervals") ?? "{}")
+		// Only the last segment is used to generate the PDF
+		const selectedSegment = numSegments - 1
+		const channels = channelsList[selectedSegment]
+		const frames = framesList[selectedSegment]
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
 			throw new Error("Device type not supported yet.")
 		}
-		const selectedSegment = segmentCount
-		const frames =
-			deviceType === "sense"
-				? ScientISSTFrame.deserializeAll(
-						localStorage.getItem(`aq_seg${selectedSegment}`) ?? "",
-						new Set(channels)
-				  )
-				: MakerFrame.deserializeAll(
-						localStorage.getItem(`aq_seg${selectedSegment}`) ?? "",
-						new Set(channels)
-				  )
-
-		const timestamp = new Date(
-			JSON.parse(localStorage.getItem(`aq_seg${selectedSegment}time`))
-		)
-		const samplingRate = JSON.parse(localStorage.getItem("aq_sampleRate"))
 
 		if (frames.length === 0) {
-			throw new Error("No frames found")
-		}
+			return
+		}		
+		
+		const timestamp = new Date(JSON.parse(localStorage.getItem(`aq_seg${selectedSegment}time`)))
 
+		// ********** GENERATING PDF **********
+		
 		const pages = Math.ceil(channels.size / 3)
 		for (let page = 0; page < pages; page++) {
 			if (page > 0) {
@@ -269,7 +285,7 @@ const Page = () => {
 			const backgroundAspectRatio = channelsOnPage <= 2 ? 1282 / 212 : 1282 / 147
 			const smallChart = channelsOnPage > 2
 
-			const svgWidth = samplingRate * 10
+			const svgWidth = sampleRate * 10
 			const svgHeight = svgWidth / svgAspectRatio
 
 			// generate svg using d3.js
@@ -290,7 +306,7 @@ const Page = () => {
 			// 	DOCUMENT_HEIGHT - DOCUMENT_MARGIN * 2
 			// )
 
-			// Header with logo and summary
+			// HEADER WITH LOGO AND SUMMARY
 			await addSvgToPDF(
 				pdf,
 				"/static/scientisst-break.svg",
@@ -325,7 +341,7 @@ const Page = () => {
 				}
 			)
 
-			// Fields titles
+			// FIELD TITLES
 			pdf.setFont("Lexend", "regular")
 			pdf.setFontSize(6)
 			pdf.setTextColor(...TEXT_SECONDARY)
@@ -369,7 +385,7 @@ const Page = () => {
 				}
 			)
 
-			// Field values
+			// FIELD VALUES
 			pdf.setFontSize(8)
 			pdf.setFont("Lexend", "regular")
 			pdf.setTextColor(...TEXT_PRIMARY)
@@ -378,7 +394,7 @@ const Page = () => {
 				baseline: "top"
 			})
 			pdf.text(
-				`${Math.round(samplingRate)} Hz`,
+				`${Math.round(sampleRate)} Hz`,
 				DOCUMENT_MARGIN + 35,
 				DOCUMENT_MARGIN + 18,
 				{
@@ -432,15 +448,18 @@ const Page = () => {
 
 			let offset = 27
 			for (
-				let channel = page * 3;
-				channel < page * 3 + channelsOnPage;
-				channel++
+				let i = page * 3;
+				i < page * 3 + channelsOnPage;
+				i++
 			) {
+				const name = channelNames[i]
+				const channel = channels.getChannel(name)
+
 				pdf.setFont("Lexend", "regular")
 				pdf.setFontSize(6)
 				pdf.setTextColor(...TEXT_SECONDARY)
 				pdf.text(
-					storedChannelNames[channels[channel]] ?? channels[channel],
+					name,
 					DOCUMENT_MARGIN,
 					DOCUMENT_MARGIN + offset,
 					{
@@ -461,6 +480,7 @@ const Page = () => {
 						backgroundAspectRatio,
 					DOCUMENT_DPI
 				)
+
 				// Draw x-axis
 				pdf.setFont("Lexend", "light")
 				pdf.setFontSize(6)
@@ -498,8 +518,9 @@ const Page = () => {
 					.slice(-svgWidth)
 					.map((frame, i) => [
 						i,
-						frame.channels[channels[channel]]
+						frame.channels[name]
 					]) as [number, number][]
+
 
 				svg.append("path")
 					.datum(data)
@@ -516,7 +537,7 @@ const Page = () => {
 
 				// Draw annotations
 				svg.selectAll('.annotations')
-					.data(annotations)
+					.data(channel.annotations)
 					.enter()
 					.append('line')
 						.attr('class', 'vertical-line')
@@ -528,7 +549,7 @@ const Page = () => {
 						.attr('stroke-width', 2);
 
 				svg.selectAll('.intervals')
-					.data(intervals)
+					.data(channel.intervals)
 					.enter()
 					.append('line')
 						.attr('class', 'vertical-line')
@@ -540,7 +561,7 @@ const Page = () => {
 						.attr('stroke-width', 2)
 
 				svg.selectAll('.intervals')
-					.data(intervals)
+					.data(channel.intervals)
 					.enter()
 					.append('line')
 						.attr('class', 'vertical-line')
@@ -552,7 +573,7 @@ const Page = () => {
 						.attr('stroke-width', 2)
 
 				svg.selectAll('.intervals')
-					.data(intervals)
+					.data(channel.intervals)
 					.enter()
 					.append('rect')
 						.attr('x', d => d.start)
