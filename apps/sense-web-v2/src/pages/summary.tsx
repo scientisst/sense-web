@@ -11,7 +11,7 @@ import JsPDF from "jspdf"
 import JSZip from "jszip"
 
 import SenseLayout from "../components/layout/SenseLayout"
-import { annotationProps, intervalsProps } from "../utils/constants"
+import { DEBUG, annotationProps, intervalsProps } from "../utils/constants"
 import { ChannelList } from "../utils/ChannelList"
 
 type ImportResult = [number, string, number, string[], ChannelList[], (MakerFrame | ScientISSTFrame)[][]];
@@ -41,22 +41,40 @@ const importFromLocalStorage = (): ImportResult => {
 	return [numSegments, deviceType, sampleRate, channelNames, channelsList, frames];
 }
 
-const translate = (events, eventsLabel) => {
-	const translationTable = {};
-	const translatedEvents = events.map((event) => {
-		for (const [index, label] of eventsLabel.entries()) {
-			const labelName = label.name;
-			translationTable[labelName] = index;
+const translate = (events, eventsLabel, channelNames, sampleRate) => {
 
-			if (event.includes(labelName)) {
-				// Replace labelName and assign the result back to event
-				event = event.replace(labelName, index.toString());
-			}
+	if (events.length === 0) {
+		if (DEBUG) console.log("No events to translate");
+		return "";
+	}
+
+	const eventNames = eventsLabel.map(label => label.name);
+
+	// Loop all events
+	const translatedEvents = events.map((event) => {
+
+		// Change the channel name to the specif code
+		event.channelName = channelNames.indexOf(event.channelName);
+
+		// Change the label name to the specific code
+		event.eventName = eventNames.indexOf(event.eventName);
+
+		if (event.annotationPos) {
+			event.annotationPos = Math.round(event.annotationPos * 1000 / sampleRate);
+		} else {
+			event.intervalStart = Math.round(event.intervalStart * 1000 / sampleRate);
+			event.intervalEnd = Math.round(event.intervalEnd * 1000 / sampleRate);
 		}
+
 		return event;
 	});
 
-	return [translationTable, translatedEvents];
+
+	if (translatedEvents[0].annotationPos)
+		return translatedEvents.map(event => event.channelName + ", " + event.eventName + ", " + event.annotationPos);
+
+	return translatedEvents
+		.map(event => event.channelName + ", " + event.eventName + ", " + event.intervalStart + ", " + event.intervalEnd)
 };
 
 const addSvgToPDF = async (
@@ -138,42 +156,56 @@ const Page = () => {
 			//Show Header
 			const auxDeviceType = deviceType === "sense" ? "ScientISST Sense" : "ScientISST Maker"
 			const auxResolutionBits = deviceType === "sense" ? resolutionBits : undefined;
+			const labelsObj = eventsLabel.reduce((object, label, index) => {
+				object[index] = label.name;
+				return object;
+			}, {});
+			
+			const channelsObj = channelNames.reduce((object, name, index) => {
+				object[index] = name;
+				return object;
+			}, {});
 
-			const detailsTable = [
-				"# Device: " + auxDeviceType,
-				"# Sampling rate (Hz): " + sampleRate,
-				"# ISO 8601: " + timestamp.toISOString(),
-				"# Timestamp: " + timestamp.getTime(),
-			];
+			const resolutionBitsObj = resolutionBits.reduce((object, value, index) => {
+				object[index] = value;
+				return object;
+			}, {});
+
+			const header_obj = {
+				"Device": auxDeviceType,
+				"Sampling rate (Hz)": sampleRate,
+				"ISO 8601": timestamp.toISOString(),
+				"Timestamp (ms)": timestamp.getTime(),
+				...(auxResolutionBits ? { "Resolution (bits)": resolutionBitsObj } : {}),
+				"Labels": labelsObj,
+				"Channels": channelsObj
+			}
+
+			const header = "# " + JSON.stringify(header_obj);
 
 			// Show data table
 			const dataTable = [
-				"# Channel, " + channelNames.join(", "),
-				"# Resolution (bits), " + auxResolutionBits,
+				"# Index, " + channelNames.join(", "),
 				...frames.map(frame => [frame.sequence, ...channelNames.map(name => frame.channels[name])].join(", ")),
 			];
 
 			//Show annotations tables
-			const [table_A, events_A] = translate(channels.showAnnotations(), eventsLabel)
-
+			const annotationsStringVector = translate(channels.showAnnotations(), eventsLabel, channelNames, sampleRate)
 			const annotationTable = [
-				"# Channel, Annotations, Label, Instant",
-				"# " + JSON.stringify(table_A),
-				...events_A
+				"# Channel, Label, Instant",
+				...annotationsStringVector
 			];
 
 			//Show intervals tables
-			const [table_B, events_B] = translate(channels.showIntervals(), eventsLabel)
-
+			const intervalsStringVector = translate(channels.showIntervals(), eventsLabel, channelNames, sampleRate)
 			const intervalsTable = [
-				"# Channel, Intervals, Label, Start, End",
-				"# " + JSON.stringify(table_B),
-				...events_B,
+				"# Channel, Label, Start, End",
+				...intervalsStringVector,
 			];
 
-		  	const data_content = [...detailsTable, '#', ...dataTable];
-			const annotation_content = [...detailsTable, '#', ...annotationTable];
-			const intervals_content = [...detailsTable, '#', ...intervalsTable];
+		  	const data_content = [header,...dataTable];
+			const annotation_content = [header,...annotationTable];
+			const intervals_content = [header,...intervalsTable];
 
 		  	zip.file(`segment_${segment}.csv`, data_content.join("\n"));
 			zip.file(`segment_${segment}_annotations.csv`, annotation_content.join("\n"));
@@ -546,7 +578,7 @@ const Page = () => {
 						.attr('x2', d => d.pos)
 						.attr('y2', svgHeight)
 						.attr('stroke', d => d.color)
-						.attr('stroke-width', 2);
+						.attr('stroke-width', 2 * sampleRate / 1000);
 
 				svg.selectAll('.intervals')
 					.data(channel.intervals)
@@ -558,7 +590,7 @@ const Page = () => {
 						.attr('x2', d => d.start)
 						.attr('y2', svgHeight)
 						.attr('stroke', d => d.color)
-						.attr('stroke-width', 2)
+						.attr('stroke-width', 2 * sampleRate / 1000)
 
 				svg.selectAll('.intervals')
 					.data(channel.intervals)
@@ -570,7 +602,7 @@ const Page = () => {
 						.attr('x2', d => d.end)
 						.attr('y2', svgHeight)
 						.attr('stroke', d => d.color)
-						.attr('stroke-width', 2)
+						.attr('stroke-width', 2 * sampleRate / 1000)
 
 				svg.selectAll('.intervals')
 					.data(channel.intervals)

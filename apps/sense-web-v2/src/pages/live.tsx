@@ -63,6 +63,9 @@ const Page = () => {
 	const [status, setStatus] = useState(STATUS.DISCONNECTED)
 	// Determines whether an acquisition has started or not. If an acquisiton
 	// has started, a download button will be shown if the acquistion fails.
+
+	const sampleRate = deviceRef.current?.getSamplingRate()
+	
 	const [acquisitionStarted, setAcquisitionStarted] = useState(false)
 
 	const [segmentCount, setSegmentCount] = useState(0)
@@ -83,9 +86,6 @@ const Page = () => {
 	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
 	const graphBufferRef = useRef<[number, Frame][]>([])
 	const frameSequenceRef = useRef(0)
-
-	// const [annotations, setAnnotations] = useState<annotationProps[]>([])
-	// const [intervals, setIntervals] = useState<intervalsProps[]>([])
 
 	// The following useEffect ensures that the device is disconnected when the
 	// user leaves the page
@@ -111,10 +111,10 @@ const Page = () => {
 					dataKey + "time",
 					JSON.stringify(Date.now())
 				)
-			
-				if (channelLists) {
-					localStorage.setItem("aq_channels", JSON.stringify(channelLists))
-				}
+			}
+
+			if (channelLists) {
+				localStorage.setItem("aq_channels", JSON.stringify(channelLists))
 			}
 
 			const sampleRate = deviceRef.current?.getSamplingRate()
@@ -359,6 +359,7 @@ const Page = () => {
 			await deviceRef.current?.stopAcquisition()
 			await deviceRef.current?.disconnect()
 			setData(prev => [...prev, graphBufferRef.current])
+			localStorage.setItem("channels", JSON.stringify(channelLists))
 		} catch (e) {
 			// Ignore the errors. See the comment in the onError handler above.
 		}
@@ -374,6 +375,7 @@ const Page = () => {
 			await deviceRef.current?.stopAcquisition()
 			setData(prev => [...prev, graphBufferRef.current])
 			setStatus(STATUS.PAUSED)
+			localStorage.setItem("channels", JSON.stringify(channelLists))
 		} catch (e) {
 			setStatus(STATUS.CONNECTION_LOST)
 		}
@@ -491,7 +493,7 @@ const Page = () => {
 			{status === STATUS.OUT_OF_STORAGE && acquisitionStarted && <OutOfStorage />}
 			{status === STATUS.PAUSED && <Paused resume={resume} stop={stop} />}
 			
-			{status === STATUS.ACQUIRING && <Acquiring channelList={channelLists[segmentCount]} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain} /> }
+			{status === STATUS.ACQUIRING && <Acquiring channelList={channelLists[segmentCount]} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain} sampleRate={sampleRate}/> }
 			
 			{ /* status === STATUS.EDITING && <Editing channelList={channelLists[segmentCount]} submit={submit} xTickFormatter={xTickFormatter} data={data[segmentCount]} xDomain={xDomain} segmentCount={segmentCount} changeSegments={changeSegments} maxNumSegments={numSegments} setChannelsList={setChannelLists}/> */}
 

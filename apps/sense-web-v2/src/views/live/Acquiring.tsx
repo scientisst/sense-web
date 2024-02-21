@@ -14,7 +14,7 @@ import { Box, Flex } from "@chakra-ui/react"
 import ShowEvents from "../../components/ShowEvents"
 import { ChannelList } from "../../utils/ChannelList"
 
-const Acquiring = ({channelList, graphBufferRef, xTickFormatter, pause, xDomain, stop}) => {
+const Acquiring = ({channelList, graphBufferRef, xTickFormatter, pause, xDomain, stop, sampleRate}) => {
 	
 	const eventsLabel = loadSettings().eventsLabel
 	const channels: ChannelList = channelList
@@ -33,7 +33,7 @@ const Acquiring = ({channelList, graphBufferRef, xTickFormatter, pause, xDomain,
 				color: label.color,
 				pos: time
 			};
-	
+
 			channels.createAnnotationAllChannels(newAnnotation)
 			setTimeArray({...timeArray, [pressedKey]: time});
 		}
@@ -52,7 +52,7 @@ const Acquiring = ({channelList, graphBufferRef, xTickFormatter, pause, xDomain,
 				return;
 			}
 
-			if (duration < 300) {			// Is annotation (there nothing to do)
+			if (duration < 300 * sampleRate / 1000) {			// Is annotation (there nothing to do)
 				setTimeArray(prev => ({...prev, [pressedKey]: null}));
 				return;
 			}						

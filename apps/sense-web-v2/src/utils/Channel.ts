@@ -88,10 +88,10 @@ export class Channel {
     }
 
     showAnnotations(channelName: string): string[] {
-        const annotations = ["#"];
+        const annotations = [];
 
-        this.annotations.forEach((annotation, index) => {
-            annotations.push(`${channelName}, ${index}, ${annotation.name}, ${annotation.pos}`);
+        this.annotations.forEach((annotation) => {
+            annotations.push({channelName: channelName, eventName: annotation.name, annotationPos: annotation.pos})
         });
 
         
@@ -99,13 +99,13 @@ export class Channel {
     }
 
     showIntervals(channelName: string): string[] {
-        const intervals = ["#"];
+        const intervals = [];
 
-        this.intervals.forEach((interval, index) => {
-            intervals.push(`${channelName}, ${index}, ${interval.name}, ${interval.start}, ${interval.end}`);
+        this.intervals.forEach((interval) => {
+            intervals.push({channelName: channelName, eventName: interval.name, intervalStart: interval.start, intervalEnd: interval.end})
         });
 
-        return intervals;
+        return intervals.sort((a, b) => a.intervalStart - b.intervalStart);
     }
 
 }
