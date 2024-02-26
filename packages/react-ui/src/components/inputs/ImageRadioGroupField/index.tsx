@@ -16,6 +16,7 @@ interface ImageRadioGroupProps {
 		name: string
 		value: string
 		ariaLabel?: string
+		// disabled?: boolean
 	}>
 }
 

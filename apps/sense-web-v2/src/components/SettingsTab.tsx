@@ -36,6 +36,7 @@ const settingsTab = () => {
                 {
                     name: "System",
                     value: "system",
+                    // disabled: true,
                     img: (
                         <FontAwesomeIcon
                             icon={faGear}

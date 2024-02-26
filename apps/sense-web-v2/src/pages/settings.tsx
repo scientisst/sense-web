@@ -1,33 +1,20 @@
 import { useEffect, useState } from "react"
 
-
-import { faToolbox, faWaveSquare, faGear } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-	ButtonCheckboxGroupField,
-	ButtonRadioGroupField,
-	ImageRadioGroupField,
-	NumberField,
-	TextButton
-} from "@scientisst/react-ui/components/inputs"
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
 import { Maker, SCIENTISST_COMUNICATION_MODE } from "@scientisst/sense/future"
-import clsx from "clsx"
 import { Form, Formik } from "formik"
 import * as Yup from "yup"
 import { settingsProps, loadSettings, eventProps } from "../utils/constants"
 
-
 import SenseLayout from "../components/layout/SenseLayout"
-import Table from "../components/Table"
 import SettingsTab from "../components/SettingsTab"
 import SenseSettings from "../views/settings/SenseSettings"
 import MakerSettings from "../views/settings/MakerSettings"
 import SystemSettings from "../views/settings/SystemSettings"
 
 const schema = Yup.object().shape({
-	// deviceType: Yup.string().oneOf(["sense", "maker", "system"]).required(),
 	deviceType: Yup.string().oneOf(["sense", "maker", "system"]).required(),
+	// deviceType: Yup.string().oneOf(["sense", "maker"]).required(),
 	communication: Yup.number()
 		.oneOf([
 			SCIENTISST_COMUNICATION_MODE.WEBSOCKET,
@@ -55,10 +42,6 @@ const schema = Yup.object().shape({
 			.min(1, "You must select at least one channel")
 			.required()
 	}),
-	events: Yup.array().when("deviceType", {
-		is: "system",
-		then: Yup.array().required()
-	})
 })
 
 const Page = () => {
@@ -75,19 +58,6 @@ const Page = () => {
 		}
 	}, [settings, loaded])
 
-	// useEffect(() => {
-	// 	return (
-	// 		() => {
-	// 			localStorage.setItem("settings", JSON.stringify(settings))
-	// 		}
-		
-	// 	)
-	// }, [])
-
-	useEffect(() => {
-		console.log("settings", settings)
-	}, [settings])
-
 	return (
 		<SenseLayout
 			title="Sense settings"
@@ -103,6 +73,8 @@ const Page = () => {
 					initialValues={settings}
 					validationSchema={schema}
 					onSubmit={values => {
+
+						console.log("submit", values)
 						localStorage.setItem("settings", JSON.stringify(values))
 					}}
 				>
@@ -113,7 +85,7 @@ const Page = () => {
 							<SettingsTab />
 							{deviceType==="sense" && <SenseSettings /> }
 							{deviceType==="maker" && <MakerSettings /> }
-							{deviceType === "system" && <SystemSettings events={settings.eventsLabel} updateSettings={updateSettings}/>}
+							{deviceType === "system" && <SystemSettings />}
 
 						</Form>
 					)}
