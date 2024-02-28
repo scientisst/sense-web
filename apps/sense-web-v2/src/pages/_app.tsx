@@ -34,7 +34,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 	}, [])
 
 	// Load settings
-	useEffect(() => {loadSettings()}, [])
+	useEffect(() => {
+		loadSettings()
+	}, [])
 
 	return (
 		<NoSSR>

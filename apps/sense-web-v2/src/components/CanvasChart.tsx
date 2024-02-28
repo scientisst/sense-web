@@ -2,17 +2,27 @@ import { useEffect, useState } from "react"
 
 import clsx from "clsx"
 import * as d3 from "d3"
-import { annotationProps, intervalsProps } from "../utils/constants"
+
 import { Channel } from "../utils/Channel"
 import { ChannelList } from "../utils/ChannelList"
+import { annotationProps, intervalsProps } from "../utils/constants"
 
 export interface CanvasChartProps {
 	data: [number, number][]
 	channel: Channel
-	channels: ChannelList,
+	channels: ChannelList
 	// domain: {left: number, right: number, top: number, bottom: number}
-	domain: {left: number, right: number}
-	style: {cssStyle?: React.CSSProperties, className?: string, fontSize?: number, fontFamily?: string, fontWeight?: number, lineColor?: string, outlineColor?: string, margin?: {top: number, right: number, bottom: number, left: number}}
+	domain: { left: number; right: number }
+	style: {
+		cssStyle?: React.CSSProperties
+		className?: string
+		fontSize?: number
+		fontFamily?: string
+		fontWeight?: number
+		lineColor?: string
+		outlineColor?: string
+		margin?: { top: number; right: number; bottom: number; left: number }
+	}
 	xTicks?: number
 	yTicks?: number
 	xTickFormat?: (x: number) => string
@@ -20,9 +30,23 @@ export interface CanvasChartProps {
 	chartUpdated?: () => void
 }
 
-const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domain, style, xTicks, yTicks, xTickFormat, yTickFormat, chartUpdated}) => {
-	const [parentElement, setParentElement] = useState<HTMLDivElement | null>(null)
-	const [canvasElement, setCanvasElement] = useState<HTMLCanvasElement | null>(null)
+const CanvasChart: React.FC<CanvasChartProps> = ({
+	data,
+	channel,
+	channels,
+	domain,
+	style,
+	xTicks,
+	yTicks,
+	xTickFormat,
+	yTickFormat,
+	chartUpdated
+}) => {
+	const [parentElement, setParentElement] = useState<HTMLDivElement | null>(
+		null
+	)
+	const [canvasElement, setCanvasElement] =
+		useState<HTMLCanvasElement | null>(null)
 
 	const [width, setWidth] = useState(0)
 	const [height, setHeight] = useState(0)
@@ -38,18 +62,17 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			.domain([0, plotWidht])
 			.range([domain.left, domain.right])
 
-
 		return scale(x)
 	}
 
 	useEffect(() => {
-		channel.annotations;
-		channel.intervals;
+		channel.annotations
+		channel.intervals
 	}, [channel])
 
 	// Define the size of the canvas
 	useEffect(() => {
-		if (!parentElement) return;
+		if (!parentElement) return
 
 		setWidth(parentElement.clientWidth)
 		setHeight(parentElement.clientHeight)
@@ -65,7 +88,6 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			resizeObserver.disconnect()
 		}
 	}, [parentElement])
-
 
 	// Define the pixel ratio
 	useEffect(() => {
@@ -84,64 +106,76 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 
 	// Remove events on click
 	useEffect(() => {
-		if (chartUpdated === undefined) return;
+		if (chartUpdated === undefined) return
 
 		const handleCanvasClick = (event: MouseEvent) => {
-			
-			if (event.button !== 2) return;												// Check if is a right click
-			
-			const canvasRect = canvasElement?.getBoundingClientRect();
-			if (!canvasRect) return;
+			if (event.button !== 2) return // Check if is a right click
 
+			const canvasRect = canvasElement?.getBoundingClientRect()
+			if (!canvasRect) return
 
-			const mousePosition = xScale((event.clientX - canvasRect.left) * pixelRatio - scaledMarginLeft);
-			const [closest, distance, type] = channel.getClosestEvent(mousePosition)
+			const mousePosition = xScale(
+				(event.clientX - canvasRect.left) * pixelRatio -
+					scaledMarginLeft
+			)
+			const [closest, distance, type] =
+				channel.getClosestEvent(mousePosition)
 
-			if (closest === undefined) return;											// Check if there is any annotation or interval close to the mouse position
-			if (distance > 100) return;													// Check if the distance is less than 10 pixels (to avoid missclicks
+			if (closest === undefined) return // Check if there is any annotation or interval close to the mouse position
+			if (distance > 100) return // Check if the distance is less than 10 pixels (to avoid missclicks
 
 			// Prompt the user for confirmation
-			const userConfirmed = window.confirm('Are you sure you want to delete this item?');
-			if (!userConfirmed) return;
+			const userConfirmed = window.confirm(
+				"Are you sure you want to delete this item?"
+			)
+			if (!userConfirmed) return
 
-			const deleteAll = window.confirm('Do you want to delete all equals events in the others channels?');
-			
+			const deleteAll = window.confirm(
+				"Do you want to delete all equals events in the others channels?"
+			)
+
 			if (deleteAll) {
-				if (type === 'annotation') {
-					channels.removeAnnotationAllChannels(closest as annotationProps);
+				if (type === "annotation") {
+					channels.removeAnnotationAllChannels(
+						closest as annotationProps
+					)
 				}
-				if (type === 'interval') {
-					channels.removeIntervalAllChannels(closest as intervalsProps);
+				if (type === "interval") {
+					channels.removeIntervalAllChannels(
+						closest as intervalsProps
+					)
 				}
 			} else {
-				if (type === 'annotation') {
-					channel.deleteAnnotation(closest as annotationProps);
+				if (type === "annotation") {
+					channel.deleteAnnotation(closest as annotationProps)
 				}
-				if (type === 'interval') {
-					channel.deleteInterval(closest as intervalsProps);
+				if (type === "interval") {
+					channel.deleteInterval(closest as intervalsProps)
 				}
 			}
 
-			chartUpdated();
+			chartUpdated()
 		}
-		  
-		
+
 		// Add an event listener for the click event on the canvas
-		canvasElement?.addEventListener('mousedown', handleCanvasClick);
-		canvasElement?.addEventListener('contextmenu', (event) => event.preventDefault());
-	  
+		canvasElement?.addEventListener("mousedown", handleCanvasClick)
+		canvasElement?.addEventListener("contextmenu", event =>
+			event.preventDefault()
+		)
+
 		// Cleanup event listener on component unmount
 		return () => {
-		  canvasElement?.removeEventListener('mousedown', handleCanvasClick);
-		  canvasElement?.removeEventListener('contextmenu', (event) => event.preventDefault());
-		};		
-		
-	}, [canvasElement, channel, channels, xScale, pixelRatio, scaledMarginLeft]);	
+			canvasElement?.removeEventListener("mousedown", handleCanvasClick)
+			canvasElement?.removeEventListener("contextmenu", event =>
+				event.preventDefault()
+			)
+		}
+	}, [canvasElement, channel, channels, xScale, pixelRatio, scaledMarginLeft])
 
 	// Draw the chart
 	useEffect(() => {
-		if (!canvasElement) return;
-			
+		if (!canvasElement) return
+
 		const scaledWidth = width * pixelRatio
 		const scaledHeight = height * pixelRatio
 
@@ -150,10 +184,14 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			.attr("height", scaledHeight)
 
 		const context = canvasElement.getContext("2d")
-		if (!context) { return }
+		if (!context) {
+			return
+		}
 
 		const fontSizeScaled = (style.fontSize ?? 16) * pixelRatio
-		context.font = `${style.fontWeight ?? 400} ${fontSizeScaled}px ${style.fontFamily ?? "sans-serif"}`
+		context.font = `${style.fontWeight ?? 400} ${fontSizeScaled}px ${
+			style.fontFamily ?? "sans-serif"
+		}`
 
 		const X = d3.map(data, d => d[0])
 		const Y = d3.map(data, d => d[1])
@@ -177,10 +215,14 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			8 * pixelRatio
 		const xAxisHeight = fontSizeScaled + 8 * pixelRatio
 
-		const scaledTopMargin = (style.margin.top ?? fontSizeScaled / 2) * pixelRatio
-		const scaledRightMargin = (style.margin.right ?? fontSizeScaled / 2) * pixelRatio
-		const scaledBottomMargin = (style.margin.bottom ?? 0) * pixelRatio + xAxisHeight
-		const scaledLeftMargin = (style.margin.left ?? 0) * pixelRatio + yAxisWidth
+		const scaledTopMargin =
+			(style.margin.top ?? fontSizeScaled / 2) * pixelRatio
+		const scaledRightMargin =
+			(style.margin.right ?? fontSizeScaled / 2) * pixelRatio
+		const scaledBottomMargin =
+			(style.margin.bottom ?? 0) * pixelRatio + xAxisHeight
+		const scaledLeftMargin =
+			(style.margin.left ?? 0) * pixelRatio + yAxisWidth
 
 		const plotWidth = scaledWidth - scaledLeftMargin - scaledRightMargin
 		const plotHeight = scaledHeight - scaledTopMargin - scaledBottomMargin
@@ -200,7 +242,6 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			.domain([yMinValue, yMaxValue])
 			.range([plotHeight, 0])
 
-
 		const lineWidth = 2 * pixelRatio
 		const halfLineWidth = lineWidth / 2
 		context.lineWidth = lineWidth
@@ -211,20 +252,21 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			.x(d => xScale(d[0]))
 			.y(d => yScale(d[1]))
 			.context(context)
-			.defined(d => d[1] !== null && d[0] >= domain.left && d[0] <= domain.right)
+			.defined(
+				d =>
+					d[1] !== null && d[0] >= domain.left && d[0] <= domain.right
+			)
 			.context(context)
-
 
 		// if (channel.name === "AI1") {
 		// 	console.log(domain)
 		// 	console.log("data", data[data.length-1]);
 		// }
-		
+
 		line(data)
 		context.strokeStyle = style.lineColor ?? "red"
 		context.stroke()
 		context.strokeStyle = style.outlineColor ?? "black"
-
 
 		// Draw y axis
 		context.beginPath()
@@ -244,9 +286,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			context.stroke()
 
 			context.fillText(
-				yTickFormat
-					? yTickFormat(yTickValue)
-					: yTickValue.toString(),
+				yTickFormat ? yTickFormat(yTickValue) : yTickValue.toString(),
 				-halfLineWidth - 8 * pixelRatio,
 				yTickPosition
 			)
@@ -272,51 +312,54 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 			context.stroke()
 
 			context.fillText(
-				xTickFormat
-					? xTickFormat(xTickValue)
-					: xTickValue.toString(),
+				xTickFormat ? xTickFormat(xTickValue) : xTickValue.toString(),
 				xTickPosition,
 				plotHeight + lineWidth + 8 * pixelRatio
 			)
 		}
 
 		// Draw annotations
-		context.lineWidth = 3;
+		context.lineWidth = 3
 		channel.annotations.forEach(annotation => {
-			context.strokeStyle = annotation.color;
-			const xPosition = xScale(annotation.pos); // Adjust this based on how your annotations are defined
-			context.beginPath();
-			context.moveTo(xPosition, 0);
-			context.lineTo(xPosition, plotHeight);
-			context.stroke();
-		});
+			context.strokeStyle = annotation.color
+			const xPosition = xScale(annotation.pos) // Adjust this based on how your annotations are defined
+			context.beginPath()
+			context.moveTo(xPosition, 0)
+			context.lineTo(xPosition, plotHeight)
+			context.stroke()
+		})
 
 		// Draw intervals
-		context.lineWidth = 3;
+		context.lineWidth = 3
 		channel.intervals.forEach(interval => {
-			context.strokeStyle = interval.color;
-			
-			const start = xScale(interval.start); // Adjust this based on how your intervals are defined
-			context.beginPath();
-			context.moveTo(start, 0);
-			context.lineTo(start, plotHeight);
-			context.stroke();
-			
-			const end = xScale(interval.end); // Adjust this based on how your intervals are defined
-			context.beginPath();
-			context.moveTo(end, 0);
-			context.lineTo(end, plotHeight);
-			context.stroke();
+			context.strokeStyle = interval.color
+
+			const start = xScale(interval.start) // Adjust this based on how your intervals are defined
+			context.beginPath()
+			context.moveTo(start, 0)
+			context.lineTo(start, plotHeight)
+			context.stroke()
+
+			const end = xScale(interval.end) // Adjust this based on how your intervals are defined
+			context.beginPath()
+			context.moveTo(end, 0)
+			context.lineTo(end, plotHeight)
+			context.stroke()
 
 			// Use RGBA notation for color with alpha channel
 			const rgbToRgba = (rgb: string) => {
-				const color = rgb.replace("rgb", "rgba");
-				return color.replace(")", ", 0.1)");
+				const color = rgb.replace("rgb", "rgba")
+				return color.replace(")", ", 0.1)")
 			}
 
 			context.fillStyle = rgbToRgba(interval.color) // For example,
-			context.fillRect(start+lineWidth/2, 0, end - start - lineWidth, plotHeight);
-		});
+			context.fillRect(
+				start + lineWidth / 2,
+				0,
+				end - start - lineWidth,
+				plotHeight
+			)
+		})
 	}, [
 		data,
 		channel,
@@ -329,7 +372,7 @@ const CanvasChart: React.FC<CanvasChartProps> = ({data, channel, channels, domai
 		yTickFormat,
 		xTicks,
 		xTickFormat,
-		style,
+		style
 	])
 
 	return (

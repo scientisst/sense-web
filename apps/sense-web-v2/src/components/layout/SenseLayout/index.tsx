@@ -34,7 +34,9 @@ const SenseLayout: React.FC<SenseLayoutProps> = ({ children, ...props }) => {
 	return (
 		<HeaderAndFooterLayout
 			headerLogo={<SenseLogo className="h-full w-full p-2" />}
-			footerLogo={<ScientISSTSenseLogo monochrome className="h-20 w-auto" />}
+			footerLogo={
+				<ScientISSTSenseLogo monochrome className="h-20 w-auto" />
+			}
 			motto="Biomedical engineering for everyone."
 			socialMediaLinks={[
 				{

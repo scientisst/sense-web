@@ -1,3 +1,6 @@
+export default function Editing() {
+	return null
+}
 // import { TextButton, TextField } from "@scientisst/react-ui/components/inputs";
 // import { chartStyle, loadSettings } from "../../utils/constants";
 // import ShowEvents from "../../components/ShowEvents";
@@ -13,7 +16,7 @@
 // import { ChannelList } from "../../utils/ChannelList";
 
 // const Editing = ({submit, xTickFormatter, channelList, data, xDomain, changeSegments, segmentCount, maxNumSegments, setChannelsList}) => {
-// 	const eventsLabel = loadSettings().eventsLabel 
+// 	const eventsLabel = loadSettings().eventsLabel
 // 	const channels: ChannelList = channelList
 // 	const isDark = useDarkTheme()
 
@@ -33,8 +36,6 @@
 // 		setUpdateCharts(updateCharts + 1);
 // 	};
 
-	
-
 //     return (
 //         <>
 //             <TextButton size={"base"} onClick={submit}>
@@ -45,12 +46,12 @@
 
 // 			<Flex alignItems={"space-around"} my={5} width={"100vw"}>
 // 				<Box ml={"120px"} mt={3} width={"50px"} height={"100%"}>
-// 					{segmentCount > 0 && <FontAwesomeIcon onClick={() => changeSegments("previous")} icon={faPlay} size={"2x"} style={{ color: "#f05463", transform: "scaleX(-1)", cursor: "pointer"}} />}	
+// 					{segmentCount > 0 && <FontAwesomeIcon onClick={() => changeSegments("previous")} icon={faPlay} size={"2x"} style={{ color: "#f05463", transform: "scaleX(-1)", cursor: "pointer"}} />}
 // 				</Box>
 
 // 				<ShowEvents eventsLabel={eventsLabel} style={{ margin: "0 auto" }} />
 // 				<Box mr={"120px"} mt={3} width={"50px"} height={"100%"}>
-// 					{segmentCount < maxNumSegments &&  <FontAwesomeIcon onClick={() => changeSegments("next")} icon={faPlay} size={"2x"} style={{ color: "#f05463", cursor: "pointer"}} />}	
+// 					{segmentCount < maxNumSegments &&  <FontAwesomeIcon onClick={() => changeSegments("next")} icon={faPlay} size={"2x"} style={{ color: "#f05463", cursor: "pointer"}} />}
 // 				</Box>
 // 			</Flex>
 
@@ -104,7 +105,7 @@
 // 					</Form>
 //             </Formik>
 //         </>
-        
+
 //     );
 // }
 

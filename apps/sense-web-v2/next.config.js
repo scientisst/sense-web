@@ -8,6 +8,7 @@ const nextConfig = {
 	transpilePackages: [
 		"@scientisst/sense",
 		"@scientisst/chakra-ui",
+		"@scientisst/react-ui",
 		"esptool-js"
 	]
 }

@@ -1,15 +1,15 @@
-import { use, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
-import { Maker, SCIENTISST_COMUNICATION_MODE } from "@scientisst/sense/future"
+import { SCIENTISST_COMUNICATION_MODE } from "@scientisst/sense/future"
 import { Form, Formik } from "formik"
 import * as Yup from "yup"
-import { settingsProps, loadSettings, eventProps } from "../utils/constants"
 
-import SenseLayout from "../components/layout/SenseLayout"
 import SettingsTab from "../components/SettingsTab"
-import SenseSettings from "../views/settings/SenseSettings"
+import SenseLayout from "../components/layout/SenseLayout"
+import { loadSettings } from "../utils/constants"
 import MakerSettings from "../views/settings/MakerSettings"
+import SenseSettings from "../views/settings/SenseSettings"
 import SystemSettings from "../views/settings/SystemSettings"
 
 const schema = Yup.object().shape({
@@ -42,40 +42,51 @@ const schema = Yup.object().shape({
 			.min(1, "You must select at least one channel")
 			.required()
 	}),
-	eventsLabel: Yup.array().of(
-        Yup.object().shape({
-            name: Yup.string().required(),
-            color: Yup.string().required(),
-			key: Yup.string().length(1).required(), // Ensure key has length of 1
-            toggle: Yup.boolean().required()
-        })
-    ).test('unique-event-properties', 'Name, color, and key must be unique', function (value) {
-        const seenNames = new Set();
-        const seenColors = new Set();
-        const seenKeys = new Set();
+	eventsLabel: Yup.array()
+		.of(
+			Yup.object().shape({
+				name: Yup.string().required(),
+				color: Yup.string().required(),
+				key: Yup.string().length(1).required(), // Ensure key has length of 1
+				toggle: Yup.string().oneOf(["true", "false"]).required()
+			})
+		)
+		.test(
+			"unique-event-properties",
+			"Name, color, and key must be unique",
+			function (value) {
+				const seenNames = new Set()
+				const seenColors = new Set()
+				const seenKeys = new Set()
 
-        for (const event of value) {
-            if (seenNames.has(event.name) || seenColors.has(event.color) || seenKeys.has(event.key)) {
-                return false;
-            }
+				for (const event of value) {
+					if (
+						seenNames.has(event.name) ||
+						seenColors.has(event.color) ||
+						seenKeys.has(event.key)
+					) {
+						return false
+					}
 
-            seenNames.add(event.name);
-            seenColors.add(event.color);
-            seenKeys.add(event.key);
-        }
+					seenNames.add(event.name)
+					seenColors.add(event.color)
+					seenKeys.add(event.key)
+				}
 
-        return true;
-    })
-    .required()
+				return true
+			}
+		)
+		.required()
 })
 
 const Page = () => {
-	const [settings, setSettings] = useState<settingsProps>(loadSettings())
+	// const [settings, setSettings] = useState<settingsProps>(loadSettings())
+	const settings = loadSettings()
 	const [loaded, setLoaded] = useState(false)
 
-	const updateSettings = (events: eventProps[]) => {
-		setSettings(prev => ({ ...prev, eventsLabel: events }))
-	}
+	// const updateSettings = (events: eventProps[]) => {
+	// 	setSettings(prev => ({ ...prev, eventsLabel: events }))
+	// }
 
 	useEffect(() => {
 		if (typeof window !== "undefined" && !loaded) {
@@ -98,7 +109,6 @@ const Page = () => {
 					initialValues={settings}
 					validationSchema={schema}
 					onSubmit={values => {
-
 						console.log("submit", values)
 						localStorage.setItem("settings", JSON.stringify(values))
 					}}
@@ -106,12 +116,11 @@ const Page = () => {
 					{({ values: { deviceType } }) => (
 						<Form className="flex w-full flex-col items-center">
 							<FormikAutoSubmit delay={100} />
-							
-							<SettingsTab />
-							{deviceType==="sense" && <SenseSettings /> }
-							{deviceType==="maker" && <MakerSettings /> }
-							{deviceType === "system" && <SystemSettings />}
 
+							<SettingsTab />
+							{deviceType === "sense" && <SenseSettings />}
+							{deviceType === "maker" && <MakerSettings />}
+							{deviceType === "system" && <SystemSettings />}
 						</Form>
 					)}
 				</Formik>
@@ -120,4 +129,4 @@ const Page = () => {
 	)
 }
 
-export default Page;
+export default Page

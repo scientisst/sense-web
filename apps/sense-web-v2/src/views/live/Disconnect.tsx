@@ -1,19 +1,19 @@
 import { TextButton } from "@scientisst/react-ui/components/inputs"
+
 import { STATUS } from "../../pages/live"
 
 const Disconnect = ({ status, connect }) => {
-    return (
-        <div className="flex flex-row gap-4">
-            <TextButton
-                size={"base"}
-                onClick={connect}
-                disabled={status === STATUS.CONNECTING}
-            >
-                Connect
-            </TextButton>
-        </div>
-    )
-    
+	return (
+		<div className="flex flex-row gap-4">
+			<TextButton
+				size={"base"}
+				onClick={connect}
+				disabled={status === STATUS.CONNECTING}
+			>
+				Connect
+			</TextButton>
+		</div>
+	)
 }
 
-export default Disconnect;
+export default Disconnect

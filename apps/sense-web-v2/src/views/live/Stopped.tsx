@@ -1,7 +1,5 @@
 const Stopped = () => {
-    return (
-        <span>Redirecting to summary page...</span>
-    )
+	return <span>Redirecting to summary page...</span>
 }
 
-export default Stopped;
+export default Stopped

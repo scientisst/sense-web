@@ -11,20 +11,29 @@ import JsPDF from "jspdf"
 import JSZip from "jszip"
 
 import SenseLayout from "../components/layout/SenseLayout"
-import { DEBUG, annotationProps, intervalsProps } from "../utils/constants"
 import { ChannelList } from "../utils/ChannelList"
+import { DEBUG } from "../utils/constants"
 
-type ImportResult = [number, string, number, string[], ChannelList[], (MakerFrame | ScientISSTFrame)[][]];
+type ImportResult = [
+	number,
+	string,
+	number,
+	string[],
+	ChannelList[],
+	(MakerFrame | ScientISSTFrame)[][]
+]
 
 const importFromLocalStorage = (): ImportResult => {
-	const numSegments = JSON.parse(localStorage.getItem("aq_segments"));
-	const deviceType = localStorage.getItem("aq_deviceType");
-	const sampleRate = JSON.parse(localStorage.getItem("aq_sampleRate"));
-	const channelsListData: any = JSON.parse(localStorage.getItem("aq_channels"));
-	
+	const numSegments = JSON.parse(localStorage.getItem("aq_segments"))
+	const deviceType = localStorage.getItem("aq_deviceType")
+	const sampleRate = JSON.parse(localStorage.getItem("aq_sampleRate"))
+	const channelsListData: any = JSON.parse(
+		localStorage.getItem("aq_channels")
+	)
+
 	const channelsList: ChannelList[] = []
 	for (let i = 0; i < numSegments; i++) {
-		channelsList.push(ChannelList.parseInstance(channelsListData[i]));
+		channelsList.push(ChannelList.parseInstance(channelsListData[i]))
 	}
 
 	const channelNames = channelsList[0].names
@@ -32,50 +41,85 @@ const importFromLocalStorage = (): ImportResult => {
 	const frames = []
 	for (let i = 0; i < numSegments; i++) {
 		if (deviceType === "sense") {
-			frames.push(ScientISSTFrame.deserializeAll(localStorage.getItem(`aq_seg${i}`), new Set(channelNames)));
-		} else {	
-			frames.push(MakerFrame.deserializeAll(localStorage.getItem(`aq_seg${i}`), new Set(channelNames)));
+			frames.push(
+				ScientISSTFrame.deserializeAll(
+					localStorage.getItem(`aq_seg${i}`),
+					new Set(channelNames)
+				)
+			)
+		} else {
+			frames.push(
+				MakerFrame.deserializeAll(
+					localStorage.getItem(`aq_seg${i}`),
+					new Set(channelNames)
+				)
+			)
 		}
 	}
 
-	return [numSegments, deviceType, sampleRate, channelNames, channelsList, frames];
+	return [
+		numSegments,
+		deviceType,
+		sampleRate,
+		channelNames,
+		channelsList,
+		frames
+	]
 }
 
 const translate = (events, eventsLabel, channelNames, sampleRate) => {
-
 	if (events.length === 0) {
-		if (DEBUG) console.log("No events to translate");
-		return "";
+		if (DEBUG) console.log("No events to translate")
+		return ""
 	}
 
-	const eventNames = eventsLabel.map(label => label.name);
+	const eventNames = eventsLabel.map(label => label.name)
 
 	// Loop all events
-	const translatedEvents = events.map((event) => {
-
+	const translatedEvents = events.map(event => {
 		// Change the channel name to the specif code
-		event.channelName = channelNames.indexOf(event.channelName);
+		event.channelName = channelNames.indexOf(event.channelName)
 
 		// Change the label name to the specific code
-		event.eventName = eventNames.indexOf(event.eventName);
+		event.eventName = eventNames.indexOf(event.eventName)
 
 		if (event.annotationPos) {
-			event.annotationPos = Math.round(event.annotationPos * 1000 / sampleRate);
+			event.annotationPos = Math.round(
+				(event.annotationPos * 1000) / sampleRate
+			)
 		} else {
-			event.intervalStart = Math.round(event.intervalStart * 1000 / sampleRate);
-			event.intervalEnd = Math.round(event.intervalEnd * 1000 / sampleRate);
+			event.intervalStart = Math.round(
+				(event.intervalStart * 1000) / sampleRate
+			)
+			event.intervalEnd = Math.round(
+				(event.intervalEnd * 1000) / sampleRate
+			)
 		}
 
-		return event;
-	});
-
+		return event
+	})
 
 	if (translatedEvents[0].annotationPos)
-		return translatedEvents.map(event => event.channelName + ", " + event.eventName + ", " + event.annotationPos);
+		return translatedEvents.map(
+			event =>
+				event.channelName +
+				", " +
+				event.eventName +
+				", " +
+				event.annotationPos
+		)
 
-	return translatedEvents
-		.map(event => event.channelName + ", " + event.eventName + ", " + event.intervalStart + ", " + event.intervalEnd)
-};
+	return translatedEvents.map(
+		event =>
+			event.channelName +
+			", " +
+			event.eventName +
+			", " +
+			event.intervalStart +
+			", " +
+			event.intervalEnd
+	)
+}
 
 const addSvgToPDF = async (
 	pdf: JsPDF,
@@ -86,7 +130,6 @@ const addSvgToPDF = async (
 	height: number,
 	dpi = 300
 ) => {
-
 	const canvas = document.createElement("canvas")
 	const ctx = canvas.getContext("2d")
 
@@ -120,111 +163,146 @@ const Page = () => {
 		}
 	}, [router])
 
-
 	const convertToCSV = useCallback(() => {
-
-		const [numSegments, deviceType, sampleRate, channelNames, channelsList, framesList]: ImportResult = importFromLocalStorage();		
-		const eventsLabel = JSON.parse(localStorage.getItem("settings")).eventsLabel;
+		const [
+			numSegments,
+			deviceType,
+			sampleRate,
+			channelNames,
+			channelsList,
+			framesList
+		]: ImportResult = importFromLocalStorage()
+		const eventsLabel = JSON.parse(
+			localStorage.getItem("settings")
+		).eventsLabel
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
-		  throw new Error("Device type not supported yet.");
+			throw new Error("Device type not supported yet.")
 		}
 
-		const zip = new JSZip();
-		let firstTimestamp = 0;
+		const zip = new JSZip()
+		let firstTimestamp = 0
 
 		for (let segment = 0; segment < numSegments; segment++) {
-			
-			const frames: (MakerFrame | ScientISSTFrame)[] = framesList[segment];
-			const channels = channelsList[segment];
+			const frames: (MakerFrame | ScientISSTFrame)[] = framesList[segment]
+			const channels = channelsList[segment]
 
 			if (frames.length === 0) {
-				continue;
+				continue
 			}
 
-			const resolutionBits = [];
+			const resolutionBits = []
 			channelNames.forEach(name => {
-				resolutionBits.push(ScientISSTFrame.CHANNEL_SIZES[name]);
-			});
+				resolutionBits.push(ScientISSTFrame.CHANNEL_SIZES[name])
+			})
 
-			const timestamp = new Date(JSON.parse(localStorage.getItem(`aq_seg${segment}time`) ?? "0"));
+			const timestamp = new Date(
+				JSON.parse(localStorage.getItem(`aq_seg${segment}time`) ?? "0")
+			)
 
 			if (firstTimestamp === 0) {
-				firstTimestamp = timestamp.getTime();
+				firstTimestamp = timestamp.getTime()
 			}
 
 			//Show Header
-			const auxDeviceType = deviceType === "sense" ? "ScientISST Sense" : "ScientISST Maker"
-			const auxResolutionBits = deviceType === "sense" ? resolutionBits : undefined;
+			const auxDeviceType =
+				deviceType === "sense" ? "ScientISST Sense" : "ScientISST Maker"
+			const auxResolutionBits =
+				deviceType === "sense" ? resolutionBits : undefined
 			const labelsObj = eventsLabel.reduce((object, label, index) => {
-				object[index] = label.name;
-				return object;
-			}, {});
-			
-			const channelsObj = channelNames.reduce((object, name, index) => {
-				object[index] = name;
-				return object;
-			}, {});
+				object[index] = label.name
+				return object
+			}, {})
 
-			const resolutionBitsObj = resolutionBits.reduce((object, value, index) => {
-				object[index] = value;
-				return object;
-			}, {});
+			const channelsObj = channelNames.reduce((object, name, index) => {
+				object[index] = name
+				return object
+			}, {})
+
+			const resolutionBitsObj = resolutionBits.reduce(
+				(object, value, index) => {
+					object[index] = value
+					return object
+				},
+				{}
+			)
 
 			const header_obj = {
-				"Device": auxDeviceType,
+				Device: auxDeviceType,
 				"Sampling rate (Hz)": sampleRate,
 				"ISO 8601": timestamp.toISOString(),
 				"Timestamp (ms)": timestamp.getTime(),
-				...(auxResolutionBits ? { "Resolution (bits)": resolutionBitsObj } : {}),
-				"Labels": labelsObj,
-				"Channels": channelsObj
+				...(auxResolutionBits
+					? { "Resolution (bits)": resolutionBitsObj }
+					: {}),
+				Labels: labelsObj,
+				Channels: channelsObj
 			}
 
-			const header = "# " + JSON.stringify(header_obj);
+			const header = "# " + JSON.stringify(header_obj)
 
 			// Show data table
 			const dataTable = [
 				"# Index, " + channelNames.join(", "),
-				...frames.map(frame => [frame.sequence, ...channelNames.map(name => frame.channels[name])].join(", ")),
-			];
+				...frames.map(frame =>
+					[
+						frame.sequence,
+						...channelNames.map(name => frame.channels[name])
+					].join(", ")
+				)
+			]
 
 			//Show annotations tables
-			const annotationsStringVector = translate(channels.showAnnotations(), eventsLabel, channelNames, sampleRate)
+			const annotationsStringVector = translate(
+				channels.showAnnotations(),
+				eventsLabel,
+				channelNames,
+				sampleRate
+			)
 			const annotationTable = [
 				"# Channel, Label, Instant",
 				...annotationsStringVector
-			];
+			]
 
 			//Show intervals tables
-			const intervalsStringVector = translate(channels.showIntervals(), eventsLabel, channelNames, sampleRate)
+			const intervalsStringVector = translate(
+				channels.showIntervals(),
+				eventsLabel,
+				channelNames,
+				sampleRate
+			)
 			const intervalsTable = [
 				"# Channel, Label, Start, End",
-				...intervalsStringVector,
-			];
+				...intervalsStringVector
+			]
 
-		  	const data_content = [header,...dataTable];
-			const annotation_content = [header,...annotationTable];
-			const intervals_content = [header,...intervalsTable];
+			const data_content = [header, ...dataTable]
+			const annotation_content = [header, ...annotationTable]
+			const intervals_content = [header, ...intervalsTable]
 
-		  	zip.file(`segment_${segment}.csv`, data_content.join("\n"));
-			zip.file(`segment_${segment}_annotations.csv`, annotation_content.join("\n"));
-			zip.file(`segment_${segment}_intervals.csv`, intervals_content.join("\n"));
+			zip.file(`segment_${segment}.csv`, data_content.join("\n"))
+			zip.file(
+				`segment_${segment}_annotations.csv`,
+				annotation_content.join("\n")
+			)
+			zip.file(
+				`segment_${segment}_intervals.csv`,
+				intervals_content.join("\n")
+			)
 		}
 
 		if (firstTimestamp === 0) {
-		  firstTimestamp = new Date().getTime();
+			firstTimestamp = new Date().getTime()
 		}
 
-		const timestampISO = new Date(firstTimestamp).toISOString();
+		const timestampISO = new Date(firstTimestamp).toISOString()
 
 		zip.generateAsync({ type: "blob" }).then(content => {
-		  FileSaver.saveAs(content, `${timestampISO}.zip`);
-		});
-	}, []);
+			FileSaver.saveAs(content, `${timestampISO}.zip`)
+		})
+	}, [])
 
 	const convertToPDF = useCallback(async () => {
-		
 		// ********** PDF STYLE **********
 
 		const pdf = new JsPDF({
@@ -282,12 +360,17 @@ const Page = () => {
 		pdf.addFileToVFS("Lexend-Light.ttf", lexendLightFontBase64)
 		pdf.addFont("Lexend-Light.ttf", "Lexend", "light")
 
-
 		// ********** ACQUIRING DATA **********
-		
 
 		// Extract acquisition data from local storage
-		const [numSegments, deviceType, sampleRate, channelNames, channelsList, framesList]: ImportResult = importFromLocalStorage();		
+		const [
+			numSegments,
+			deviceType,
+			sampleRate,
+			channelNames,
+			channelsList,
+			framesList
+		]: ImportResult = importFromLocalStorage()
 
 		// Only the last segment is used to generate the PDF
 		const selectedSegment = numSegments - 1
@@ -300,21 +383,26 @@ const Page = () => {
 
 		if (frames.length === 0) {
 			return
-		}		
-		
-		const timestamp = new Date(JSON.parse(localStorage.getItem(`aq_seg${selectedSegment}time`)))
+		}
+
+		const timestamp = new Date(
+			JSON.parse(localStorage.getItem(`aq_seg${selectedSegment}time`))
+		)
 
 		// ********** GENERATING PDF **********
-		
+
 		const pages = Math.ceil(channels.size / 3)
 		for (let page = 0; page < pages; page++) {
 			if (page > 0) {
 				pdf.addPage()
 			}
 
-			const channelsOnPage = page < pages - 1 ? 3 : channels.size - 3 * page
-			const svgAspectRatio = channelsOnPage <= 2 ? 1282 / 180.5 : 1282 / 114.5
-			const backgroundAspectRatio = channelsOnPage <= 2 ? 1282 / 212 : 1282 / 147
+			const channelsOnPage =
+				page < pages - 1 ? 3 : channels.size - 3 * page
+			const svgAspectRatio =
+				channelsOnPage <= 2 ? 1282 / 180.5 : 1282 / 114.5
+			const backgroundAspectRatio =
+				channelsOnPage <= 2 ? 1282 / 212 : 1282 / 147
 			const smallChart = channelsOnPage > 2
 
 			const svgWidth = sampleRate * 10
@@ -479,26 +567,17 @@ const Page = () => {
 			)
 
 			let offset = 27
-			for (
-				let i = page * 3;
-				i < page * 3 + channelsOnPage;
-				i++
-			) {
+			for (let i = page * 3; i < page * 3 + channelsOnPage; i++) {
 				const name = channelNames[i]
 				const channel = channels.getChannel(name)
 
 				pdf.setFont("Lexend", "regular")
 				pdf.setFontSize(6)
 				pdf.setTextColor(...TEXT_SECONDARY)
-				pdf.text(
-					name,
-					DOCUMENT_MARGIN,
-					DOCUMENT_MARGIN + offset,
-					{
-						align: "left",
-						baseline: "top"
-					}
-				)
+				pdf.text(name, DOCUMENT_MARGIN, DOCUMENT_MARGIN + offset, {
+					align: "left",
+					baseline: "top"
+				})
 
 				await addSvgToPDF(
 					pdf,
@@ -548,11 +627,10 @@ const Page = () => {
 
 				const data = frames
 					.slice(-svgWidth)
-					.map((frame, i) => [
-						i,
-						frame.channels[name]
-					]) as [number, number][]
-
+					.map((frame, i) => [i, frame.channels[name]]) as [
+					number,
+					number
+				][]
 
 				svg.append("path")
 					.datum(data)
@@ -568,52 +646,52 @@ const Page = () => {
 					)
 
 				// Draw annotations
-				svg.selectAll('.annotations')
+				svg.selectAll(".annotations")
 					.data(channel.annotations)
 					.enter()
-					.append('line')
-						.attr('class', 'vertical-line')
-						.attr('x1', d => d.pos)
-						.attr('y1', 0)
-						.attr('x2', d => d.pos)
-						.attr('y2', svgHeight)
-						.attr('stroke', d => d.color)
-						.attr('stroke-width', 2 * sampleRate / 1000);
+					.append("line")
+					.attr("class", "vertical-line")
+					.attr("x1", d => d.pos)
+					.attr("y1", 0)
+					.attr("x2", d => d.pos)
+					.attr("y2", svgHeight)
+					.attr("stroke", d => d.color)
+					.attr("stroke-width", (2 * sampleRate) / 1000)
 
-				svg.selectAll('.intervals')
+				svg.selectAll(".intervals")
 					.data(channel.intervals)
 					.enter()
-					.append('line')
-						.attr('class', 'vertical-line')
-						.attr('x1', d => d.start)
-						.attr('y1', 0)
-						.attr('x2', d => d.start)
-						.attr('y2', svgHeight)
-						.attr('stroke', d => d.color)
-						.attr('stroke-width', 2 * sampleRate / 1000)
+					.append("line")
+					.attr("class", "vertical-line")
+					.attr("x1", d => d.start)
+					.attr("y1", 0)
+					.attr("x2", d => d.start)
+					.attr("y2", svgHeight)
+					.attr("stroke", d => d.color)
+					.attr("stroke-width", (2 * sampleRate) / 1000)
 
-				svg.selectAll('.intervals')
+				svg.selectAll(".intervals")
 					.data(channel.intervals)
 					.enter()
-					.append('line')
-						.attr('class', 'vertical-line')
-						.attr('x1', d => d.end)
-						.attr('y1', 0)
-						.attr('x2', d => d.end)
-						.attr('y2', svgHeight)
-						.attr('stroke', d => d.color)
-						.attr('stroke-width', 2 * sampleRate / 1000)
+					.append("line")
+					.attr("class", "vertical-line")
+					.attr("x1", d => d.end)
+					.attr("y1", 0)
+					.attr("x2", d => d.end)
+					.attr("y2", svgHeight)
+					.attr("stroke", d => d.color)
+					.attr("stroke-width", (2 * sampleRate) / 1000)
 
-				svg.selectAll('.intervals')
+				svg.selectAll(".intervals")
 					.data(channel.intervals)
 					.enter()
-					.append('rect')
-						.attr('x', d => d.start)
-						.attr('y', 0)
-						.attr('width', d => d.end - d.start)
-						.attr('height', svgHeight)
-						.attr('fill', d => d.color) //falta meter a cor transparente
-						.attr('opacity', 0.1);
+					.append("rect")
+					.attr("x", d => d.start)
+					.attr("y", 0)
+					.attr("width", d => d.end - d.start)
+					.attr("height", svgHeight)
+					.attr("fill", d => d.color) //falta meter a cor transparente
+					.attr("opacity", 0.1)
 
 				await addSvgToPDF(
 					pdf,
@@ -701,7 +779,6 @@ const Page = () => {
 			<span>End of acquisition!</span>
 
 			<div className="justify-cenPDF flex flex-row gap-4">
-
 				<TextButton
 					size="base"
 					className="flex-grow"
@@ -717,7 +794,6 @@ const Page = () => {
 				>
 					Download as PDF
 				</TextButton>
-
 			</div>
 		</SenseLayout>
 	)

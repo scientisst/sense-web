@@ -1,99 +1,100 @@
-import { Channel } from './Channel';
-import { annotationProps, intervalsProps } from './constants';
+import { Channel } from "./Channel"
+import { annotationProps, intervalsProps } from "./constants"
 
 export class ChannelList {
-    private _channels: Channel[];
+	private _channels: Channel[]
 
-    constructor(channels: Channel[] = []) {
-        this._channels = channels;
-    }
+	constructor(channels: Channel[] = []) {
+		this._channels = channels
+	}
 
-    // Geral
-    static parseInstance(data: any): ChannelList {
-        // Construct a new ChannelList instance from the provided JSON object
-        const channels = data._channels.map((channelData: any) => Channel.parseInstance(channelData));
-        const channelList = new ChannelList(channels);
+	// Geral
+	static parseInstance(data: any): ChannelList {
+		// Construct a new ChannelList instance from the provided JSON object
+		const channels = data._channels.map((channelData: any) =>
+			Channel.parseInstance(channelData)
+		)
+		const channelList = new ChannelList(channels)
 
-        return channelList;
-    }
-    
-    static createInstance(names: string[]): ChannelList {
-        const channels: Channel[] = names.map(name => new Channel(name));
-        const channelList = new ChannelList(channels);
+		return channelList
+	}
 
-        return channelList;
-    }
+	static createInstance(names: string[]): ChannelList {
+		const channels: Channel[] = names.map(name => new Channel(name))
+		const channelList = new ChannelList(channels)
 
-    isEmpty(): boolean {
-        return this._channels.length === 0;
-    }
+		return channelList
+	}
 
-    clear(): void {
-        this._channels = [];
-    }
+	isEmpty(): boolean {
+		return this._channels.length === 0
+	}
 
-    // addChannel(name: string): void {
-    //     const channel = new Channel(name);
-    //     this._channels.push(channel);
-    // }
+	clear(): void {
+		this._channels = []
+	}
 
-    // Getters
-    get size(): number {
-        return this._channels.length;
-    }
+	// addChannel(name: string): void {
+	//     const channel = new Channel(name);
+	//     this._channels.push(channel);
+	// }
 
-    get names(): string[] {
-        return this._channels.map(channel => channel.name);
-    }
+	// Getters
+	get size(): number {
+		return this._channels.length
+	}
 
-    getChannel(name: string): Channel | undefined {
-        return this._channels.find(channel => channel.name === name);
-    }
+	get names(): string[] {
+		return this._channels.map(channel => channel.name)
+	}
 
-    getAllChannels(): Channel[] {
-        return this._channels;
-    }
+	getChannel(name: string): Channel | undefined {
+		return this._channels.find(channel => channel.name === name)
+	}
 
-    getAnnotation(startTime: number): annotationProps | undefined {
-        return this._channels
-            .map(channel => channel.annotations)
-            .flat()
-            .find(annotation => annotation.pos === startTime);
-    }
+	getAllChannels(): Channel[] {
+		return this._channels
+	}
 
-    // Function to create/delete events
-    createAnnotationAllChannels(annotation: annotationProps): void {
-        this._channels.forEach(channel => channel.createAnnotation(annotation));
-    }
+	getAnnotation(startTime: number): annotationProps | undefined {
+		return this._channels
+			.map(channel => channel.annotations)
+			.flat()
+			.find(annotation => annotation.pos === startTime)
+	}
 
-    createIntervalAllChannels(interval: intervalsProps): void {
-        this._channels.forEach(channel => channel.createInterval(interval));
-    }
+	// Function to create/delete events
+	createAnnotationAllChannels(annotation: annotationProps): void {
+		this._channels.forEach(channel => channel.createAnnotation(annotation))
+	}
 
-    removeAnnotationAllChannels(annotation: annotationProps): void {
-        this._channels.forEach(channel => channel.deleteAnnotation(annotation));
-    }
+	createIntervalAllChannels(interval: intervalsProps): void {
+		this._channels.forEach(channel => channel.createInterval(interval))
+	}
 
-    removeIntervalAllChannels(interval: intervalsProps): void {
-        this._channels.forEach(channel => channel.deleteInterval(interval));
-    }
+	removeAnnotationAllChannels(annotation: annotationProps): void {
+		this._channels.forEach(channel => channel.deleteAnnotation(annotation))
+	}
 
-    showAnnotations(): string[] {
-        const annotations = [];
-        for (const channel of this._channels) {
-            annotations.push(...channel.showAnnotations(channel.name));
-        }
-        
-        return annotations;
-    }
+	removeIntervalAllChannels(interval: intervalsProps): void {
+		this._channels.forEach(channel => channel.deleteInterval(interval))
+	}
 
-    showIntervals(): string[] {
-        const intervals = [];
-        for (const channel of this._channels) {
-            intervals.push(...channel.showIntervals(channel.name));
-        }
+	showAnnotations(): string[] {
+		const annotations = []
+		for (const channel of this._channels) {
+			annotations.push(...channel.showAnnotations(channel.name))
+		}
 
-        return intervals;
-    }
+		return annotations
+	}
 
+	showIntervals(): string[] {
+		const intervals = []
+		for (const channel of this._channels) {
+			intervals.push(...channel.showIntervals(channel.name))
+		}
+
+		return intervals
+	}
 }

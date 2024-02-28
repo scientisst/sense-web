@@ -1,9 +1,4 @@
-import React, {
-	useCallback,
-	useEffect,
-	useRef,
-	useState
-} from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 
 import { useRouter } from "next/router"
 
@@ -18,19 +13,18 @@ import {
 } from "@scientisst/sense/future"
 
 import SenseLayout from "../components/layout/SenseLayout"
+import { ChannelList } from "../utils/ChannelList"
 import Acquiring from "../views/live/Acquiring"
+import Connected from "../views/live/Connected"
+import Connecting from "../views/live/Connecting"
+import ConnectionFailed from "../views/live/ConnectionFailed"
+import ConnectionLost from "../views/live/ConnectionLost"
+import Disconnect from "../views/live/Disconnect"
+import OutOfStorage from "../views/live/OutOfStorage"
 // import Editing from "../views/live/Editing"
 import Paused from "../views/live/Paused"
-import OutOfStorage from "../views/live/OutOfStorage"
-import ConnectionLost from "../views/live/ConnectionLost"
-import Connected from "../views/live/Connected"
 import Stopped from "../views/live/Stopped"
 import Stopping from "../views/live/Stopping"
-import ConnectionFailed from "../views/live/ConnectionFailed"
-import Connecting from "../views/live/Connecting"
-import Disconnect from "../views/live/Disconnect"
-
-import { ChannelList } from "../utils/ChannelList"
 
 export enum STATUS {
 	DISCONNECTED,
@@ -43,16 +37,15 @@ export enum STATUS {
 	STOPPING,
 	STOPPED,
 	STOPPED_AND_SAVED,
-	OUT_OF_STORAGE,
+	OUT_OF_STORAGE
 	// EDITING
 }
-
 
 const addChannelList = (setChannelsLists, channelsNames) => {
 	if (channelsNames.length === 0) {
 		throw new Error("No channels selected")
 	}
-	
+
 	const channelList = ChannelList.createInstance(channelsNames)
 	setChannelsLists(prev => [...prev, channelList])
 }
@@ -65,12 +58,12 @@ const Page = () => {
 	// has started, a download button will be shown if the acquistion fails.
 
 	const sampleRate = deviceRef.current?.getSamplingRate()
-	
+
 	const [acquisitionStarted, setAcquisitionStarted] = useState(false)
 
 	const [segmentCount, setSegmentCount] = useState(0)
 	const [numSegments, setNumSegments] = useState(0)
-	
+
 	const [data, setData] = useState([])
 
 	// Store buffer contains the frames that are queued to be saved to
@@ -100,57 +93,72 @@ const Page = () => {
 	}, [])
 
 	// This function stored all queued frames to localStorage
-	const saveData = useCallback((buffer: Array<Frame | null>) => {
-		if (buffer.length === 0) return
+	const saveData = useCallback(
+		(buffer: Array<Frame | null>) => {
+			if (buffer.length === 0) return
 
-		try {
-
-			const dataKey = "aq_seg" + segmentCount
-			if (!(dataKey in localStorage)) {
-				localStorage.setItem(
-					dataKey + "time",
-					JSON.stringify(Date.now())
-				)
-			}
-
-			if (channelLists) {
-				localStorage.setItem("aq_channels", JSON.stringify(channelLists))
-			}
-
-			const sampleRate = deviceRef.current?.getSamplingRate()
-			if (sampleRate) {
-				localStorage.setItem("aq_sampleRate", JSON.stringify(sampleRate))
-			}
-
-			const serialized = buffer.map(frame => frame?.serialize()).join("")
-			localStorage.setItem(dataKey,(localStorage.getItem(dataKey) ?? "") + serialized)
-
-			storeBufferRef.current = []
-			// setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
-			setStoreBufferLength(0) // Prevent state loops
-			
-		} catch (e) {
-			if (e instanceof DOMException && e.name === "QuotaExceededError") {
-				// We are out of localStorage, show the user the error
-				setStatus(STATUS.OUT_OF_STORAGE)
-				storeBufferRef.current = []
-				setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
-
-				// Disconnect from the device, we can't continue the acquisition
-				deviceRef.current.onError = () => {
-					// We don't care about errors any more, we can't save
-					// any new date regardless.
+			try {
+				const dataKey = "aq_seg" + segmentCount
+				if (!(dataKey in localStorage)) {
+					localStorage.setItem(
+						dataKey + "time",
+						JSON.stringify(Date.now())
+					)
 				}
-				deviceRef.current.disconnect().finally(() => {
-					// Ignore
-				})
-				return
-			}
 
-			console.error(e)
-			throw e
-		}
-	}, [channelLists])
+				if (channelLists) {
+					localStorage.setItem(
+						"aq_channels",
+						JSON.stringify(channelLists)
+					)
+				}
+
+				const sampleRate = deviceRef.current?.getSamplingRate()
+				if (sampleRate) {
+					localStorage.setItem(
+						"aq_sampleRate",
+						JSON.stringify(sampleRate)
+					)
+				}
+
+				const serialized = buffer
+					.map(frame => frame?.serialize())
+					.join("")
+				localStorage.setItem(
+					dataKey,
+					(localStorage.getItem(dataKey) ?? "") + serialized
+				)
+
+				storeBufferRef.current = []
+				// setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
+				setStoreBufferLength(0) // Prevent state loops
+			} catch (e) {
+				if (
+					e instanceof DOMException &&
+					e.name === "QuotaExceededError"
+				) {
+					// We are out of localStorage, show the user the error
+					setStatus(STATUS.OUT_OF_STORAGE)
+					storeBufferRef.current = []
+					setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
+
+					// Disconnect from the device, we can't continue the acquisition
+					deviceRef.current.onError = () => {
+						// We don't care about errors any more, we can't save
+						// any new date regardless.
+					}
+					deviceRef.current.disconnect().finally(() => {
+						// Ignore
+					})
+					return
+				}
+
+				console.error(e)
+				throw e
+			}
+		},
+		[channelLists]
+	)
 
 	// Save data to local storage
 	useEffect(() => {
@@ -171,10 +179,9 @@ const Page = () => {
 			)
 
 			// console.log("Save threshold: " + storeBufferThreshold.current)
-
 		} else if (status === STATUS.PAUSED) {
 			saveData(storeBufferRef.current)
-		// } else if (status === STATUS.EDITING) {
+			// } else if (status === STATUS.EDITING) {
 			// saveData(storeBufferRef.current)
 		} else if (status === STATUS.STOPPED) {
 			saveData(storeBufferRef.current)
@@ -185,11 +192,10 @@ const Page = () => {
 			})
 		}
 	}, [router, saveData, status, storeBufferLength])
-	
+
 	const connect = useCallback(async () => {
 		setStatus(STATUS.CONNECTING)
 		setAcquisitionStarted(false)
-
 
 		const settings = JSON.parse(
 			localStorage.getItem("settings") || "{}"
@@ -199,7 +205,7 @@ const Page = () => {
 			settings.deviceType = "sense"
 			localStorage.setItem("settings", JSON.stringify(settings))
 		}
-		
+
 		channelsNamesRef.current = settings["channels"] as string[]
 
 		switch (settings.deviceType ?? "sense") {
@@ -275,10 +281,14 @@ const Page = () => {
 			}
 
 			// Save device type to localStorage
-			localStorage.setItem("aq_deviceType", deviceRef.current instanceof Maker ? "maker" : "sense")
-			
+			localStorage.setItem(
+				"aq_deviceType",
+				deviceRef.current instanceof Maker ? "maker" : "sense"
+			)
+
 			// Save the device's ADC characteristics to localStorage
-			const adcCharacteristics = deviceRef.current?.getAdcCharacteristics()
+			const adcCharacteristics =
+				deviceRef.current?.getAdcCharacteristics()
 			if (adcCharacteristics !== null) {
 				localStorage.setItem("aq_adcChars", adcCharacteristics.toJSON())
 			}
@@ -297,7 +307,10 @@ const Page = () => {
 					...storeBufferRef.current,
 					...data.filter(d => d !== null)
 				]
-				if (storeBufferRef.current.length >= storeBufferThreshold.current) {
+				if (
+					storeBufferRef.current.length >=
+					storeBufferThreshold.current
+				) {
 					setStoreBufferLength(storeBufferRef.current.length)
 				}
 
@@ -420,7 +433,10 @@ const Page = () => {
 
 			// Now that acquisition has started, we need to update the
 			// localStorage entry with the new segment number.
-			localStorage.setItem("aq_segments", JSON.stringify(segmentCount + 2))
+			localStorage.setItem(
+				"aq_segments",
+				JSON.stringify(segmentCount + 2)
+			)
 		} catch (e) {
 			setStatus(STATUS.CONNECTION_LOST)
 		}
@@ -432,16 +448,15 @@ const Page = () => {
 		if (time < 0) {
 			return "0:00"
 		}
-	
+
 		const seconds = Math.floor(time % 60)
 		const minutes = Math.floor(time / 60)
-	
+
 		if (seconds < 10) {
 			return `${minutes}:0${seconds}`
 		}
 		return `${minutes}:${seconds}`
 	}, [])
-
 
 	const submit = useCallback(() => {
 		deviceRef.current.onError = () => {
@@ -452,29 +467,31 @@ const Page = () => {
 		try {
 			localStorage.setItem("aq_channels", JSON.stringify(channelLists))
 			setStatus(STATUS.STOPPED)
-		} catch(e) {
+		} catch (e) {
 			console.error(e)
 			setStatus(STATUS.CONNECTION_LOST)
 		}
-		
 	}, [channelLists])
 
-	const changeSegments = useCallback((direction: string) => {
+	const changeSegments = useCallback(
+		(direction: string) => {
+			if (
+				(segmentCount === 0 && direction === "previous") ||
+				(segmentCount === numSegments && direction === "next")
+			) {
+				throw new Error(
+					"Segment count out of bounds, should not happen"
+				)
+			}
 
-		if (
-			(segmentCount === 0 && direction === "previous") ||
-			(segmentCount === numSegments && direction === "next")
-		) {
-			throw new Error("Segment count out of bounds, should not happen")
-		}
-
-		if (direction === "next") {
-			setSegmentCount(prev => prev + 1)
-		} else if (direction === "previous") {
-			setSegmentCount(prev => prev - 1)
-		}
-
-	}, [segmentCount, numSegments])
+			if (direction === "next") {
+				setSegmentCount(prev => prev + 1)
+			} else if (direction === "previous") {
+				setSegmentCount(prev => prev - 1)
+			}
+		},
+		[segmentCount, numSegments]
+	)
 
 	useEffect(() => {
 		console.log(channelLists)
@@ -487,22 +504,46 @@ const Page = () => {
 			shortTitle="Live"
 			returnHref="/"
 		>
-			
-			{status === STATUS.DISCONNECTED && <Disconnect status={status} connect={connect}/>}
-			{status === STATUS.CONNECTING && <Connecting status={status} connect={connect}/>}
-			{status === STATUS.CONNECTION_FAILED && <ConnectionFailed status={status} connect={connect}/>}
+			{status === STATUS.DISCONNECTED && (
+				<Disconnect status={status} connect={connect} />
+			)}
+			{status === STATUS.CONNECTING && (
+				<Connecting status={status} connect={connect} />
+			)}
+			{status === STATUS.CONNECTION_FAILED && (
+				<ConnectionFailed status={status} connect={connect} />
+			)}
 			{status === STATUS.STOPPING && <Stopping />}
 			{status === STATUS.STOPPED && <Stopped />}
 			{status === STATUS.STOPPED_AND_SAVED && <Stopped />}
-			{status === STATUS.CONNECTED && <Connected start={start} disconnect={disconnect} firmwareVersion={firmwareVersion}/>}
-			{status === STATUS.CONNECTION_LOST && acquisitionStarted && <ConnectionLost status={status} connect={connect}/>}
-			{status === STATUS.OUT_OF_STORAGE && acquisitionStarted && <OutOfStorage />}
+			{status === STATUS.CONNECTED && (
+				<Connected
+					start={start}
+					disconnect={disconnect}
+					firmwareVersion={firmwareVersion}
+				/>
+			)}
+			{status === STATUS.CONNECTION_LOST && acquisitionStarted && (
+				<ConnectionLost status={status} connect={connect} />
+			)}
+			{status === STATUS.OUT_OF_STORAGE && acquisitionStarted && (
+				<OutOfStorage />
+			)}
 			{status === STATUS.PAUSED && <Paused resume={resume} stop={stop} />}
-			
-			{status === STATUS.ACQUIRING && <Acquiring channelList={channelLists[segmentCount]} graphBufferRef={graphBufferRef} pause={pause} stop={stop} xTickFormatter={xTickFormatter} xDomain={xDomain} sampleRate={sampleRate}/> }
-			
-			{ /* status === STATUS.EDITING && <Editing channelList={channelLists[segmentCount]} submit={submit} xTickFormatter={xTickFormatter} data={data[segmentCount]} xDomain={xDomain} segmentCount={segmentCount} changeSegments={changeSegments} maxNumSegments={numSegments} setChannelsList={setChannelLists}/> */}
 
+			{status === STATUS.ACQUIRING && (
+				<Acquiring
+					channelList={channelLists[segmentCount]}
+					graphBufferRef={graphBufferRef}
+					pause={pause}
+					stop={stop}
+					xTickFormatter={xTickFormatter}
+					xDomain={xDomain}
+					sampleRate={sampleRate}
+				/>
+			)}
+
+			{/* status === STATUS.EDITING && <Editing channelList={channelLists[segmentCount]} submit={submit} xTickFormatter={xTickFormatter} data={data[segmentCount]} xDomain={xDomain} segmentCount={segmentCount} changeSegments={changeSegments} maxNumSegments={numSegments} setChannelsList={setChannelLists}/> */}
 		</SenseLayout>
 	)
 }
