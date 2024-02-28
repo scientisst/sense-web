@@ -190,10 +190,16 @@ const Page = () => {
 		setStatus(STATUS.CONNECTING)
 		setAcquisitionStarted(false)
 
+
 		const settings = JSON.parse(
 			localStorage.getItem("settings") || "{}"
 		) as Record<string, unknown>
 
+		if (settings.deviceType === "system") {
+			settings.deviceType = "sense"
+			localStorage.setItem("settings", JSON.stringify(settings))
+		}
+		
 		channelsNamesRef.current = settings["channels"] as string[]
 
 		switch (settings.deviceType ?? "sense") {

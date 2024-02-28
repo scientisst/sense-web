@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 
 import { FormikAutoSubmit } from "@scientisst/react-ui/components/utils"
 import { Maker, SCIENTISST_COMUNICATION_MODE } from "@scientisst/sense/future"
@@ -42,6 +42,31 @@ const schema = Yup.object().shape({
 			.min(1, "You must select at least one channel")
 			.required()
 	}),
+	eventsLabel: Yup.array().of(
+        Yup.object().shape({
+            name: Yup.string().required(),
+            color: Yup.string().required(),
+			key: Yup.string().length(1).required(), // Ensure key has length of 1
+            toggle: Yup.boolean().required()
+        })
+    ).test('unique-event-properties', 'Name, color, and key must be unique', function (value) {
+        const seenNames = new Set();
+        const seenColors = new Set();
+        const seenKeys = new Set();
+
+        for (const event of value) {
+            if (seenNames.has(event.name) || seenColors.has(event.color) || seenKeys.has(event.key)) {
+                return false;
+            }
+
+            seenNames.add(event.name);
+            seenColors.add(event.color);
+            seenKeys.add(event.key);
+        }
+
+        return true;
+    })
+    .required()
 })
 
 const Page = () => {

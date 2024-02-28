@@ -33,6 +33,7 @@
 		"next": "^13.1.6",
 		"pyodide": "^0.22.1",
 		"react": "^18.2.0",
+		"react-color": "^2.19.3",
 		"react-dom": "^18.2.0",
 		"react-table": "^7.8.0",
 		"semver": "^7.3.8",
