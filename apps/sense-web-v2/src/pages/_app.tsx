@@ -9,8 +9,8 @@ import { Lexend } from "@next/font/google"
 import localFont from "@next/font/local"
 import { NoSSR, defaultScientISSTTheme } from "@scientisst/chakra-ui"
 
+import { SettingsProvider } from "../context/SettingsContext"
 import "../styles/global.css"
-import { loadSettings } from "../utils/constants"
 
 config.autoAddCss = false
 
@@ -33,22 +33,19 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 		}
 	}, [])
 
-	// Load settings
-	useEffect(() => {
-		loadSettings()
-	}, [])
-
 	return (
 		<NoSSR>
-			<ChakraProvider theme={defaultScientISSTTheme}>
-				<style jsx global>{`
-					:root {
-						--font-lexend: ${lexend.style.fontFamily};
-						--font-imagine: ${imagine.style.fontFamily};
-					}
-				`}</style>
-				<Component {...pageProps} />
-			</ChakraProvider>
+			<SettingsProvider>
+				<ChakraProvider theme={defaultScientISSTTheme}>
+					<style jsx global>{`
+						:root {
+							--font-lexend: ${lexend.style.fontFamily};
+							--font-imagine: ${imagine.style.fontFamily};
+						}
+					`}</style>
+					<Component {...pageProps} />
+				</ChakraProvider>
+			</SettingsProvider>
 		</NoSSR>
 	)
 }

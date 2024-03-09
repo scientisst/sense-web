@@ -8,12 +8,12 @@ import { Form, Formik } from "formik"
 
 import CanvasChart from "../../components/CanvasChart"
 import ShowEvents from "../../components/ShowEvents"
+import { useSettings } from "../../context/SettingsContext"
 import { ChannelList } from "../../utils/ChannelList"
 import {
 	annotationProps,
 	chartStyle,
-	intervalsProps as intervalProps,
-	loadSettings
+	intervalsProps as intervalProps
 } from "../../utils/constants"
 import { DEBUG } from "../../utils/constants"
 
@@ -26,7 +26,7 @@ const Acquiring = ({
 	stop,
 	sampleRate
 }) => {
-	const eventsLabel = loadSettings().eventsLabel
+	const { settings } = useSettings()
 	const channels: ChannelList = channelList
 	const isDark = useDarkTheme()
 
@@ -93,7 +93,10 @@ const Acquiring = ({
 				setPressedKeys({ ...pressedKeys, [pressedKey]: true })
 			}
 
-			const label = eventsLabel.find(label => pressedKey === label.key)
+			const label = settings.eventsLabel.find(
+				label => pressedKey === label.key
+			)
+
 			if (!label) return // The pressed key does not correspond to an event
 
 			if (!timeArray[pressedKey]) {
@@ -111,7 +114,7 @@ const Acquiring = ({
 			const pressedKey = event.key
 			setPressedKeys({ ...pressedKeys, [pressedKey]: false })
 
-			const eventLabel = eventsLabel.find(
+			const eventLabel = settings.eventsLabel.find(
 				label => pressedKey === label.key
 			)
 			if (!eventLabel || eventLabel.toggle === "true") return // If it's an toggle event, don't do anything
@@ -128,7 +131,14 @@ const Acquiring = ({
 			document.removeEventListener("keydown", handleKeyPress)
 			document.removeEventListener("keyup", handleKeyRelease)
 		}
-	}, [channels, xDomain, sampleRate, eventsLabel, pressedKeys, timeArray])
+	}, [
+		channels,
+		xDomain,
+		sampleRate,
+		settings.eventsLabel,
+		pressedKeys,
+		timeArray
+	])
 	// }, [channels, xDomain])
 
 	return (
@@ -145,7 +155,7 @@ const Acquiring = ({
 			<span>Acquiring...</span>
 
 			<Box alignItems={"center"} my={5}>
-				<ShowEvents eventsLabel={eventsLabel} style={{}} />
+				<ShowEvents eventsLabel={settings.eventsLabel} style={{}} />
 			</Box>
 
 			<Formik

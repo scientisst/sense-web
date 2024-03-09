@@ -7,7 +7,7 @@ import * as Yup from "yup"
 
 import SettingsTab from "../components/SettingsTab"
 import SenseLayout from "../components/layout/SenseLayout"
-import { loadSettings } from "../utils/constants"
+import { useSettings } from "../context/SettingsContext"
 import MakerSettings from "../views/settings/MakerSettings"
 import SenseSettings from "../views/settings/SenseSettings"
 import SystemSettings from "../views/settings/SystemSettings"
@@ -80,13 +80,9 @@ const schema = Yup.object().shape({
 })
 
 const Page = () => {
-	// const [settings, setSettings] = useState<settingsProps>(loadSettings())
-	const settings = loadSettings()
-	const [loaded, setLoaded] = useState(false)
+	const { settings, updateSettings } = useSettings()
 
-	// const updateSettings = (events: eventProps[]) => {
-	// 	setSettings(prev => ({ ...prev, eventsLabel: events }))
-	// }
+	const [loaded, setLoaded] = useState(false)
 
 	useEffect(() => {
 		if (typeof window !== "undefined" && !loaded) {
@@ -109,8 +105,7 @@ const Page = () => {
 					initialValues={settings}
 					validationSchema={schema}
 					onSubmit={values => {
-						console.log("submit", values)
-						localStorage.setItem("settings", JSON.stringify(values))
+						updateSettings(values)
 					}}
 				>
 					{({ values: { deviceType } }) => (

@@ -2,7 +2,6 @@ export default function Editing() {
 	return null
 }
 // import { TextButton, TextField } from "@scientisst/react-ui/components/inputs";
-// import { chartStyle, loadSettings } from "../../utils/constants";
 // import ShowEvents from "../../components/ShowEvents";
 // import React, { Fragment, useEffect, useState } from "react";
 // import { Form, Formik } from "formik";
@@ -16,7 +15,6 @@ export default function Editing() {
 // import { ChannelList } from "../../utils/ChannelList";
 
 // const Editing = ({submit, xTickFormatter, channelList, data, xDomain, changeSegments, segmentCount, maxNumSegments, setChannelsList}) => {
-// 	const eventsLabel = loadSettings().eventsLabel
 // 	const channels: ChannelList = channelList
 // 	const isDark = useDarkTheme()
 

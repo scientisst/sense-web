@@ -13,6 +13,7 @@ import {
 } from "@scientisst/sense/future"
 
 import SenseLayout from "../components/layout/SenseLayout"
+import { useSettings } from "../context/SettingsContext"
 import { ChannelList } from "../utils/ChannelList"
 import Acquiring from "../views/live/Acquiring"
 import Connected from "../views/live/Connected"
@@ -41,6 +42,14 @@ export enum STATUS {
 	// EDITING
 }
 
+const disconnectDevice = async (device: Device | null) => {
+	if (device) {
+		device.disconnect().catch(error => {
+			console.error(error)
+		})
+	}
+}
+
 const addChannelList = (setChannelsLists, channelsNames) => {
 	if (channelsNames.length === 0) {
 		throw new Error("No channels selected")
@@ -56,6 +65,8 @@ const Page = () => {
 	const [status, setStatus] = useState(STATUS.DISCONNECTED)
 	// Determines whether an acquisition has started or not. If an acquisiton
 	// has started, a download button will be shown if the acquistion fails.
+
+	const { settings } = useSettings()
 
 	const sampleRate = deviceRef.current?.getSamplingRate()
 
@@ -84,11 +95,7 @@ const Page = () => {
 	// user leaves the page
 	useEffect(() => {
 		return () => {
-			if (deviceRef.current) {
-				deviceRef.current.disconnect().catch(() => {
-					// Ignore any errors. We are already leaving the page
-				})
-			}
+			disconnectDevice(deviceRef.current)
 		}
 	}, [])
 
@@ -157,7 +164,7 @@ const Page = () => {
 				throw e
 			}
 		},
-		[channelLists]
+		[channelLists, segmentCount]
 	)
 
 	// Save data to local storage
@@ -197,13 +204,10 @@ const Page = () => {
 		setStatus(STATUS.CONNECTING)
 		setAcquisitionStarted(false)
 
-		const settings = JSON.parse(
-			localStorage.getItem("settings") || "{}"
-		) as Record<string, unknown>
-
+		// Criar função para isto
 		if (settings.deviceType === "system") {
 			settings.deviceType = "sense"
-			localStorage.setItem("settings", JSON.stringify(settings))
+			// localStorage.setItem("settings", JSON.stringify(settings))
 		}
 
 		channelsNamesRef.current = settings["channels"] as string[]
@@ -264,7 +268,7 @@ const Page = () => {
 
 			setStatus(STATUS.CONNECTION_FAILED)
 		}
-	}, [])
+	}, [settings])
 
 	const disconnect = useCallback(async () => {
 		await deviceRef.current?.disconnect()

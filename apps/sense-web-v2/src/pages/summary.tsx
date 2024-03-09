@@ -11,6 +11,7 @@ import JsPDF from "jspdf"
 import JSZip from "jszip"
 
 import SenseLayout from "../components/layout/SenseLayout"
+import { useSettings } from "../context/SettingsContext"
 import { ChannelList } from "../utils/ChannelList"
 import { DEBUG } from "../utils/constants"
 
@@ -155,6 +156,8 @@ const addSvgToPDF = async (
 
 const Page = () => {
 	const router = useRouter()
+	const { settings } = useSettings()
+
 	useEffect(() => {
 		if (!("aq_seg0" in localStorage)) {
 			router.push("/").finally(() => {
@@ -163,7 +166,7 @@ const Page = () => {
 		}
 	}, [router])
 
-	const convertToCSV = useCallback(() => {
+	const convertToCSV = useCallback(settings => {
 		const [
 			numSegments,
 			deviceType,
@@ -172,9 +175,6 @@ const Page = () => {
 			channelsList,
 			framesList
 		]: ImportResult = importFromLocalStorage()
-		const eventsLabel = JSON.parse(
-			localStorage.getItem("settings")
-		).eventsLabel
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
 			throw new Error("Device type not supported yet.")
@@ -209,10 +209,14 @@ const Page = () => {
 				deviceType === "sense" ? "ScientISST Sense" : "ScientISST Maker"
 			const auxResolutionBits =
 				deviceType === "sense" ? resolutionBits : undefined
-			const labelsObj = eventsLabel.reduce((object, label, index) => {
-				object[index] = label.name
-				return object
-			}, {})
+
+			const labelsObj = settings.eventsLabel.reduce(
+				(object, label, index) => {
+					object[index] = label.name
+					return object
+				},
+				{}
+			)
 
 			const channelsObj = channelNames.reduce((object, name, index) => {
 				object[index] = name
@@ -255,7 +259,7 @@ const Page = () => {
 			//Show annotations tables
 			const annotationsStringVector = translate(
 				channels.showAnnotations(),
-				eventsLabel,
+				settings.eventsLabel,
 				channelNames,
 				sampleRate
 			)
@@ -267,7 +271,7 @@ const Page = () => {
 			//Show intervals tables
 			const intervalsStringVector = translate(
 				channels.showIntervals(),
-				eventsLabel,
+				settings.eventsLabel,
 				channelNames,
 				sampleRate
 			)
@@ -302,7 +306,7 @@ const Page = () => {
 		})
 	}, [])
 
-	const convertToPDF = useCallback(async () => {
+	const convertToPDF = useCallback(async settings => {
 		// ********** PDF STYLE **********
 
 		const pdf = new JsPDF({
@@ -782,7 +786,7 @@ const Page = () => {
 				<TextButton
 					size="base"
 					className="flex-grow"
-					onClick={convertToCSV}
+					onClick={() => convertToCSV(settings)}
 				>
 					Download as CSV
 				</TextButton>
@@ -790,7 +794,7 @@ const Page = () => {
 				<TextButton
 					size="base"
 					className="flex-grow"
-					onClick={convertToPDF}
+					onClick={() => convertToPDF(settings)}
 				>
 					Download as PDF
 				</TextButton>
