@@ -43,11 +43,14 @@ export enum STATUS {
 }
 
 const disconnectDevice = async (device: Device | null) => {
-	if (device) {
-		device.disconnect().catch(error => {
-			console.error(error)
-		})
+	if (!device) {
+		console.error("Device already disconnected")
+		return
 	}
+
+	await device.disconnect().catch(error => {
+		console.error(error)
+	})
 }
 
 const addChannelList = (setChannelsLists, channelsNames) => {
@@ -61,12 +64,12 @@ const addChannelList = (setChannelsLists, channelsNames) => {
 
 const Page = () => {
 	const router = useRouter()
+	const { settings } = useSettings()
+
 	const deviceRef = useRef<Device | null>(null)
 	const [status, setStatus] = useState(STATUS.DISCONNECTED)
 	// Determines whether an acquisition has started or not. If an acquisiton
 	// has started, a download button will be shown if the acquistion fails.
-
-	const { settings } = useSettings()
 
 	const sampleRate = deviceRef.current?.getSamplingRate()
 
@@ -74,8 +77,6 @@ const Page = () => {
 
 	const [segmentCount, setSegmentCount] = useState(0)
 	const [numSegments, setNumSegments] = useState(0)
-
-	const [data, setData] = useState([])
 
 	// Store buffer contains the frames that are queued to be saved to
 	// localStorage
@@ -137,7 +138,6 @@ const Page = () => {
 				)
 
 				storeBufferRef.current = []
-				// setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
 				setStoreBufferLength(0) // Prevent state loops
 			} catch (e) {
 				if (
@@ -150,16 +150,10 @@ const Page = () => {
 					setStoreBufferLength(storeBufferRef.current.length) // Prevent state loops
 
 					// Disconnect from the device, we can't continue the acquisition
-					deviceRef.current.onError = () => {
-						// We don't care about errors any more, we can't save
-						// any new date regardless.
-					}
-					deviceRef.current.disconnect().finally(() => {
-						// Ignore
-					})
+
+					disconnectDevice(deviceRef.current)
 					return
 				}
-
 				console.error(e)
 				throw e
 			}
@@ -271,7 +265,7 @@ const Page = () => {
 	}, [settings])
 
 	const disconnect = useCallback(async () => {
-		await deviceRef.current?.disconnect()
+		disconnectDevice(deviceRef.current)
 		setStatus(STATUS.DISCONNECTED)
 	}, [])
 
@@ -381,7 +375,6 @@ const Page = () => {
 		try {
 			await deviceRef.current?.stopAcquisition()
 			await deviceRef.current?.disconnect()
-			setData(prev => [...prev, graphBufferRef.current])
 			localStorage.setItem("channels", JSON.stringify(channelLists))
 		} catch (e) {
 			// Ignore the errors. See the comment in the onError handler above.
@@ -396,7 +389,6 @@ const Page = () => {
 		}
 		try {
 			await deviceRef.current?.stopAcquisition()
-			setData(prev => [...prev, graphBufferRef.current])
 			setStatus(STATUS.PAUSED)
 			localStorage.setItem("channels", JSON.stringify(channelLists))
 		} catch (e) {
@@ -546,8 +538,6 @@ const Page = () => {
 					sampleRate={sampleRate}
 				/>
 			)}
-
-			{/* status === STATUS.EDITING && <Editing channelList={channelLists[segmentCount]} submit={submit} xTickFormatter={xTickFormatter} data={data[segmentCount]} xDomain={xDomain} segmentCount={segmentCount} changeSegments={changeSegments} maxNumSegments={numSegments} setChannelsList={setChannelLists}/> */}
 		</SenseLayout>
 	)
 }
