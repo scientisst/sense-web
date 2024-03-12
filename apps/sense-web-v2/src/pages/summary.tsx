@@ -28,30 +28,33 @@ const importFromLocalStorage = (): ImportResult => {
 	const numSegments = JSON.parse(localStorage.getItem("aq_segments"))
 	const deviceType = localStorage.getItem("aq_deviceType")
 	const sampleRate = JSON.parse(localStorage.getItem("aq_sampleRate"))
-	const channelsListData: any = JSON.parse(
-		localStorage.getItem("aq_channels")
-	)
 
-	const channelsList: ChannelList[] = []
+	const channelsListArray = []
+
 	for (let i = 0; i < numSegments; i++) {
-		channelsList.push(ChannelList.parseInstance(channelsListData[i]))
+		const channelsListData = JSON.parse(
+			localStorage.getItem(`aq_${i}_channels`)
+		)
+		channelsListArray.push(ChannelList.parseInstance(channelsListData))
 	}
 
-	const channelNames = channelsList[0].names
+	const channelNames = channelsListArray[0].names
 
 	const frames = []
+
 	for (let i = 0; i < numSegments; i++) {
+		// Frames
 		if (deviceType === "sense") {
 			frames.push(
 				ScientISSTFrame.deserializeAll(
-					localStorage.getItem(`aq_seg${i}`),
+					localStorage.getItem(`aq_${i}_seg`),
 					new Set(channelNames)
 				)
 			)
 		} else {
 			frames.push(
 				MakerFrame.deserializeAll(
-					localStorage.getItem(`aq_seg${i}`),
+					localStorage.getItem(`aq_${i}_seg`),
 					new Set(channelNames)
 				)
 			)
@@ -63,7 +66,7 @@ const importFromLocalStorage = (): ImportResult => {
 		deviceType,
 		sampleRate,
 		channelNames,
-		channelsList,
+		channelsListArray,
 		frames
 	]
 }
@@ -159,7 +162,7 @@ const Page = () => {
 	const { settings } = useSettings()
 
 	useEffect(() => {
-		if (!("aq_seg0" in localStorage)) {
+		if (!("aq_0_seg" in localStorage)) {
 			router.push("/").finally(() => {
 				// Ignore
 			})
@@ -197,7 +200,7 @@ const Page = () => {
 			})
 
 			const timestamp = new Date(
-				JSON.parse(localStorage.getItem(`aq_seg${segment}time`) ?? "0")
+				JSON.parse(localStorage.getItem(`aq_${segment}_segtime`) ?? "0")
 			)
 
 			if (firstTimestamp === 0) {
@@ -390,7 +393,7 @@ const Page = () => {
 		}
 
 		const timestamp = new Date(
-			JSON.parse(localStorage.getItem(`aq_seg${selectedSegment}time`))
+			JSON.parse(localStorage.getItem(`aq_${selectedSegment}_segtime`))
 		)
 
 		// ********** GENERATING PDF **********

@@ -9,6 +9,7 @@ import { Lexend } from "@next/font/google"
 import localFont from "@next/font/local"
 import { NoSSR, defaultScientISSTTheme } from "@scientisst/chakra-ui"
 
+import { DataProvider } from "../context/DataContext"
 import { SettingsProvider } from "../context/SettingsContext"
 import "../styles/global.css"
 
@@ -36,15 +37,17 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 	return (
 		<NoSSR>
 			<SettingsProvider>
-				<ChakraProvider theme={defaultScientISSTTheme}>
-					<style jsx global>{`
-						:root {
-							--font-lexend: ${lexend.style.fontFamily};
-							--font-imagine: ${imagine.style.fontFamily};
-						}
-					`}</style>
-					<Component {...pageProps} />
-				</ChakraProvider>
+				<DataProvider>
+					<ChakraProvider theme={defaultScientISSTTheme}>
+						<style jsx global>{`
+							:root {
+								--font-lexend: ${lexend.style.fontFamily};
+								--font-imagine: ${imagine.style.fontFamily};
+							}
+						`}</style>
+						<Component {...pageProps} />
+					</ChakraProvider>
+				</DataProvider>
 			</SettingsProvider>
 		</NoSSR>
 	)

@@ -8,8 +8,8 @@ import { Form, Formik } from "formik"
 
 import CanvasChart from "../../components/CanvasChart"
 import ShowEvents from "../../components/ShowEvents"
+import { useDataContext } from "../../context/DataContext"
 import { useSettings } from "../../context/SettingsContext"
-import { ChannelList } from "../../utils/ChannelList"
 import {
 	annotationProps,
 	chartStyle,
@@ -17,44 +17,41 @@ import {
 } from "../../utils/constants"
 import { DEBUG } from "../../utils/constants"
 
-const Acquiring = ({
-	channelList,
-	graphBufferRef,
-	xTickFormatter,
-	pause,
-	xDomain,
-	stop,
-	sampleRate
-}) => {
+const Acquiring = ({ xTickFormatter, pause, xDomain, stop, sampleRate }) => {
 	const { settings } = useSettings()
-	const channels: ChannelList = channelList
+	const { channelListRef, graphBufferRef, addAnnotation, addInterval } =
+		useDataContext()
+
 	const isDark = useDarkTheme()
 
 	const [timeArray, setTimeArray] = useState({})
 	const [pressedKeys, setPressedKeys] = useState([])
 
+	useEffect(() => {
+		console.log("Acquiring.tsx: useEffect")
+		console.log(timeArray)
+		console.log(pressedKeys)
+	}, [timeArray, pressedKeys])
+
 	// Create Annotations and Intervals
 	useEffect(() => {
 		const createAnnotation = (pressedKey, label) => {
-			const time = xDomain[1]
+			console.log("Acquiring.tsx: createAnnotation")
 
-			const newAnnotation = {
-				name: label.name,
-				color: label.color,
-				pos: time
-			}
-
-			channels.createAnnotationAllChannels(newAnnotation)
-			setTimeArray({ ...timeArray, [pressedKey]: time })
+			const pos = xDomain[1]
+			addAnnotation(pos, label)
+			setTimeArray({ ...timeArray, [pressedKey]: pos })
 		}
 
 		const createInterval = pressedKey => {
+			console.log("Acquiring.tsx: createInterval")
+
 			const startTime = timeArray[pressedKey]
 			const endTime = xDomain[1]
 			const duration = endTime - startTime
 
 			const oldAnnotation: annotationProps =
-				channels.getAnnotation(startTime)
+				channelListRef.current.getAnnotation(startTime)
 			if (oldAnnotation === undefined) return // Should not happen
 
 			if (duration < 0) {
@@ -78,8 +75,8 @@ const Acquiring = ({
 				color: oldAnnotation.color
 			}
 
-			channels.removeAnnotationAllChannels(oldAnnotation)
-			channels.createIntervalAllChannels(newInterval)
+			channelListRef.current.removeAnnotationAllChannels(oldAnnotation)
+			channelListRef.current.createIntervalAllChannels(newInterval)
 			setTimeArray(prev => ({ ...prev, [pressedKey]: null }))
 		}
 
@@ -132,14 +129,17 @@ const Acquiring = ({
 			document.removeEventListener("keyup", handleKeyRelease)
 		}
 	}, [
-		channels,
+		channelListRef,
 		xDomain,
 		sampleRate,
 		settings.eventsLabel,
 		pressedKeys,
-		timeArray
+		timeArray,
+		addAnnotation
 	])
 	// }, [channels, xDomain])
+
+	if (!channelListRef.current) return null
 
 	return (
 		<>
@@ -160,10 +160,13 @@ const Acquiring = ({
 
 			<Formik
 				initialValues={{
-					channelName: channels.names.reduce((acc, channel) => {
-						acc[channel] = channel
-						return acc
-					}, {} as Record<number, string>)
+					channelName: channelListRef.current.names.reduce(
+						(acc, channel) => {
+							acc[channel] = channel
+							return acc
+						},
+						{} as Record<number, string>
+					)
 				}}
 				onSubmit={async values => {
 					console.log(values)
@@ -171,7 +174,7 @@ const Acquiring = ({
 			>
 				<Form className="flex w-full flex-col gap-4">
 					<FormikAutoSubmit delay={100} />
-					{channels.getAllChannels().map(channel => {
+					{channelListRef.current.getAllChannels().map(channel => {
 						return (
 							<Fragment key={channel.name}>
 								<div className="flex w-full flex-row">
@@ -192,7 +195,7 @@ const Acquiring = ({
 												]
 											)}
 											channel={channel}
-											channels={channels}
+											// channels={channels}
 											domain={{
 												left: xDomain[0],
 												right: xDomain[1]

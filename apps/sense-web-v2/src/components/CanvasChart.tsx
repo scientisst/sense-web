@@ -10,7 +10,7 @@ import { annotationProps, intervalsProps } from "../utils/constants"
 export interface CanvasChartProps {
 	data: [number, number][]
 	channel: Channel
-	channels: ChannelList
+	// channels: ChannelList
 	// domain: {left: number, right: number, top: number, bottom: number}
 	domain: { left: number; right: number }
 	style: {
@@ -33,7 +33,7 @@ export interface CanvasChartProps {
 const CanvasChart: React.FC<CanvasChartProps> = ({
 	data,
 	channel,
-	channels,
+	// channels,
 	domain,
 	style,
 	xTicks,
@@ -104,73 +104,74 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 		}
 	}, [])
 
-	// Remove events on click
-	useEffect(() => {
-		if (chartUpdated === undefined) return
+	// DEPRECATED: might be useful in the future
+	// // Remove events on click
+	// useEffect(() => {
+	// 	if (chartUpdated === undefined) return
 
-		const handleCanvasClick = (event: MouseEvent) => {
-			if (event.button !== 2) return // Check if is a right click
+	// 	const handleCanvasClick = (event: MouseEvent) => {
+	// 		if (event.button !== 2) return // Check if is a right click
 
-			const canvasRect = canvasElement?.getBoundingClientRect()
-			if (!canvasRect) return
+	// 		const canvasRect = canvasElement?.getBoundingClientRect()
+	// 		if (!canvasRect) return
 
-			const mousePosition = xScale(
-				(event.clientX - canvasRect.left) * pixelRatio -
-					scaledMarginLeft
-			)
-			const [closest, distance, type] =
-				channel.getClosestEvent(mousePosition)
+	// 		const mousePosition = xScale(
+	// 			(event.clientX - canvasRect.left) * pixelRatio -
+	// 				scaledMarginLeft
+	// 		)
+	// 		const [closest, distance, type] =
+	// 			channel.getClosestEvent(mousePosition)
 
-			if (closest === undefined) return // Check if there is any annotation or interval close to the mouse position
-			if (distance > 100) return // Check if the distance is less than 10 pixels (to avoid missclicks
+	// 		if (closest === undefined) return // Check if there is any annotation or interval close to the mouse position
+	// 		if (distance > 100) return // Check if the distance is less than 10 pixels (to avoid missclicks
 
-			// Prompt the user for confirmation
-			const userConfirmed = window.confirm(
-				"Are you sure you want to delete this item?"
-			)
-			if (!userConfirmed) return
+	// 		// Prompt the user for confirmation
+	// 		const userConfirmed = window.confirm(
+	// 			"Are you sure you want to delete this item?"
+	// 		)
+	// 		if (!userConfirmed) return
 
-			const deleteAll = window.confirm(
-				"Do you want to delete all equals events in the others channels?"
-			)
+	// 		const deleteAll = window.confirm(
+	// 			"Do you want to delete all equals events in the others channels?"
+	// 		)
 
-			if (deleteAll) {
-				if (type === "annotation") {
-					channels.removeAnnotationAllChannels(
-						closest as annotationProps
-					)
-				}
-				if (type === "interval") {
-					channels.removeIntervalAllChannels(
-						closest as intervalsProps
-					)
-				}
-			} else {
-				if (type === "annotation") {
-					channel.deleteAnnotation(closest as annotationProps)
-				}
-				if (type === "interval") {
-					channel.deleteInterval(closest as intervalsProps)
-				}
-			}
+	// 		if (deleteAll) {
+	// 			if (type === "annotation") {
+	// 				channels.removeAnnotationAllChannels(
+	// 					closest as annotationProps
+	// 				)
+	// 			}
+	// 			if (type === "interval") {
+	// 				channels.removeIntervalAllChannels(
+	// 					closest as intervalsProps
+	// 				)
+	// 			}
+	// 		} else {
+	// 			if (type === "annotation") {
+	// 				channel.deleteAnnotation(closest as annotationProps)
+	// 			}
+	// 			if (type === "interval") {
+	// 				channel.deleteInterval(closest as intervalsProps)
+	// 			}
+	// 		}
 
-			chartUpdated()
-		}
+	// 		chartUpdated()
+	// 	}
 
-		// Add an event listener for the click event on the canvas
-		canvasElement?.addEventListener("mousedown", handleCanvasClick)
-		canvasElement?.addEventListener("contextmenu", event =>
-			event.preventDefault()
-		)
+	// 	// Add an event listener for the click event on the canvas
+	// 	canvasElement?.addEventListener("mousedown", handleCanvasClick)
+	// 	canvasElement?.addEventListener("contextmenu", event =>
+	// 		event.preventDefault()
+	// 	)
 
-		// Cleanup event listener on component unmount
-		return () => {
-			canvasElement?.removeEventListener("mousedown", handleCanvasClick)
-			canvasElement?.removeEventListener("contextmenu", event =>
-				event.preventDefault()
-			)
-		}
-	}, [canvasElement, channel, channels, xScale, pixelRatio, scaledMarginLeft])
+	// 	// Cleanup event listener on component unmount
+	// 	return () => {
+	// 		canvasElement?.removeEventListener("mousedown", handleCanvasClick)
+	// 		canvasElement?.removeEventListener("contextmenu", event =>
+	// 			event.preventDefault()
+	// 		)
+	// 	}
+	// }, [canvasElement, channel, channels, xScale, pixelRatio, scaledMarginLeft])
 
 	// Draw the chart
 	useEffect(() => {
@@ -363,7 +364,6 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 	}, [
 		data,
 		channel,
-		channels,
 		width,
 		height,
 		pixelRatio,
@@ -372,7 +372,8 @@ const CanvasChart: React.FC<CanvasChartProps> = ({
 		yTickFormat,
 		xTicks,
 		xTickFormat,
-		style
+		style,
+		domain
 	])
 
 	return (

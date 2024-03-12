@@ -13,8 +13,8 @@ import {
 } from "@scientisst/sense/future"
 
 import SenseLayout from "../components/layout/SenseLayout"
+import { useDataContext } from "../context/DataContext"
 import { useSettings } from "../context/SettingsContext"
-import { ChannelList } from "../utils/ChannelList"
 import Acquiring from "../views/live/Acquiring"
 import Connected from "../views/live/Connected"
 import Connecting from "../views/live/Connecting"
@@ -53,18 +53,10 @@ const disconnectDevice = async (device: Device | null) => {
 	})
 }
 
-const addChannelList = (setChannelsLists, channelsNames) => {
-	if (channelsNames.length === 0) {
-		throw new Error("No channels selected")
-	}
-
-	const channelList = ChannelList.createInstance(channelsNames)
-	setChannelsLists(prev => [...prev, channelList])
-}
-
 const Page = () => {
 	const router = useRouter()
 	const { settings } = useSettings()
+	const { saveChannels, resetChannels, graphBufferRef } = useDataContext()
 
 	const deviceRef = useRef<Device | null>(null)
 	const [status, setStatus] = useState(STATUS.DISCONNECTED)
@@ -75,7 +67,7 @@ const Page = () => {
 
 	const [acquisitionStarted, setAcquisitionStarted] = useState(false)
 
-	const [segmentCount, setSegmentCount] = useState(0)
+	// const [segmentCount, setSegmentCount] = useState(0)
 	const [numSegments, setNumSegments] = useState(0)
 
 	// Store buffer contains the frames that are queued to be saved to
@@ -85,11 +77,8 @@ const Page = () => {
 	const storeBufferThreshold = useRef(1000)
 	const [firmwareVersion, setFirmwareVersion] = useState<string | null>(null)
 
-	const [channelLists, setChannelLists] = useState<ChannelList[]>([])
-
 	const channelsNamesRef = useRef<string[]>([])
 	const [xDomain, setXDomain] = useState<[number, number]>([0, 0])
-	const graphBufferRef = useRef<[number, Frame][]>([])
 	const frameSequenceRef = useRef(0)
 
 	// The following useEffect ensures that the device is disconnected when the
@@ -106,26 +95,11 @@ const Page = () => {
 			if (buffer.length === 0) return
 
 			try {
-				const dataKey = "aq_seg" + segmentCount
+				const dataKey = `aq_${numSegments}_seg`
 				if (!(dataKey in localStorage)) {
 					localStorage.setItem(
 						dataKey + "time",
 						JSON.stringify(Date.now())
-					)
-				}
-
-				if (channelLists) {
-					localStorage.setItem(
-						"aq_channels",
-						JSON.stringify(channelLists)
-					)
-				}
-
-				const sampleRate = deviceRef.current?.getSamplingRate()
-				if (sampleRate) {
-					localStorage.setItem(
-						"aq_sampleRate",
-						JSON.stringify(sampleRate)
 					)
 				}
 
@@ -158,7 +132,7 @@ const Page = () => {
 				throw e
 			}
 		},
-		[channelLists, segmentCount]
+		[numSegments]
 	)
 
 	// Save data to local storage
@@ -170,7 +144,6 @@ const Page = () => {
 
 			// console.log("Saved data in " + saveTime + "ms")
 
-			const sampleRate = deviceRef.current?.getSamplingRate()
 			storeBufferThreshold.current = Math.max(
 				sampleRate * 5,
 				Math.min(
@@ -192,7 +165,7 @@ const Page = () => {
 				// Ignore
 			})
 		}
-	}, [router, saveData, status, storeBufferLength])
+	}, [router, saveData, status, storeBufferLength, sampleRate])
 
 	const connect = useCallback(async () => {
 		setStatus(STATUS.CONNECTING)
@@ -245,7 +218,7 @@ const Page = () => {
 
 		try {
 			await deviceRef.current.connect()
-			setSegmentCount(0)
+			// setSegmentCount(0)
 			setNumSegments(0)
 			setFirmwareVersion(
 				deviceRef.current.getFirmwareVersion()
@@ -284,19 +257,25 @@ const Page = () => {
 				deviceRef.current instanceof Maker ? "maker" : "sense"
 			)
 
-			// Save the device's ADC characteristics to localStorage
-			const adcCharacteristics =
-				deviceRef.current?.getAdcCharacteristics()
-			if (adcCharacteristics !== null) {
-				localStorage.setItem("aq_adcChars", adcCharacteristics.toJSON())
+			if (sampleRate) {
+				localStorage.setItem(
+					"aq_sampleRate",
+					JSON.stringify(sampleRate)
+				)
 			}
+
+			// DEPRECATED: Save the device's channels to localStorage
+			// // Save the device's ADC characteristics to localStorage
+			// const adcCharacteristics =
+			// 	deviceRef.current?.getAdcCharacteristics()
+			// if (adcCharacteristics !== null) {
+			// 	localStorage.setItem("aq_adcChars", adcCharacteristics.toJSON())
+			// }
 
 			// Save the total number of segments to localStorage.
 			// This is going to start at zero because we are starting the
 			// first acquisition.
 			localStorage.setItem("aq_segments", JSON.stringify(numSegments + 1))
-
-			addChannelList(setChannelLists, channelsNamesRef.current)
 
 			deviceRef.current.onFrames = data => {
 				if (data === null) return
@@ -352,11 +331,8 @@ const Page = () => {
 			setStoreBufferLength(storeBufferRef.current.length)
 
 			// Reset the list of channels being acquired so it can be filled
-			// again with the channels from the new acquisition.
-			for (const channelList of channelLists) {
-				channelList.clear()
-			}
-			channelLists.length = 0
+			// again with the channels from the new acquisition
+			resetChannels()
 
 			await deviceRef.current?.startAcquisition()
 			setStatus(STATUS.ACQUIRING)
@@ -364,7 +340,7 @@ const Page = () => {
 			console.error(error)
 			setStatus(STATUS.CONNECTION_LOST)
 		}
-	}, [])
+	}, [graphBufferRef, numSegments, resetChannels])
 
 	const stop = useCallback(async () => {
 		deviceRef.current.onError = () => {
@@ -375,12 +351,13 @@ const Page = () => {
 		try {
 			await deviceRef.current?.stopAcquisition()
 			await deviceRef.current?.disconnect()
-			localStorage.setItem("channels", JSON.stringify(channelLists))
+			saveChannels(numSegments)
 		} catch (e) {
+			console.error(e)
 			// Ignore the errors. See the comment in the onError handler above.
 		}
 		setStatus(STATUS.STOPPED)
-	}, [])
+	}, [saveChannels, numSegments])
 
 	const pause = useCallback(async () => {
 		deviceRef.current.onError = () => {
@@ -390,11 +367,12 @@ const Page = () => {
 		try {
 			await deviceRef.current?.stopAcquisition()
 			setStatus(STATUS.PAUSED)
-			localStorage.setItem("channels", JSON.stringify(channelLists))
+			saveChannels(numSegments)
 		} catch (e) {
+			console.error(e)
 			setStatus(STATUS.CONNECTION_LOST)
 		}
-	}, [])
+	}, [saveChannels, numSegments])
 
 	const resume = useCallback(async () => {
 		deviceRef.current.onError = e => {
@@ -410,33 +388,29 @@ const Page = () => {
 			// We do this before starting the acquisition to ensure that new
 			// data will not be saved in the previous segment.
 
-			addChannelList(setChannelLists, channelsNamesRef.current)
-
-			setSegmentCount(prev => prev + 1)
 			setNumSegments(prev => prev + 1)
+			// setNumSegments(prev => prev + 1)
 
 			// Ensure we don't store frames from previous acquisitions
 			storeBufferRef.current = []
 			setStoreBufferLength(storeBufferRef.current.length)
 
 			// Reset charts
-			graphBufferRef.current = []
 			setXDomain([0, 0])
 			frameSequenceRef.current = 0
 
 			await deviceRef.current?.startAcquisition()
 			setStatus(STATUS.ACQUIRING)
 
+			resetChannels()
+
 			// Now that acquisition has started, we need to update the
 			// localStorage entry with the new segment number.
-			localStorage.setItem(
-				"aq_segments",
-				JSON.stringify(segmentCount + 2)
-			)
+			localStorage.setItem("aq_segments", JSON.stringify(numSegments + 2))
 		} catch (e) {
 			setStatus(STATUS.CONNECTION_LOST)
 		}
-	}, [segmentCount])
+	}, [numSegments, resetChannels])
 
 	const xTickFormatter = useCallback((value: number) => {
 		const samplingRate = deviceRef.current?.getSamplingRate()
@@ -454,44 +428,36 @@ const Page = () => {
 		return `${minutes}:${seconds}`
 	}, [])
 
-	const submit = useCallback(() => {
-		deviceRef.current.onError = () => {
-			// We are already stopping and disconnecting the device, we don't
-			// really care about errors from this point onwards.
-		}
+	// const submit = useCallback(() => {
+	// 	try {
+	// 		disconnectDevice(deviceRef.current)
+	// 		saveChannels(numSegments)
+	// 		setStatus(STATUS.STOPPED)
+	// 	} catch (e) {
+	// 		console.error(e)
+	// 		setStatus(STATUS.CONNECTION_LOST)
+	// 	}
+	// }, [])
 
-		try {
-			localStorage.setItem("aq_channels", JSON.stringify(channelLists))
-			setStatus(STATUS.STOPPED)
-		} catch (e) {
-			console.error(e)
-			setStatus(STATUS.CONNECTION_LOST)
-		}
-	}, [channelLists])
+	// const changeSegments = useCallback(
+	// 	(direction: string) => {
+	// 		if (
+	// 			(segmentCount === 0 && direction === "previous") ||
+	// 			(segmentCount === numSegments && direction === "next")
+	// 		) {
+	// 			throw new Error(
+	// 				"Segment count out of bounds, should not happen"
+	// 			)
+	// 		}
 
-	const changeSegments = useCallback(
-		(direction: string) => {
-			if (
-				(segmentCount === 0 && direction === "previous") ||
-				(segmentCount === numSegments && direction === "next")
-			) {
-				throw new Error(
-					"Segment count out of bounds, should not happen"
-				)
-			}
-
-			if (direction === "next") {
-				setSegmentCount(prev => prev + 1)
-			} else if (direction === "previous") {
-				setSegmentCount(prev => prev - 1)
-			}
-		},
-		[segmentCount, numSegments]
-	)
-
-	useEffect(() => {
-		console.log(channelLists)
-	}, [channelLists])
+	// 		if (direction === "next") {
+	// 			setSegmentCount(prev => prev + 1)
+	// 		} else if (direction === "previous") {
+	// 			setSegmentCount(prev => prev - 1)
+	// 		}
+	// 	},
+	// 	[segmentCount, numSegments]
+	// )
 
 	return (
 		<SenseLayout
@@ -514,9 +480,9 @@ const Page = () => {
 			{status === STATUS.STOPPED_AND_SAVED && <Stopped />}
 			{status === STATUS.CONNECTED && (
 				<Connected
+					firmwareVersion={firmwareVersion}
 					start={start}
 					disconnect={disconnect}
-					firmwareVersion={firmwareVersion}
 				/>
 			)}
 			{status === STATUS.CONNECTION_LOST && acquisitionStarted && (
@@ -529,8 +495,6 @@ const Page = () => {
 
 			{status === STATUS.ACQUIRING && (
 				<Acquiring
-					channelList={channelLists[segmentCount]}
-					graphBufferRef={graphBufferRef}
 					pause={pause}
 					stop={stop}
 					xTickFormatter={xTickFormatter}
