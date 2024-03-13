@@ -8,8 +8,6 @@ import {
 } from "@scientisst/react-ui/components/inputs"
 import { Field, FieldArray } from "formik"
 
-import { eventProps } from "../../utils/constants"
-
 const colors = [
 	"rgb(255, 0, 0)",
 	"rgb(0, 255, 0)",
@@ -60,13 +58,14 @@ const selectColor = eventsLabel => {
 	return availableColor || colors[0]
 }
 
-const newEvent: (eventsLabel: eventProps[]) => eventProps = eventsLabel => {
-	return {
+const createEvent = eventsLabel => {
+	const newEvent = {
 		name: "new event",
 		color: selectColor(eventsLabel),
 		key: "n",
 		toggle: "false"
 	}
+	return newEvent
 }
 
 const EventsTable = ({ events, remove }) => {
@@ -178,7 +177,7 @@ const systemSettings = () => {
 
 							<TextButton
 								size={"base"}
-								onClick={() => push(newEvent(eventsLabel))}
+								onClick={() => push(createEvent(eventsLabel))}
 							>
 								Create event
 							</TextButton>

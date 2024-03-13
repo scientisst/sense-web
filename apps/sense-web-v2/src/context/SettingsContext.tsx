@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from "react"
 
 import { SCIENTISST_COMUNICATION_MODE } from "@scientisst/sense/future"
 
-type Event = {
+type EventLabel = {
 	name: string
 	key: string
 	color: string
@@ -15,7 +15,7 @@ type Settings = {
 	baudRate: number
 	samplingRate: number
 	channels: string[]
-	eventsLabel: Event[]
+	eventsLabel: EventLabel[]
 }
 
 const defaultSettings: Settings = {
