@@ -40,19 +40,19 @@ const importFromLocalStorage = (): ImportResult => {
 
 	const channelNames = channelsListArray[0].names
 
-	const frames = []
+	const framesArray = []
 
 	for (let i = 0; i < numSegments; i++) {
 		// Frames
 		if (deviceType === "sense") {
-			frames.push(
+			framesArray.push(
 				ScientISSTFrame.deserializeAll(
 					localStorage.getItem(`aq_${i}_seg`),
 					new Set(channelNames)
 				)
 			)
 		} else {
-			frames.push(
+			framesArray.push(
 				MakerFrame.deserializeAll(
 					localStorage.getItem(`aq_${i}_seg`),
 					new Set(channelNames)
@@ -67,7 +67,7 @@ const importFromLocalStorage = (): ImportResult => {
 		sampleRate,
 		channelNames,
 		channelsListArray,
-		frames
+		framesArray
 	]
 }
 
@@ -175,8 +175,8 @@ const Page = () => {
 			deviceType,
 			sampleRate,
 			channelNames,
-			channelsList,
-			framesList
+			channelsListArray,
+			framesArray
 		]: ImportResult = importFromLocalStorage()
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
@@ -187,8 +187,9 @@ const Page = () => {
 		let firstTimestamp = 0
 
 		for (let segment = 0; segment < numSegments; segment++) {
-			const frames: (MakerFrame | ScientISSTFrame)[] = framesList[segment]
-			const channels = channelsList[segment]
+			const frames: (MakerFrame | ScientISSTFrame)[] =
+				framesArray[segment]
+			const channels = channelsListArray[segment]
 
 			if (frames.length === 0) {
 				continue
@@ -375,14 +376,18 @@ const Page = () => {
 			deviceType,
 			sampleRate,
 			channelNames,
-			channelsList,
-			framesList
+			channelsListArray,
+			framesArray
 		]: ImportResult = importFromLocalStorage()
 
 		// Only the last segment is used to generate the PDF
 		const selectedSegment = numSegments - 1
-		const channels = channelsList[selectedSegment]
-		const frames = framesList[selectedSegment]
+		const channels = channelsListArray[selectedSegment]
+		const frames = framesArray[selectedSegment]
+
+		console.log(selectedSegment)
+		console.log(channels)
+		console.log(frames)
 
 		if (deviceType !== "sense" && deviceType !== "maker") {
 			throw new Error("Device type not supported yet.")

@@ -257,12 +257,10 @@ const Page = () => {
 				deviceRef.current instanceof Maker ? "maker" : "sense"
 			)
 
-			if (sampleRate) {
-				localStorage.setItem(
-					"aq_sampleRate",
-					JSON.stringify(sampleRate)
-				)
-			}
+			localStorage.setItem(
+				"aq_sampleRate",
+				JSON.stringify(settings.samplingRate)
+			)
 
 			// DEPRECATED: Save the device's channels to localStorage
 			// // Save the device's ADC characteristics to localStorage
